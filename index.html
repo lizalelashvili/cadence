@@ -13,9 +13,9 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="application-name" content="CADENCE" />
 
-  <!-- Dynamic SVG App Icons for Home Screen Shortcut (Updated via JS when theme changes) -->
-  <link id="appleTouchIcon" rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230A0A0C'/%3E%3Crect x='24' y='24' width='132' height='132' rx='28' fill='%23141418' stroke='%23232329' stroke-width='3'/%3E%3Cg transform='translate(44,44)'%3E%3Crect x='0' y='0' width='26' height='26' rx='6' fill='%23FF4D94'/%3E%3Crect x='33' y='0' width='26' height='26' rx='6' fill='%23FF4D94' fill-opacity='0.75'/%3E%3Crect x='66' y='0' width='26' height='26' rx='6' fill='%23232329'/%3E%3Crect x='0' y='33' width='26' height='26' rx='6' fill='%23232329'/%3E%3Crect x='33' y='33' width='26' height='26' rx='6' fill='%23FF4D94'/%3E%3Crect x='66' y='33' width='26' height='26' rx='6' fill='%23FF4D94'/%3E%3Crect x='0' y='66' width='26' height='26' rx='6' fill='%23FF4D94' fill-opacity='0.5'/%3E%3Crect x='33' y='66' width='26' height='26' rx='6' fill='%23232329'/%3E%3Crect x='66' y='66' width='26' height='26' rx='6' fill='%23FF4D94'/%3E%3C/g%3E%3C/svg%3E" />
-  <link id="faviconIcon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230A0A0C'/%3E%3Crect x='14' y='14' width='15' height='15' rx='4' fill='%23FF4D94'/%3E%3Crect x='35' y='14' width='15' height='15' rx='4' fill='%23232329'/%3E%3Crect x='14' y='35' width='15' height='15' rx='4' fill='%23232329'/%3E%3Crect x='35' y='35' width='15' height='15' rx='4' fill='%23FF4D94'/%3E%3C/svg%3E" />
+  <!-- Dynamic PNG App Icons for Home Screen Shortcut (Rendered via Canvas for full iOS & Android support) -->
+  <link id="appleTouchIcon" rel="apple-touch-icon" href="" />
+  <link id="faviconIcon" rel="icon" type="image/png" href="" />
 
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -555,6 +555,56 @@
     /*************************************************************************
      * ACCENT COLOR THEME HELPERS & DYNAMIC PWA ICON GENERATOR
      *************************************************************************/
+    function generateAppIconPng(accentHex, size = 512) {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      // Full-bleed dark background (iOS automatically applies its rounded squircle mask)
+      ctx.fillStyle = '#0E0E12';
+      ctx.fillRect(0, 0, size, size);
+
+      // Subtle inner rounded card matching the header logo container
+      const inset = Math.round(size * 0.08);
+      const cardSize = size - inset * 2;
+      const cardRadius = Math.round(size * 0.22);
+      ctx.fillStyle = '#141418';
+      ctx.beginPath();
+      ctx.roundRect(inset, inset, cardSize, cardSize, cardRadius);
+      ctx.fill();
+
+      // Exact 2x2 diagonal square grid from the header logo
+      const gridSize = Math.round(size * 0.50);
+      const gap = Math.round(size * 0.08);
+      const cell = (gridSize - gap) / 2;
+      const cellRadius = Math.round(cell * 0.24);
+      const startX = (size - gridSize) / 2;
+      const startY = (size - gridSize) / 2;
+
+      const cells = [
+        { col: 0, row: 0, color: accentHex }, // Top-Left: Accent
+        { col: 1, row: 0, color: '#232329' }, // Top-Right: Dark Slate
+        { col: 0, row: 1, color: '#232329' }, // Bottom-Left: Dark Slate
+        { col: 1, row: 1, color: accentHex }  // Bottom-Right: Accent
+      ];
+
+      cells.forEach(({ col, row, color }) => {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.roundRect(
+          startX + col * (cell + gap),
+          startY + row * (cell + gap),
+          cell,
+          cell,
+          cellRadius
+        );
+        ctx.fill();
+      });
+
+      return canvas.toDataURL('image/png');
+    }
+
     function getThemeObj() {
       return ACCENT_THEMES[appState.accent] || ACCENT_THEMES.pink;
     }
@@ -572,15 +622,14 @@
       root.style.setProperty('--accent-border', `rgba(${theme.rgb}, 0.35)`);
       root.style.setProperty('--accent-glow', `rgba(${theme.rgb}, 0.42)`);
 
-      // Dynamically update the home screen icon & favicon SVG to match chosen color
-      const encodedHex = encodeURIComponent(theme.hex);
-      const appleSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230A0A0C'/%3E%3Crect x='24' y='24' width='132' height='132' rx='28' fill='%23141418' stroke='%23232329' stroke-width='3'/%3E%3Cg transform='translate(44,44)'%3E%3Crect x='0' y='0' width='26' height='26' rx='6' fill='${encodedHex}'/%3E%3Crect x='33' y='0' width='26' height='26' rx='6' fill='${encodedHex}' fill-opacity='0.75'/%3E%3Crect x='66' y='0' width='26' height='26' rx='6' fill='%23232329'/%3E%3Crect x='0' y='33' width='26' height='26' rx='6' fill='%23232329'/%3E%3Crect x='33' y='33' width='26' height='26' rx='6' fill='${encodedHex}'/%3E%3Crect x='66' y='33' width='26' height='26' rx='6' fill='${encodedHex}'/%3E%3Crect x='0' y='66' width='26' height='26' rx='6' fill='${encodedHex}' fill-opacity='0.5'/%3E%3Crect x='33' y='66' width='26' height='26' rx='6' fill='%23232329'/%3E%3Crect x='66' y='66' width='26' height='26' rx='6' fill='${encodedHex}'/%3E%3C/g%3E%3C/svg%3E`;
-      const favSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230A0A0C'/%3E%3Crect x='14' y='14' width='15' height='15' rx='4' fill='${encodedHex}'/%3E%3Crect x='35' y='14' width='15' height='15' rx='4' fill='%23232329'/%3E%3Crect x='14' y='35' width='15' height='15' rx='4' fill='%23232329'/%3E%3Crect x='35' y='35' width='15' height='15' rx='4' fill='${encodedHex}'/%3E%3C/svg%3E`;
+      // Generate high-res PNG icons matching the exact 2x2 diagonal logo (iOS Safari requires PNG for apple-touch-icon)
+      const applePng = generateAppIconPng(theme.hex, 512);
+      const favPng = generateAppIconPng(theme.hex, 128);
 
       const appleEl = document.getElementById('appleTouchIcon');
       const favEl = document.getElementById('faviconIcon');
-      if (appleEl) appleEl.setAttribute('href', appleSvg);
-      if (favEl) favEl.setAttribute('href', favSvg);
+      if (appleEl) appleEl.setAttribute('href', applePng);
+      if (favEl) favEl.setAttribute('href', favPng);
 
       // Update inline Web App Manifest so Android/iOS opens in true standalone full-screen app mode
       const manifestObj = {
@@ -592,8 +641,8 @@
         background_color: '#0A0A0C',
         theme_color: '#0A0A0C',
         icons: [
-          { src: appleSvg, sizes: '180x180', type: 'image/svg+xml', purpose: 'any maskable' },
-          { src: appleSvg, sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
+          { src: applePng, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+          { src: applePng, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
         ]
       };
       const manifestEl = document.getElementById('pwaManifest');
