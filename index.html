@@ -11,10 +11,11 @@
   <meta name="apple-mobile-web-app-title" content="CADENCE" />
   <meta name="theme-color" content="#0A0A0C" />
 
-  <!-- Dynamic App Icons & Manifest -->
-  <link id="appleTouchIcon" rel="apple-touch-icon" sizes="180x180" />
-  <link id="appleTouchIcon512" rel="apple-touch-icon" sizes="512x512" />
-  <link id="faviconIcon" rel="icon" type="image/png" />
+  <!-- Static & Dynamic App Icons & Manifest -->
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+  <link id="appleTouchIcon" rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+  <link id="appleTouchIcon512" rel="apple-touch-icon" sizes="512x512" href="./apple-touch-icon.png" />
+  <link id="faviconIcon" rel="icon" type="image/png" href="./apple-touch-icon.png" />
   <link id="appManifest" rel="manifest" />
   <script>
     (function generateImmediateCadenceIcons() {
@@ -75,10 +76,18 @@
         document.getElementById('appleTouchIcon512').href = icon512;
         document.getElementById('faviconIcon').href = icon180;
 
+        let startUrl = './index.html';
+        try {
+          const sess = JSON.parse(localStorage.getItem('cadence_account_session_v1') || 'null');
+          if (sess && sess.username && sess.passHash) {
+            startUrl = `./index.html?u=${encodeURIComponent(sess.username)}&h=${encodeURIComponent(sess.passHash)}`;
+          }
+        } catch (_) {}
+
         const manifestObj = {
           name: 'CADENCE — 365-Day Workout Tracker',
           short_name: 'CADENCE',
-          start_url: './index.html',
+          start_url: startUrl,
           display: 'standalone',
           background_color: '#0A0A0C',
           theme_color: '#0A0A0C',
@@ -152,6 +161,10 @@
     .accent-border { border-color: var(--accent) !important; }
     .accent-glow { box-shadow: 0 0 18px var(--accent-glow); }
 
+    .safe-header-top {
+      padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
+    }
+
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -194,7 +207,7 @@
   <div class="max-w-lg mx-auto min-h-screen flex flex-col pb-28">
 
     <!-- Top Sticky Header -->
-    <header class="sticky top-0 z-30 bg-obsidian/90 backdrop-blur-xl border-b border-borderDark/80 pt-3 pb-2.5 px-3.5">
+    <header class="sticky top-0 z-30 bg-obsidian/90 backdrop-blur-xl border-b border-borderDark/80 safe-header-top pb-2.5 px-3.5">
       <div class="flex items-center justify-between gap-2">
         <!-- Brand & Streak -->
         <div class="flex items-center gap-2 min-w-0">
@@ -897,6 +910,25 @@
 
     async function hydrateStateFromVault() {
       initSupabase();
+
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const urlUser = (params.get('u') || '').toLowerCase().trim();
+        const urlHash = (params.get('h') || '').trim();
+        if (urlUser && urlHash) {
+          const existing = JSON.parse(localStorage.getItem(ACCOUNT_SESSION_KEY) || 'null');
+          if (!existing || existing.username !== urlUser) {
+            localStorage.removeItem(GUEST_MODE_KEY);
+            localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify({
+              username: urlUser,
+              passHash: urlHash,
+              expiresAt: Date.now() + SIXTY_DAYS_MS
+            }));
+          }
+          window.history.replaceState({}, '', window.location.pathname);
+        }
+      } catch (_) {}
+
       try {
         const rawSess = JSON.parse(localStorage.getItem(ACCOUNT_SESSION_KEY) || 'null');
         if (rawSess && rawSess.username && (!rawSess.expiresAt || Date.now() < rawSess.expiresAt)) {
@@ -3553,6 +3585,18 @@
       const isSandboxed = window.location.protocol === 'about:' || window.location.href.startsWith('blob:');
       if (!isSandboxed) {
         try {
+          const params = new URLSearchParams(window.location.search);
+          const urlUser = (params.get('u') || '').toLowerCase().trim();
+          const urlHash = (params.get('h') || '').trim();
+          if (urlUser && urlHash) {
+            localStorage.removeItem(GUEST_MODE_KEY);
+            localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify({
+              username: urlUser,
+              passHash: urlHash,
+              expiresAt: Date.now() + SIXTY_DAYS_MS
+            }));
+          }
+
           const sess = JSON.parse(localStorage.getItem(ACCOUNT_SESSION_KEY) || 'null');
           const isGuest = localStorage.getItem(GUEST_MODE_KEY) === 'true';
           const isValid = sess && sess.username && (!sess.expiresAt || Date.now() < sess.expiresAt);

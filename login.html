@@ -10,9 +10,10 @@
   <meta name="apple-mobile-web-app-title" content="CADENCE" />
   <meta name="theme-color" content="#0A0A0C" />
 
-  <link id="appleTouchIcon" rel="apple-touch-icon" sizes="180x180" />
-  <link id="appleTouchIcon512" rel="apple-touch-icon" sizes="512x512" />
-  <link id="faviconIcon" rel="icon" type="image/png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+  <link id="appleTouchIcon" rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+  <link id="appleTouchIcon512" rel="apple-touch-icon" sizes="512x512" href="./apple-touch-icon.png" />
+  <link id="faviconIcon" rel="icon" type="image/png" href="./apple-touch-icon.png" />
   <link id="appManifest" rel="manifest" />
   <script>
     (function generateImmediateLoginIcons() {
@@ -73,10 +74,18 @@
         document.getElementById('appleTouchIcon512').href = icon512;
         document.getElementById('faviconIcon').href = icon180;
 
+        let startUrl = './index.html';
+        try {
+          const sess = JSON.parse(localStorage.getItem('cadence_account_session_v1') || 'null');
+          if (sess && sess.username && sess.passHash) {
+            startUrl = `./index.html?u=${encodeURIComponent(sess.username)}&h=${encodeURIComponent(sess.passHash)}`;
+          }
+        } catch (_) {}
+
         const manifestObj = {
           name: 'CADENCE — 365-Day Workout Tracker',
           short_name: 'CADENCE',
-          start_url: './index.html',
+          start_url: startUrl,
           display: 'standalone',
           background_color: '#0A0A0C',
           theme_color: '#0A0A0C',
@@ -128,6 +137,8 @@
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       margin: 0;
       padding: 0;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
     }
   </style>
 </head>
