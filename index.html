@@ -355,10 +355,11 @@
       if (!supabaseClient || !username) return false;
       try {
         cloudSyncStatus = 'syncing';
+        const cleanUser = username.toLowerCase().trim();
         const { error } = await supabaseClient
           .from('cadence_profiles')
           .upsert({
-            username: username.toLowerCase().trim(),
+            username: cleanUser,
             pass_hash: passHash || snapshot._passHash || '',
             state_json: snapshot,
             updated_at: new Date().toISOString()
@@ -785,7 +786,7 @@
 
       if (supabaseClient) {
         const hash = (accountSession && accountSession.passHash) || stateSnapshot._passHash || '';
-        pushStateToSupabase(username, hash, stateSnapshot);
+        await pushStateToSupabase(username, hash, stateSnapshot);
       }
     }
 
@@ -869,7 +870,8 @@
       isStateHydrated = true;
       applyTheme(appState.accent, false);
       updateAccountHeaderUI();
-      await saveState(false);
+      // Immediately sync local phone state up to Supabase on app load so your table row is always up to date
+      await saveState(true);
     }
 
     async function saveState(bumpTimestamp = true) {
