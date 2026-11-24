@@ -3,42 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>CADENCE — Workout &amp; Progressive Overload Tracker</title>
+  <title>Sign In — CADENCE 365-Day Workout Tracker</title>
 
-  <!-- Native Mobile App / PWA Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="CADENCE" />
-  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#0A0A0C" />
-  <meta name="application-name" content="CADENCE" />
 
-  <!-- Dynamic PNG App Icon & Manifest Links (Populated on Load for iOS & Android) -->
   <link id="appleTouchIcon" rel="apple-touch-icon" sizes="512x512" />
   <link id="faviconIcon" rel="icon" type="image/png" />
-  <link id="pwaManifest" rel="manifest" />
 
-  <!-- Inter Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'sans-serif'],
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
           },
           colors: {
             obsidian: '#0A0A0C',
             surface: '#141418',
-            surfaceHover: '#1B1B20',
             borderDark: '#232329',
-            accent: 'var(--accent)',
             coralAccent: '#FF5E3A',
             mutedText: '#8E8E93',
           },
@@ -47,812 +39,241 @@
     };
   </script>
 
-  <!-- Optional Cloud Sync SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    window._cloudSDK = {
-      initializeApp,
-      getAuth,
-      signInAnonymously,
-      signInWithCustomToken,
-      getFirestore,
-      doc,
-      getDoc,
-      setDoc,
-      onSnapshot
-    };
-    window.dispatchEvent(new Event('cloud-sdk-ready'));
-  </script>
-
   <style>
-    :root {
-      --accent: #FF4D94;
-      --accent-soft: rgba(255, 77, 148, 0.14);
-      --accent-border: rgba(255, 77, 148, 0.35);
-      --tier-1: #4A182D;
-      --tier-2: #87264F;
-      --tier-3: #C93673;
-      --tier-4: #FF4D94;
-    }
-
     * {
       -webkit-tap-highlight-color: transparent;
       box-sizing: border-box;
     }
-
     html, body {
       background-color: #0A0A0C;
       color: #F5F5F7;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      overscroll-behavior-y: none;
       margin: 0;
       padding: 0;
-      min-height: 100dvh;
-    }
-
-    /* Hide scrollbars cleanly on horizontal grid / tabs */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-
-    /* CADENCE 365-Day Square Matrix */
-    .year-grid-wrapper {
-      display: grid;
-      grid-template-rows: repeat(7, 11px);
-      grid-auto-flow: column;
-      grid-auto-columns: 11px;
-      gap: 3.5px;
-      width: max-content;
-    }
-
-    /* Full-Screen 365-Day Matrix (Preserves exact square aspect ratio & clean spacing) */
-    .year-grid-fullscreen-scroll {
-      display: grid;
-      grid-template-rows: repeat(7, 15px);
-      grid-auto-flow: column;
-      grid-auto-columns: 15px;
-      gap: 4.5px;
-      width: max-content;
-    }
-    .year-grid-fullscreen-scroll .grid-sq-fs {
-      width: 15px;
-      height: 15px;
-      border-radius: 3.5px;
-      transition: transform 0.12s ease, background-color 0.2s ease;
-    }
-    .year-grid-fullscreen-scroll .grid-sq-fs:active {
-      transform: scale(1.3);
-    }
-
-    .grid-sq {
-      width: 11px;
-      height: 11px;
-      border-radius: 3px;
-      transition: transform 0.12s ease, background-color 0.2s ease;
-    }
-    .grid-sq:active {
-      transform: scale(1.35);
-    }
-
-    /* Intensity tiers (CADENCE dynamic theme palette) */
-    .tier-0 { background-color: #1B1B20; border: 1px solid #24242B; }
-    .tier-1 { background-color: var(--tier-1); border: 1px solid rgba(255, 255, 255, 0.08); }
-    .tier-2 { background-color: var(--tier-2); border: 1px solid rgba(255, 255, 255, 0.12); }
-    .tier-3 { background-color: var(--tier-3); border: 1px solid rgba(255, 255, 255, 0.16); }
-    .tier-4 { background-color: var(--tier-4); box-shadow: 0 0 8px var(--accent-soft); }
-
-    /* Safe-area padding for notched iOS / Android home-screen shortcuts */
-    .safe-top {
-      padding-top: max(14px, env(safe-area-inset-top));
-    }
-    .safe-bottom {
-      padding-bottom: max(14px, env(safe-area-inset-bottom));
-    }
-
-    /* Smooth bottom sheet modal animation */
-    @keyframes slideUp {
-      from { transform: translateY(24px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    .animate-sheet {
-      animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
   </style>
 </head>
-<body class="bg-obsidian text-white antialiased selection:bg-accent selection:text-obsidian">
+<body class="bg-obsidian text-[#F5F5F7] antialiased min-h-[100dvh] flex flex-col justify-center px-5 py-8">
 
-  <!-- Main Mobile App Container -->
-  <div id="app" class="max-w-md mx-auto min-h-[100dvh] flex flex-col justify-between relative pb-24">
+  <main class="w-full max-w-sm mx-auto space-y-6">
+    <!-- Brand Mark -->
+    <div class="flex flex-col items-center text-center space-y-3">
+      <div class="w-14 h-14 rounded-2xl bg-surface border border-borderDark flex items-center justify-center shadow-2xl">
+        <div class="grid grid-cols-2 gap-1.5">
+          <span id="brandSq1" class="w-3.5 h-3.5 rounded-[4px]" style="background-color: #FF4D94;"></span>
+          <span class="w-3.5 h-3.5 rounded-[4px] bg-borderDark"></span>
+          <span class="w-3.5 h-3.5 rounded-[4px] bg-borderDark"></span>
+          <span id="brandSq2" class="w-3.5 h-3.5 rounded-[4px]" style="background-color: #FF4D94;"></span>
+        </div>
+      </div>
+      <div>
+        <h1 class="text-xl font-extrabold tracking-tight text-white">CADENCE</h1>
+        <p class="text-xs text-mutedText mt-1">365-Day Workout &amp; Progressive Overload Tracker</p>
+      </div>
+    </div>
 
-    <!-- Top Sticky Header & 7-Day Weekly Rhythm Strip -->
-    <header class="sticky top-0 z-30 bg-obsidian/90 backdrop-blur-xl border-b border-borderDark/80 safe-top px-4 pb-3">
-      <div class="flex items-center justify-between gap-2">
-        <!-- App Identity & Streak -->
-        <div class="flex items-center gap-2.5 min-w-0">
-          <div class="w-9 h-9 rounded-xl bg-surface border border-borderDark flex items-center justify-center shrink-0">
-            <div class="grid grid-cols-2 gap-1">
-              <span class="w-2 h-2 rounded-[2px]" style="background-color: var(--accent);"></span>
-              <span class="w-2 h-2 rounded-[2px] bg-borderDark"></span>
-              <span class="w-2 h-2 rounded-[2px] bg-borderDark"></span>
-              <span class="w-2 h-2 rounded-[2px]" style="background-color: var(--accent);"></span>
-            </div>
-          </div>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h1 class="text-base font-extrabold tracking-tight text-white leading-none">CADENCE</h1>
-              <span class="text-[9px] font-bold uppercase tracking-wider text-mutedText leading-none">LOG</span>
-            </div>
-            <div class="flex items-center gap-1.5 mt-1.5">
-              <span id="streakBadge" class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border whitespace-nowrap leading-none">
-                🔥 0w Streak
-              </span>
-              <span id="totalDaysBadge" class="text-[10px] text-mutedText font-semibold whitespace-nowrap leading-none">0/365d</span>
-            </div>
-          </div>
+    <!-- Active Session Quick Resume Banner (if already signed in) -->
+    <div id="existingSessionBanner" class="hidden bg-surface border border-borderDark rounded-2xl p-3.5 flex items-center justify-between gap-3">
+      <div class="min-w-0">
+        <p class="text-[10px] font-extrabold uppercase tracking-wider text-mutedText">Active Profile</p>
+        <p id="existingSessionUser" class="text-xs font-extrabold text-white truncate">@user</p>
+      </div>
+      <button id="resumeBtn" type="button" onclick="goToMainApp()" class="px-3.5 py-2 rounded-xl text-xs font-extrabold text-obsidian shrink-0 transition active:scale-95" style="background-color: #FF4D94;">
+        Open App →
+      </button>
+    </div>
+
+    <!-- Auth Card -->
+    <section class="bg-surface border border-borderDark rounded-3xl p-5 shadow-2xl space-y-4">
+      <!-- Mode Switcher -->
+      <div class="grid grid-cols-2 gap-1.5 bg-obsidian border border-borderDark p-1 rounded-2xl">
+        <button id="tabSignIn" type="button" onclick="switchAuthMode('signin')" class="py-2 rounded-xl text-xs font-extrabold text-obsidian transition" style="background-color: #FF4D94;">
+          Sign In
+        </button>
+        <button id="tabSignUp" type="button" onclick="switchAuthMode('signup')" class="py-2 rounded-xl text-xs font-extrabold text-mutedText hover:text-white transition">
+          Create Account
+        </button>
+      </div>
+
+      <form onsubmit="event.preventDefault(); submitLoginForm();" class="space-y-3.5">
+        <div>
+          <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Username</label>
+          <input id="loginUsername" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. alexlifts" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-3 text-base sm:text-sm text-white focus:outline-none focus:border-white/40" />
         </div>
 
-        <!-- Right Header Actions -->
-        <div class="flex items-center gap-1.5 shrink-0">
-          <!-- Account / Cloud Sync Pill -->
-          <button onclick="openAccountModal()" id="headerAccountBtn" class="px-2.5 py-2 rounded-xl bg-surface hover:bg-surfaceHover border border-borderDark flex items-center gap-1.5 transition active:scale-95" title="Account & Cloud Sync">
-            <span id="headerSyncDot" class="w-2 h-2 rounded-full bg-mutedText transition-colors"></span>
-            <span id="headerAccountLabel" class="text-[11px] font-bold text-white max-w-[66px] truncate">Sign In</span>
-          </button>
+        <div>
+          <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Password</label>
+          <input id="loginPassword" type="password" autocomplete="current-password" placeholder="••••••••" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-3 text-base sm:text-sm text-white focus:outline-none focus:border-white/40" />
+        </div>
 
-          <!-- Theme Color Quick Switcher -->
-          <button onclick="openThemePickerModal()" class="p-2 rounded-xl bg-surface hover:bg-surfaceHover border border-borderDark flex items-center justify-center transition active:scale-95" title="Change App Color" aria-label="Change App Color">
-            <span class="w-4 h-4 rounded-full block border border-white/25 transition-colors" style="background-color: var(--accent);"></span>
-          </button>
+        <div id="loginError" class="hidden text-xs font-semibold text-coralAccent bg-coralAccent/10 border border-coralAccent/30 rounded-xl px-3 py-2"></div>
 
-          <!-- Quick Log Today Button -->
-          <button onclick="openLoggerForDate(getTodayStr())" class="px-3 py-2 rounded-xl font-bold text-xs text-obsidian flex items-center gap-1 active:scale-95 transition whitespace-nowrap" style="background-color: var(--accent);">
-            <svg class="w-3.5 h-3.5 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            <span>Log</span>
+        <button id="submitBtn" type="submit" class="w-full py-3.5 rounded-2xl text-xs font-extrabold text-obsidian shadow-lg active:scale-[0.98] transition" style="background-color: #FF4D94;">
+          Sign In &amp; Open Tracker
+        </button>
+      </form>
+
+      <!-- Supabase Server Config Toggle -->
+      <div class="pt-1">
+        <button type="button" onclick="toggleSupabaseBox()" class="w-full flex items-center justify-between text-[11px] font-bold text-mutedText hover:text-white py-1">
+          <span class="flex items-center gap-1.5">
+            <span id="sbStatusDot" class="w-2 h-2 rounded-full bg-mutedText"></span>
+            <span id="sbStatusText">Supabase Cloud Sync (Optional)</span>
+          </span>
+          <span id="sbChevron">▾</span>
+        </button>
+        <div id="sbConfigBox" class="hidden mt-2 p-3 rounded-2xl bg-obsidian border border-borderDark space-y-2.5">
+          <input id="loginSbUrl" type="url" placeholder="Supabase Project URL (https://...supabase.co)" class="w-full bg-surface border border-borderDark rounded-xl px-3 py-2 text-xs text-white focus:outline-none" />
+          <input id="loginSbKey" type="text" placeholder="Supabase Anon Public Key" class="w-full bg-surface border border-borderDark rounded-xl px-3 py-2 text-xs text-white focus:outline-none" />
+          <button type="button" onclick="saveLoginSupabaseConfig()" class="w-full py-2 rounded-xl bg-surface border border-borderDark text-[11px] font-extrabold text-white hover:border-white/20">
+            Save Server Credentials
           </button>
         </div>
       </div>
 
-      <!-- 7-Day Weekly Rhythm Strip -->
-      <div id="weeklyStrip" class="grid grid-cols-7 gap-1.5 mt-3"></div>
-    </header>
-
-    <!-- Dynamic Main Screen Content -->
-    <main id="mainContent" class="flex-1 px-4 pt-4 space-y-5 overflow-x-hidden"></main>
-
-    <!-- Bottom Tab Navigation -->
-    <nav class="fixed bottom-0 left-0 right-0 z-30 bg-obsidian/95 backdrop-blur-xl border-t border-borderDark safe-bottom">
-      <div class="max-w-md mx-auto grid grid-cols-4 px-2 pt-2 pb-1">
-        <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl transition">
-          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <rect x="3" y="4" width="18" height="18" rx="3" />
-            <path d="M16 2v4M8 2v4M3 10h18" />
-          </svg>
-          <span class="text-[10px] font-semibold">Year Grid</span>
-        </button>
-
-        <button onclick="switchTab('logger')" id="nav-logger" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl transition">
-          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
-          </svg>
-          <span class="text-[10px] font-semibold">Workout</span>
-        </button>
-
-        <button onclick="switchTab('overload')" id="nav-overload" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl transition">
-          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
-          </svg>
-          <span class="text-[10px] font-semibold">Overload</span>
-        </button>
-
-        <button onclick="switchTab('routines')" id="nav-routines" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl transition">
-          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
-          </svg>
-          <span class="text-[10px] font-semibold">Routines</span>
-        </button>
+      <div class="pt-2 border-t border-borderDark flex items-center justify-between text-[11px]">
+        <span class="text-mutedText">Train without an account?</span>
+        <a id="guestLink" href="./index.html" onclick="enterAsGuest(event)" class="font-bold hover:underline" style="color: #FF4D94;">Continue as Guest →</a>
       </div>
-    </nav>
-
-    <!-- Toast Notification Banner -->
-    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-200">
-      <div id="toastInner" class="bg-surface border px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-semibold flex items-center gap-2 whitespace-nowrap"></div>
-    </div>
-
-    <!-- Modal Overlay Container -->
-    <div id="modalOverlay" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" onclick="closeModalOnBackdrop(event)">
-      <div id="modalSheet" class="bg-surface border-t sm:border border-borderDark w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 max-h-[88dvh] overflow-y-auto animate-sheet"></div>
-    </div>
-
-    <!-- Full-Screen 365-Day Year Grid Overlay -->
-    <div id="fullScreenGridOverlay" class="fixed inset-0 z-40 bg-obsidian hidden flex-col justify-between safe-top safe-bottom px-4 py-3"></div>
-
-  </div>
+    </section>
+  </main>
 
   <script>
-    /*************************************************************************
-     * 1. COLOR THEMES & DYNAMIC 2x2 PNG HOME-SCREEN APP ICON GENERATOR
-     *************************************************************************/
-    const ACCENT_THEMES = {
-      pink: {
-        id: 'pink',
-        name: 'Rose Pink',
-        hex: '#FF4D94',
-        soft: 'rgba(255, 77, 148, 0.14)',
-        border: 'rgba(255, 77, 148, 0.35)',
-        tiers: ['#4A182D', '#87264F', '#C93673', '#FF4D94']
-      },
-      lime: {
-        id: 'lime',
-        name: 'Volt Lime',
-        hex: '#C6FF00',
-        soft: 'rgba(198, 255, 0, 0.14)',
-        border: 'rgba(198, 255, 0, 0.35)',
-        tiers: ['#29380E', '#4F6E14', '#86BD1A', '#C6FF00']
-      },
-      coral: {
-        id: 'coral',
-        name: 'Electric Coral',
-        hex: '#FF5E3A',
-        soft: 'rgba(255, 94, 58, 0.14)',
-        border: 'rgba(255, 94, 58, 0.35)',
-        tiers: ['#4A1B12', '#872D1C', '#C94127', '#FF5E3A']
-      },
-      violet: {
-        id: 'violet',
-        name: 'Cyber Lavender',
-        hex: '#A855F7',
-        soft: 'rgba(168, 85, 247, 0.14)',
-        border: 'rgba(168, 85, 247, 0.35)',
-        tiers: ['#2E1747', '#532785', '#7E39C4', '#A855F7']
-      },
-      cyan: {
-        id: 'cyan',
-        name: 'Ice Cyan',
-        hex: '#22D3EE',
-        soft: 'rgba(34, 211, 238, 0.14)',
-        border: 'rgba(34, 211, 238, 0.35)',
-        tiers: ['#103A42', '#196878', '#1FA0B8', '#22D3EE']
-      }
-    };
+    // Optional: Paste your Supabase Project URL & Anon Key here so all devices connect automatically
+    const DEFAULT_SUPABASE_URL = '';
+    const DEFAULT_SUPABASE_ANON_KEY = '';
+    const SUPABASE_CONFIG_KEY = 'cadence_supabase_config_v1';
 
-    function getThemeObj(themeId) {
-      return ACCENT_THEMES[themeId] || ACCENT_THEMES.pink;
-    }
-
-    function getAccentHex() {
-      return getThemeObj(appState.accent).hex;
-    }
-
-    function generate2x2AppIconPng(accentHex) {
-      try {
-        const size = 512;
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-
-        ctx.fillStyle = '#0A0A0C';
-        ctx.fillRect(0, 0, size, size);
-
-        const pad = 104;
-        const gap = 36;
-        const sqSize = (size - pad * 2 - gap) / 2;
-        const radius = 34;
-
-        function drawRoundedSquare(x, y, w, h, r, color) {
-          ctx.beginPath();
-          ctx.moveTo(x + r, y);
-          ctx.arcTo(x + w, y, x + w, y + h, r);
-          ctx.arcTo(x + w, y + h, x, y + h, r);
-          ctx.arcTo(x, y + h, x, y, r);
-          ctx.arcTo(x, y, x + w, y, r);
-          ctx.closePath();
-          ctx.fillStyle = color;
-          ctx.fill();
-        }
-
-        // Top-Left (Accent), Top-Right (Dark), Bottom-Left (Dark), Bottom-Right (Accent)
-        drawRoundedSquare(pad, pad, sqSize, sqSize, radius, accentHex);
-        drawRoundedSquare(pad + sqSize + gap, pad, sqSize, sqSize, radius, '#232329');
-        drawRoundedSquare(pad, pad + sqSize + gap, sqSize, sqSize, radius, '#232329');
-        drawRoundedSquare(pad + sqSize + gap, pad + sqSize + gap, sqSize, sqSize, radius, accentHex);
-
-        return canvas.toDataURL('image/png');
-      } catch (e) {
-        return '';
-      }
-    }
-
-    function applyAccentTheme(themeId) {
-      const theme = getThemeObj(themeId);
-      const root = document.documentElement;
-      root.style.setProperty('--accent', theme.hex);
-      root.style.setProperty('--accent-soft', theme.soft);
-      root.style.setProperty('--accent-border', theme.border);
-      root.style.setProperty('--tier-1', theme.tiers[0]);
-      root.style.setProperty('--tier-2', theme.tiers[1]);
-      root.style.setProperty('--tier-3', theme.tiers[2]);
-      root.style.setProperty('--tier-4', theme.tiers[3]);
-
-      const pngDataUrl = generate2x2AppIconPng(theme.hex);
-      if (pngDataUrl) {
-        const appleIcon = document.getElementById('appleTouchIcon');
-        const favIcon = document.getElementById('faviconIcon');
-        if (appleIcon) appleIcon.href = pngDataUrl;
-        if (favIcon) favIcon.href = pngDataUrl;
-
-        const manifestObj = {
-          name: 'CADENCE — Workout Tracker',
-          short_name: 'CADENCE',
-          start_url: './index.html',
-          display: 'standalone',
-          background_color: '#0A0A0C',
-          theme_color: '#0A0A0C',
-          orientation: 'portrait',
-          icons: [{ src: pngDataUrl, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }]
-        };
-        const manifestEl = document.getElementById('pwaManifest');
-        if (manifestEl) {
-          manifestEl.href = 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(manifestObj));
-        }
-      }
-    }
-
-    /*************************************************************************
-     * 2. COMPREHENSIVE EXERCISE ENCYCLOPEDIA (160+ LIFTS & CARDIO MACHINES)
-     *************************************************************************/
-    const DEFAULT_EXERCISES = [
-      // GLUTES / LOWER BODY
-      { id: 'hip-thrust', name: 'Barbell Hip Thrust', muscle: 'Glutes / Lower' },
-      { id: 'kas-glute-bridge', name: 'Kas Glute Bridge', muscle: 'Glutes / Lower' },
-      { id: 'smith-hip-thrust', name: 'Smith Machine Hip Thrust', muscle: 'Glutes / Lower' },
-      { id: 'machine-hip-thrust', name: 'Plate-Loaded Hip Thrust Machine', muscle: 'Glutes / Lower' },
-      { id: 'single-leg-hip-thrust', name: 'Single-Leg Dumbbell Hip Thrust', muscle: 'Glutes / Lower' },
-      { id: 'rdl', name: 'Romanian Deadlift (RDL)', muscle: 'Glutes / Lower' },
-      { id: 'db-rdl', name: 'Dumbbell Romanian Deadlift', muscle: 'Glutes / Lower' },
-      { id: 'b-stance-rdl', name: 'B-Stance Romanian Deadlift', muscle: 'Glutes / Lower' },
-      { id: 'single-leg-rdl', name: 'Single-Leg Dumbbell RDL', muscle: 'Glutes / Lower' },
-      { id: 'stiff-leg-deadlift', name: 'Stiff-Legged Deadlift', muscle: 'Glutes / Lower' },
-      { id: 'conventional-deadlift', name: 'Conventional Barbell Deadlift', muscle: 'Glutes / Lower' },
-      { id: 'sumo-deadlift', name: 'Sumo Deadlift', muscle: 'Glutes / Lower' },
-      { id: 'trap-bar-deadlift', name: 'Trap Bar Deadlift', muscle: 'Glutes / Lower' },
-      { id: 'good-morning', name: 'Barbell Good Morning', muscle: 'Glutes / Lower' },
-      { id: 'hyperextension', name: '45° Glute-Focused Back Extension', muscle: 'Glutes / Lower' },
-      { id: 'reverse-hyper', name: 'Reverse Hyperextension', muscle: 'Glutes / Lower' },
-      { id: 'bulgarian-split', name: 'Bulgarian Split Squat', muscle: 'Glutes / Lower' },
-      { id: 'smith-bulgarian', name: 'Smith Machine Bulgarian Split Squat', muscle: 'Glutes / Lower' },
-      { id: 'back-squat', name: 'Barbell Back Squat', muscle: 'Glutes / Lower' },
-      { id: 'front-squat', name: 'Barbell Front Squat', muscle: 'Glutes / Lower' },
-      { id: 'goblet-squat', name: 'Dumbbell Goblet Squat', muscle: 'Glutes / Lower' },
-      { id: 'sumo-squat', name: 'Dumbbell Sumo Squat', muscle: 'Glutes / Lower' },
-      { id: 'hack-squat', name: 'Hack Squat Machine', muscle: 'Glutes / Lower' },
-      { id: 'pendulum-squat', name: 'Pendulum Squat Machine', muscle: 'Glutes / Lower' },
-      { id: 'v-squat', name: 'V-Squat Machine', muscle: 'Glutes / Lower' },
-      { id: 'belt-squat', name: 'Belt Squat', muscle: 'Glutes / Lower' },
-      { id: 'sissy-squat', name: 'Sissy Squat', muscle: 'Glutes / Lower' },
-      { id: 'leg-press', name: '45° Leg Press', muscle: 'Glutes / Lower' },
-      { id: 'single-leg-press', name: 'Single-Leg Press', muscle: 'Glutes / Lower' },
-      { id: 'horizontal-leg-press', name: 'Seated Horizontal Leg Press', muscle: 'Glutes / Lower' },
-      { id: 'walking-lunges', name: 'Dumbbell Walking Lunges', muscle: 'Glutes / Lower' },
-      { id: 'reverse-lunges', name: 'Deficit Reverse Lunges', muscle: 'Glutes / Lower' },
-      { id: 'smith-reverse-lunge', name: 'Smith Machine Reverse Lunge', muscle: 'Glutes / Lower' },
-      { id: 'curtsy-lunge', name: 'Dumbbell Curtsy Lunge', muscle: 'Glutes / Lower' },
-      { id: 'step-ups', name: 'High Box Glute Step-Ups', muscle: 'Glutes / Lower' },
-      { id: 'cable-kickback', name: 'Cable Glute Kickback', muscle: 'Glutes / Lower' },
-      { id: 'cable-abduction', name: 'Standing Cable Hip Abduction', muscle: 'Glutes / Lower' },
-      { id: 'cable-pull-through', name: 'Cable Glute Pull-Through', muscle: 'Glutes / Lower' },
-      { id: 'hip-abduction', name: 'Seated Hip Abduction Machine', muscle: 'Glutes / Lower' },
-      { id: 'hip-adduction', name: 'Seated Hip Adduction Machine', muscle: 'Glutes / Lower' },
-      { id: 'leg-extension', name: 'Seated Leg Extension', muscle: 'Glutes / Lower' },
-      { id: 'lying-leg-curl', name: 'Lying Hamstring Leg Curl', muscle: 'Glutes / Lower' },
-      { id: 'seated-leg-curl', name: 'Seated Hamstring Leg Curl', muscle: 'Glutes / Lower' },
-      { id: 'nordic-curl', name: 'Nordic Hamstring Curl', muscle: 'Glutes / Lower' },
-      { id: 'glute-ham-raise', name: 'Glute-Ham Raise (GHR)', muscle: 'Glutes / Lower' },
-      { id: 'standing-calf-raise', name: 'Standing Calf Raise', muscle: 'Glutes / Lower' },
-      { id: 'seated-calf-raise', name: 'Seated Calf Raise', muscle: 'Glutes / Lower' },
-      { id: 'leg-press-calf-raise', name: 'Leg Press Calf Raise', muscle: 'Glutes / Lower' },
-      { id: 'tibialis-raise', name: 'Tibialis Anterior Raise', muscle: 'Glutes / Lower' },
-
-      // BACK
-      { id: 'lat-pulldown', name: 'Wide-Grip Lat Pulldown', muscle: 'Back' },
-      { id: 'close-grip-pulldown', name: 'Close-Grip Neutral Lat Pulldown', muscle: 'Back' },
-      { id: 'underhand-pulldown', name: 'Supinated Underhand Lat Pulldown', muscle: 'Back' },
-      { id: 'single-arm-pulldown', name: 'Single-Arm Cable Lat Pulldown', muscle: 'Back' },
-      { id: 'pull-ups', name: 'Bodyweight / Weighted Pull-Ups', muscle: 'Back' },
-      { id: 'chin-ups', name: 'Chin-Ups (Supinated Grip)', muscle: 'Back' },
-      { id: 'assisted-pull-up', name: 'Assisted Pull-Up Machine', muscle: 'Back' },
-      { id: 'seated-row', name: 'Seated Cable Row', muscle: 'Back' },
-      { id: 'wide-cable-row', name: 'Wide-Grip Upper Back Cable Row', muscle: 'Back' },
-      { id: 'single-arm-cable-row', name: 'Single-Arm Seated Cable Row', muscle: 'Back' },
-      { id: 'barbell-row', name: 'Bent-Over Barbell Row', muscle: 'Back' },
-      { id: 'pendlay-row', name: 'Pendlay Row', muscle: 'Back' },
-      { id: 'db-row', name: 'Single-Arm Dumbbell Row', muscle: 'Back' },
-      { id: 'chest-supported-row', name: 'Chest-Supported T-Bar Row', muscle: 'Back' },
-      { id: 'incline-db-row', name: 'Incline Bench Dumbbell Row', muscle: 'Back' },
-      { id: 'seal-row', name: 'Barbell / Dumbbell Seal Row', muscle: 'Back' },
-      { id: 'iso-lateral-row', name: 'Plate-Loaded Iso-Lateral High Row', muscle: 'Back' },
-      { id: 'meadows-row', name: 'Meadows Landmine Row', muscle: 'Back' },
-      { id: 'straight-arm-pulldown', name: 'Straight-Arm Cable Lat Pullover', muscle: 'Back' },
-      { id: 'db-pullover', name: 'Dumbbell Pullover', muscle: 'Back' },
-      { id: 'rack-pull', name: 'Barbell Rack Pull', muscle: 'Back' },
-      { id: 'barbell-shrug', name: 'Barbell Trap Shrugs', muscle: 'Back' },
-      { id: 'db-shrug', name: 'Dumbbell Trap Shrugs', muscle: 'Back' },
-
-      // CHEST
-      { id: 'bench-press', name: 'Flat Barbell Bench Press', muscle: 'Chest' },
-      { id: 'incline-barbell-bench', name: 'Incline Barbell Bench Press', muscle: 'Chest' },
-      { id: 'decline-barbell-bench', name: 'Decline Barbell Bench Press', muscle: 'Chest' },
-      { id: 'flat-db-press', name: 'Flat Dumbbell Bench Press', muscle: 'Chest' },
-      { id: 'incline-db-press', name: 'Incline Dumbbell Press', muscle: 'Chest' },
-      { id: 'smith-incline-press', name: 'Smith Machine Incline Chest Press', muscle: 'Chest' },
-      { id: 'machine-chest-press', name: 'Seated Machine Chest Press', muscle: 'Chest' },
-      { id: 'iso-incline-press', name: 'Plate-Loaded Incline Chest Press', muscle: 'Chest' },
-      { id: 'pec-deck', name: 'Pec Deck / Machine Chest Fly', muscle: 'Chest' },
-      { id: 'cable-fly-high-low', name: 'High-to-Low Cable Chest Fly', muscle: 'Chest' },
-      { id: 'cable-fly-low-high', name: 'Low-to-High Cable Chest Fly', muscle: 'Chest' },
-      { id: 'seated-cable-fly', name: 'Seated Mid-Cable Chest Fly', muscle: 'Chest' },
-      { id: 'incline-db-fly', name: 'Incline Dumbbell Fly', muscle: 'Chest' },
-      { id: 'chest-dips', name: 'Weighted Chest Dips', muscle: 'Chest' },
-      { id: 'push-ups', name: 'Push-Ups (Standard / Weighted)', muscle: 'Chest' },
-      { id: 'deficit-push-ups', name: 'Deficit Push-Ups', muscle: 'Chest' },
-      { id: 'landmine-press', name: 'Single-Arm Landmine Chest Press', muscle: 'Chest' },
-
-      // SHOULDERS
-      { id: 'ohp', name: 'Standing Barbell Overhead Press', muscle: 'Shoulders' },
-      { id: 'seated-barbell-ohp', name: 'Seated Barbell Shoulder Press', muscle: 'Shoulders' },
-      { id: 'db-shoulder-press', name: 'Seated Dumbbell Shoulder Press', muscle: 'Shoulders' },
-      { id: 'arnold-press', name: 'Dumbbell Arnold Press', muscle: 'Shoulders' },
-      { id: 'machine-shoulder-press', name: 'Machine Overhead Shoulder Press', muscle: 'Shoulders' },
-      { id: 'smith-shoulder-press', name: 'Smith Machine Shoulder Press', muscle: 'Shoulders' },
-      { id: 'lateral-raise', name: 'Dumbbell Lateral Raises', muscle: 'Shoulders' },
-      { id: 'cable-lateral-raise', name: 'Single-Arm Cable Lateral Raise', muscle: 'Shoulders' },
-      { id: 'cuff-lateral-raise', name: 'Behind-the-Back Cable Lateral Raise', muscle: 'Shoulders' },
-      { id: 'machine-lateral-raise', name: 'Seated Machine Lateral Raise', muscle: 'Shoulders' },
-      { id: 'lean-in-lateral', name: 'Leaning Dumbbell Lateral Raise', muscle: 'Shoulders' },
-      { id: 'front-raise', name: 'Dumbbell / Cable Front Raise', muscle: 'Shoulders' },
-      { id: 'plate-front-raise', name: 'Weight Plate Front Raise', muscle: 'Shoulders' },
-      { id: 'face-pull', name: 'Cable Rope Face Pulls', muscle: 'Shoulders' },
-      { id: 'reverse-pec-deck', name: 'Reverse Pec Deck Rear Delt Fly', muscle: 'Shoulders' },
-      { id: 'rear-delt-db-fly', name: 'Bent-Over Rear Delt Dumbbell Fly', muscle: 'Shoulders' },
-      { id: 'cable-rear-delt-fly', name: 'Cross-Cable Rear Delt Fly', muscle: 'Shoulders' },
-      { id: 'upright-row', name: 'EZ-Bar / Cable Upright Row', muscle: 'Shoulders' },
-      { id: 'lu-raises', name: 'Lu Raises (Full-ROM Lateral Raise)', muscle: 'Shoulders' },
-
-      // ARMS (BICEPS, TRICEPS, FOREARMS)
-      { id: 'bicep-curl', name: 'Dumbbell Bicep Curls', muscle: 'Arms' },
-      { id: 'barbell-curl', name: 'Standing Barbell Bicep Curl', muscle: 'Arms' },
-      { id: 'ez-bar-curl', name: 'EZ-Bar Bicep Curl', muscle: 'Arms' },
-      { id: 'incline-db-curl', name: 'Incline Bench Dumbbell Curl', muscle: 'Arms' },
-      { id: 'bayesian-cable-curl', name: 'Bayesian Behind-Body Cable Curl', muscle: 'Arms' },
-      { id: 'preacher-curl', name: 'Preacher Curl (EZ-Bar / Machine)', muscle: 'Arms' },
-      { id: 'hammer-curl', name: 'Dumbbell Hammer Curls', muscle: 'Arms' },
-      { id: 'rope-hammer-curl', name: 'Cable Rope Hammer Curl', muscle: 'Arms' },
-      { id: 'concentration-curl', name: 'Seated Concentration Curl', muscle: 'Arms' },
-      { id: 'spider-curl', name: 'Incline Bench Spider Curl', muscle: 'Arms' },
-      { id: 'reverse-curl', name: 'Reverse-Grip EZ-Bar Curl', muscle: 'Arms' },
-      { id: 'tricep-pushdown', name: 'Cable Rope Tricep Pushdown', muscle: 'Arms' },
-      { id: 'straight-bar-pushdown', name: 'Straight-Bar Tricep Pushdown', muscle: 'Arms' },
-      { id: 'v-bar-pushdown', name: 'V-Bar Tricep Pushdown', muscle: 'Arms' },
-      { id: 'overhead-tricep-ext', name: 'Cable Overhead Tricep Extension', muscle: 'Arms' },
-      { id: 'db-overhead-tricep', name: 'Seated Dumbbell Overhead Extension', muscle: 'Arms' },
-      { id: 'skullcrushers', name: 'EZ-Bar Skullcrushers', muscle: 'Arms' },
-      { id: 'jm-press', name: 'JM Press (Barbell / Smith)', muscle: 'Arms' },
-      { id: 'close-grip-bench', name: 'Close-Grip Barbell Bench Press', muscle: 'Arms' },
-      { id: 'tricep-dips', name: 'Bench / Machine Tricep Dips', muscle: 'Arms' },
-      { id: 'single-arm-kickback', name: 'Cable Single-Arm Tricep Kickback', muscle: 'Arms' },
-      { id: 'wrist-curl', name: 'Seated Dumbbell Wrist Curl', muscle: 'Arms' },
-
-      // CORE & ABS
-      { id: 'cable-crunch', name: 'Kneeling Cable Rope Crunch', muscle: 'Core & Cardio' },
-      { id: 'hanging-leg-raise', name: 'Hanging Leg Raises', muscle: 'Core & Cardio' },
-      { id: 'captains-chair-raise', name: "Captain's Chair Knee / Leg Raise", muscle: 'Core & Cardio' },
-      { id: 'ab-wheel-rollout', name: 'Ab Wheel Rollout', muscle: 'Core & Cardio' },
-      { id: 'decline-sit-up', name: 'Weighted Decline Sit-Up', muscle: 'Core & Cardio' },
-      { id: 'pallof-press', name: 'Anti-Rotation Cable Pallof Press', muscle: 'Core & Cardio' },
-      { id: 'russian-twist', name: 'Weighted Russian Twists', muscle: 'Core & Cardio' },
-      { id: 'dead-bug', name: 'Weighted Dead Bug', muscle: 'Core & Cardio' },
-      { id: 'plank', name: 'Weighted Forearm Plank', muscle: 'Core & Cardio' },
-      { id: 'side-plank', name: 'Side Plank Hip Dips', muscle: 'Core & Cardio' },
-      { id: 'woodchoppers', name: 'High-to-Low Cable Woodchoppers', muscle: 'Core & Cardio' },
-      { id: 'dragon-flag', name: 'Bench Dragon Flag', muscle: 'Core & Cardio' },
-
-      // CARDIO & CONDITIONING MACHINES (Automatically uses Minutes + Machine Metric)
-      { id: 'stairmaster', name: 'StairMaster / StepMill', muscle: 'Core & Cardio', isCardio: true, metricLabel: 'Lvl / Flr' },
-      { id: 'incline-treadmill', name: 'Incline Treadmill Walk (12-3-30)', muscle: 'Core & Cardio', isCardio: true, metricLabel: 'Inc / Spd' },
-      { id: 'treadmill-run', name: 'Treadmill Running / Sprints', muscle: 'Core & Cardio', isCardio: true, metricLabel: 'Km / Spd' },
-      { id: 'rowing-erg', name: 'Concept2 Rowing Ergometer', muscle: 'Core & Cardio', isCardio: true, metricLabel: 'Dist / Split' },
-      { id: 'assault-bike', name: 'Assault AirBike / Echo Bike', muscle: 'Core & Cardio', isCardio: true, metricLabel: 'Cal / Watts' },
-      { id: 'elliptical', name: 'Elliptical Cross-Trainer', muscle: 'Core & Cardio', isCardio: true, metricLabel: 'Res / Stride' },
-      { id: 'stationary-bike', name: 'Stationary / Spin Bike', muscle: 'Core & Cardio', isCardio: true, metricLabel: 'Res / RPM' },
-      { id: 'skierg', name: 'Concept2 SkiErg', muscle: 'Core & Cardio', isCardio: true, metricLabel: 'Dist / Watts' },
-      { id: 'jump-rope', name: 'Jump Rope / Double-Unders', muscle: 'Core & Cardio', isCardio: true, metricLabel: 'Skips / Rnd' },
-      { id: 'sled-push', name: 'Prowler Sled Push', muscle: 'Core & Cardio', isCardio: true, metricLabel: 'Kg / Laps' },
-      { id: 'sled-pull', name: 'Backward Sled Drag / Pull', muscle: 'Core & Cardio', isCardio: true, metricLabel: 'Kg / Laps' },
-      { id: 'outdoor-run', name: 'Outdoor Run / Jog', muscle: 'Core & Cardio', isCardio: true, metricLabel: 'Km / Pace' },
-      { id: 'swimming', name: 'Pool Swimming Laps', muscle: 'Core & Cardio', isCardio: true, metricLabel: 'Laps / m' },
-
-      // FULL BODY & OLYMPIC
-      { id: 'power-clean', name: 'Barbell Power Clean', muscle: 'Full Body' },
-      { id: 'hang-clean', name: 'Barbell Hang Clean', muscle: 'Full Body' },
-      { id: 'clean-and-jerk', name: 'Barbell Clean & Jerk', muscle: 'Full Body' },
-      { id: 'barbell-snatch', name: 'Barbell Snatch', muscle: 'Full Body' },
-      { id: 'kettlebell-swing', name: 'Russian Kettlebell Swing', muscle: 'Full Body' },
-      { id: 'turkish-get-up', name: 'Kettlebell Turkish Get-Up', muscle: 'Full Body' },
-      { id: 'farmers-walk', name: "Heavy Dumbbell Farmer's Carry", muscle: 'Full Body' },
-      { id: 'thrusters', name: 'Barbell / Dumbbell Thrusters', muscle: 'Full Body' },
-      { id: 'burpees', name: 'Burpees / Conditioning', muscle: 'Full Body' },
-      { id: 'battle-ropes', name: 'Battle Ropes Intervals', muscle: 'Full Body', isCardio: true, metricLabel: 'Rounds' },
-      { id: 'box-jumps', name: 'Plyometric Box Jumps', muscle: 'Full Body' }
-    ];
-
-    const DEFAULT_TEMPLATES = [
-      {
-        id: 'tpl-glutes',
-        name: 'Lower Body & Glutes',
-        tag: 'GLUTES / LOWER',
-        exerciseIds: ['hip-thrust', 'rdl', 'bulgarian-split', 'cable-kickback', 'hip-abduction']
-      },
-      {
-        id: 'tpl-upper',
-        name: 'Upper Body Sculpt & Back',
-        tag: 'UPPER BODY',
-        exerciseIds: ['lat-pulldown', 'incline-db-press', 'seated-row', 'lateral-raise', 'face-pull']
-      },
-      {
-        id: 'tpl-full',
-        name: 'Full Body Strength',
-        tag: 'FULL BODY',
-        exerciseIds: ['back-squat', 'bench-press', 'barbell-row', 'ohp', 'plank']
-      }
-    ];
-
-    const CARDIO_KEYWORDS = [
-      'stairmaster', 'stepmill', 'treadmill', 'rowing', 'ergometer', 'assault bike',
-      'airbike', 'echo bike', 'elliptical', 'spin bike', 'stationary bike', 'cycling',
-      'skierg', 'jump rope', 'cardio', 'sprint', 'jog', 'outdoor run', 'swimming',
-      'battle ropes', 'sled push', 'sled pull', 'walk', 'hiit'
-    ];
-
-    function isCardioExercise(exerciseId) {
-      const found = [...DEFAULT_EXERCISES, ...(appState.customExercises || [])].find(e => e.id === exerciseId);
-      if (found) {
-        if (typeof found.isCardio === 'boolean') return found.isCardio;
-        const lowerName = found.name.toLowerCase();
-        if (CARDIO_KEYWORDS.some(kw => lowerName.includes(kw))) return true;
-      }
-      return CARDIO_KEYWORDS.some(kw => String(exerciseId || '').toLowerCase().includes(kw));
-    }
-
-    function getCardioMetricLabel(exerciseId) {
-      const found = [...DEFAULT_EXERCISES, ...(appState.customExercises || [])].find(e => e.id === exerciseId);
-      if (found && found.metricLabel) return found.metricLabel;
-      const name = (found ? found.name : String(exerciseId || '')).toLowerCase();
-      if (name.includes('stair') || name.includes('stepmill')) return 'Lvl / Flr';
-      if (name.includes('incline')) return 'Inc / Spd';
-      if (name.includes('treadmill') || name.includes('run') || name.includes('jog')) return 'Km / Spd';
-      if (name.includes('row') || name.includes('ski')) return 'Dist / Split';
-      if (name.includes('assault') || name.includes('echo') || name.includes('airbike')) return 'Cal / Watts';
-      if (name.includes('bike') || name.includes('cycle') || name.includes('elliptical')) return 'Res / RPM';
-      if (name.includes('sled')) return 'Kg / Laps';
-      return 'Lvl / Dist';
-    }
-
-    /*************************************************************************
-     * 3. DUAL-VAULT PERSISTENCE ENGINE (INDEXEDDB + LOCALSTORAGE + CLOUD)
-     *************************************************************************/
-    const STORAGE_KEY = 'cadence_workout_tracker_v1';
-    const BACKUP_STORAGE_KEY = 'cadence_workout_tracker_backup_v1';
     const ACCOUNT_SESSION_KEY = 'cadence_account_session_v1';
+    const GUEST_MODE_KEY = 'cadence_guest_mode_v1';
+    const SIXTY_DAYS_MS = 60 * 24 * 60 * 60 * 1000;
+    const ACCOUNT_VAULT_PREFIX = 'cadence_user_vault_v1_';
+    const STORAGE_KEY = 'cadence_workout_tracker_v1';
     const IDB_NAME = 'CadenceVaultDB';
     const IDB_STORE = 'stateStore';
-    const IDB_RECORD_KEY = 'primary_state';
-
-    let appState = {
-      unit: 'kg',
-      accent: 'pink',
-      workouts: {},
-      templates: JSON.parse(JSON.stringify(DEFAULT_TEMPLATES)),
-      customExercises: [],
-      _updatedAt: 0
+    const THEME_HEX = {
+      pink: '#FF4D94',
+      lime: '#C6FF00',
+      coral: '#FF5E3A',
+      violet: '#A855F7',
+      cyan: '#22D3EE'
     };
 
-    let accountSession = {
-      username: null,
-      displayName: null,
-      passHash: null
-    };
+    let currentMode = 'signin';
+    let activeAccentHex = '#FF4D94';
+    let supabaseClient = null;
 
-    let cloudApp = null;
-    let cloudAuth = null;
-    let cloudDb = null;
-    let cloudAuthUser = null;
-    let cloudUnsubscribe = null;
-    let cloudStatus = 'offline';
-    let isApplyingRemoteSnapshot = false;
-
-    let currentTab = 'calendar';
-    let calendarMode = 'year';
-    let selectedMonthDate = new Date();
-    let activeLoggerDate = null;
-    let activeDraft = null;
-    let selectedOverloadExId = 'hip-thrust';
-    let isStateHydrated = false;
-    let isSavingInProgress = false;
-
-    if (navigator.storage && navigator.storage.persist) {
-      navigator.storage.persist().catch(() => {});
-    }
-
-    function openVaultDB() {
-      return new Promise((resolve) => {
-        if (!window.indexedDB) {
-          resolve(null);
-          return;
-        }
-        try {
-          const req = indexedDB.open(IDB_NAME, 1);
-          req.onupgradeneeded = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains(IDB_STORE)) {
-              db.createObjectStore(IDB_STORE);
-            }
-          };
-          req.onsuccess = (e) => resolve(e.target.result);
-          req.onerror = () => resolve(null);
-        } catch (err) {
-          resolve(null);
-        }
-      });
-    }
-
-    async function readFromVaultIDB() {
-      const db = await openVaultDB();
-      if (!db) return null;
-      return new Promise((resolve) => {
-        try {
-          const tx = db.transaction(IDB_STORE, 'readonly');
-          const store = tx.objectStore(IDB_STORE);
-          const getReq = store.get(IDB_RECORD_KEY);
-          getReq.onsuccess = () => resolve(getReq.result || null);
-          getReq.onerror = () => resolve(null);
-        } catch (e) {
-          resolve(null);
-        }
-      });
-    }
-
-    async function writeToVaultIDB(dataObj) {
-      const db = await openVaultDB();
-      if (!db) return false;
-      return new Promise((resolve) => {
-        try {
-          const tx = db.transaction(IDB_STORE, 'readwrite');
-          const store = tx.objectStore(IDB_STORE);
-          const putReq = store.put(dataObj, IDB_RECORD_KEY);
-          putReq.onsuccess = () => resolve(true);
-          putReq.onerror = () => resolve(false);
-        } catch (e) {
-          resolve(false);
-        }
-      });
-    }
-
-    function mergeLoadedState(parsed) {
-      if (!parsed || typeof parsed !== 'object') return;
-      appState = {
-        unit: parsed.unit || 'kg',
-        accent: parsed.accent || 'pink',
-        workouts: parsed.workouts && typeof parsed.workouts === 'object' ? parsed.workouts : {},
-        templates: Array.isArray(parsed.templates) ? parsed.templates : JSON.parse(JSON.stringify(DEFAULT_TEMPLATES)),
-        customExercises: Array.isArray(parsed.customExercises) ? parsed.customExercises : [],
-        _updatedAt: parsed._updatedAt || 0
-      };
-    }
-
-    async function hydrateStateFromVault() {
-      let bestCandidate = null;
-
-      const idbData = await readFromVaultIDB();
-      if (idbData && typeof idbData === 'object') {
-        bestCandidate = idbData;
+    function getSupabaseConfig() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(SUPABASE_CONFIG_KEY) || 'null');
+        if (saved && saved.url && saved.anonKey) return saved;
+      } catch (_) {}
+      if (DEFAULT_SUPABASE_URL && DEFAULT_SUPABASE_ANON_KEY) {
+        return { url: DEFAULT_SUPABASE_URL, anonKey: DEFAULT_SUPABASE_ANON_KEY };
       }
+      return null;
+    }
 
-      for (const key of [STORAGE_KEY, BACKUP_STORAGE_KEY]) {
-        try {
-          const raw = localStorage.getItem(key);
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            if (parsed && typeof parsed === 'object') {
-              const candidateTs = parsed._updatedAt || 0;
-              const currentBestTs = bestCandidate?._updatedAt || 0;
-              if (!bestCandidate || candidateTs >= currentBestTs) {
-                bestCandidate = parsed;
-              }
-            }
+    function initLoginSupabase() {
+      const cfg = getSupabaseConfig();
+      const dot = document.getElementById('sbStatusDot');
+      const txt = document.getElementById('sbStatusText');
+      if (!cfg || !window.supabase || !window.supabase.createClient) {
+        supabaseClient = null;
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-mutedText';
+        if (txt) txt.textContent = 'Supabase Cloud Sync (Optional)';
+        return;
+      }
+      try {
+        supabaseClient = window.supabase.createClient(cfg.url.trim(), cfg.anonKey.trim());
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+        if (txt) txt.textContent = 'Supabase Cloud Server Connected';
+        const urlIn = document.getElementById('loginSbUrl');
+        const keyIn = document.getElementById('loginSbKey');
+        if (urlIn) urlIn.value = cfg.url;
+        if (keyIn) keyIn.value = cfg.anonKey;
+      } catch (_) {
+        supabaseClient = null;
+      }
+    }
+
+    function toggleSupabaseBox() {
+      const box = document.getElementById('sbConfigBox');
+      if (box) box.classList.toggle('hidden');
+    }
+
+    function saveLoginSupabaseConfig() {
+      const url = (document.getElementById('loginSbUrl')?.value || '').trim();
+      const anonKey = (document.getElementById('loginSbKey')?.value || '').trim();
+      if (!url || !anonKey) return;
+      localStorage.setItem(SUPABASE_CONFIG_KEY, JSON.stringify({ url, anonKey }));
+      initLoginSupabase();
+      toggleSupabaseBox();
+    }
+
+    try {
+      const savedState = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      if (savedState && savedState.accent && THEME_HEX[savedState.accent]) {
+        activeAccentHex = THEME_HEX[savedState.accent];
+      }
+      const existingSession = JSON.parse(localStorage.getItem(ACCOUNT_SESSION_KEY) || 'null');
+      if (existingSession && existingSession.username) {
+        const isExpired = existingSession.expiresAt && Date.now() >= existingSession.expiresAt;
+        if (!isExpired) {
+          if (!existingSession.expiresAt) {
+            existingSession.expiresAt = Date.now() + SIXTY_DAYS_MS;
+            localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify(existingSession));
           }
-        } catch (e) {
-          console.warn('LocalStorage read error:', e);
-        }
-      }
-
-      if (bestCandidate) {
-        mergeLoadedState(bestCandidate);
-      }
-
-      isStateHydrated = true;
-      loadAccountSession();
-      await saveState(true);
-      applyAccentTheme(appState.accent);
-      initCloudSyncEngine();
-    }
-
-    async function saveState(skipCloudPush = false) {
-      if (!isStateHydrated) return;
-      const snapshot = {
-        ...appState,
-        _updatedAt: Date.now()
-      };
-      const serialized = JSON.stringify(snapshot);
-
-      try {
-        localStorage.setItem(STORAGE_KEY, serialized);
-        localStorage.setItem(BACKUP_STORAGE_KEY, serialized);
-      } catch (e) {
-        console.warn('LocalStorage write warning:', e);
-      }
-
-      if (!isSavingInProgress) {
-        isSavingInProgress = true;
-        await writeToVaultIDB(snapshot);
-        isSavingInProgress = false;
-      }
-
-      if (!skipCloudPush && !isApplyingRemoteSnapshot && accountSession.username) {
-        pushStateToCloud(snapshot);
-      }
-    }
-
-    window.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') saveState();
-    });
-    window.addEventListener('pagehide', () => saveState());
-    window.addEventListener('beforeunload', () => saveState());
-
-    /*************************************************************************
-     * 4. ACCOUNT AUTHENTICATION & CROSS-DEVICE SYNC
-     *************************************************************************/
-    function loadAccountSession() {
-      try {
-        const raw = localStorage.getItem(ACCOUNT_SESSION_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed && parsed.username) {
-            accountSession = parsed;
+          if (window.location.protocol !== 'about:' && !window.location.href.startsWith('blob:')) {
+            window.location.replace('./index.html');
           }
-        }
-      } catch (e) {
-        console.warn('Account session read error:', e);
-      }
-    }
-
-    function saveAccountSession() {
-      try {
-        if (accountSession.username) {
-          localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify(accountSession));
+          const banner = document.getElementById('existingSessionBanner');
+          const userLabel = document.getElementById('existingSessionUser');
+          if (banner && userLabel) {
+            userLabel.textContent = `@${existingSession.username}`;
+            banner.classList.remove('hidden');
+          }
         } else {
           localStorage.removeItem(ACCOUNT_SESSION_KEY);
         }
-      } catch (e) {
-        console.warn('Account session write error:', e);
+      }
+    } catch (_) {}
+
+    function applyAccentToLogin() {
+      ['brandSq1', 'brandSq2', 'tabSignIn', 'submitBtn', 'resumeBtn'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.backgroundColor = activeAccentHex;
+      });
+      const guest = document.getElementById('guestLink');
+      if (guest) guest.style.color = activeAccentHex;
+    }
+
+    applyAccentToLogin();
+    initLoginSupabase();
+
+    function switchAuthMode(mode) {
+      currentMode = mode;
+      const btnIn = document.getElementById('tabSignIn');
+      const btnUp = document.getElementById('tabSignUp');
+      const submitBtn = document.getElementById('submitBtn');
+      const passInput = document.getElementById('loginPassword');
+      const err = document.getElementById('loginError');
+      if (err) err.classList.add('hidden');
+
+      if (mode === 'signin') {
+        btnIn.style.backgroundColor = activeAccentHex;
+        btnIn.className = 'py-2 rounded-xl text-xs font-extrabold text-obsidian transition';
+        btnUp.style.backgroundColor = 'transparent';
+        btnUp.className = 'py-2 rounded-xl text-xs font-extrabold text-mutedText hover:text-white transition';
+        submitBtn.textContent = 'Sign In & Open Tracker';
+        if (passInput) passInput.setAttribute('autocomplete', 'current-password');
+      } else {
+        btnUp.style.backgroundColor = activeAccentHex;
+        btnUp.className = 'py-2 rounded-xl text-xs font-extrabold text-obsidian transition';
+        btnIn.style.backgroundColor = 'transparent';
+        btnIn.className = 'py-2 rounded-xl text-xs font-extrabold text-mutedText hover:text-white transition';
+        submitBtn.textContent = 'Create Account & Start';
+        if (passInput) passInput.setAttribute('autocomplete', 'new-password');
       }
     }
 
@@ -874,2231 +295,120 @@
       return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
     }
 
-    function normalizeUsername(raw) {
-      return String(raw || '').toLowerCase().trim().replace(/[^a-z0-9._-]/g, '');
+    function readUserFromIDB(userKey) {
+      return new Promise((resolve) => {
+        if (!window.indexedDB) return resolve(null);
+        const req = indexedDB.open(IDB_NAME, 1);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
+        };
+        req.onsuccess = () => {
+          try {
+            const tx = req.result.transaction(IDB_STORE, 'readonly');
+            const getReq = tx.objectStore(IDB_STORE).get(userKey);
+            getReq.onsuccess = () => resolve(getReq.result || null);
+            getReq.onerror = () => resolve(null);
+          } catch (_) {
+            resolve(null);
+          }
+        };
+        req.onerror = () => resolve(null);
+      });
     }
 
-    function getCloudAppId() {
-      return typeof __app_id !== 'undefined' ? __app_id : 'cadence-workout-app';
+    function enterAsGuest(event) {
+      try {
+        localStorage.setItem(GUEST_MODE_KEY, 'true');
+      } catch (_) {}
+      if (window.location.protocol === 'about:' || window.location.href.startsWith('blob:')) {
+        event.preventDefault();
+        goToMainApp();
+      }
     }
 
-    function getAccountDocRef(username) {
-      const sdk = window._cloudSDK;
-      const appId = getCloudAppId();
-      return sdk.doc(cloudDb, 'artifacts', appId, 'public', 'data', 'cadence_accounts', username);
-    }
-
-    async function initCloudSyncEngine() {
-      if (!window._cloudSDK) {
-        window.addEventListener('cloud-sdk-ready', initCloudSyncEngine, { once: true });
+    function goToMainApp() {
+      if (window.location.protocol === 'about:' || window.location.href.startsWith('blob:')) {
+        const err = document.getElementById('loginError');
+        if (err) {
+          err.style.color = activeAccentHex;
+          err.style.borderColor = activeAccentHex;
+          err.style.backgroundColor = 'rgba(255,255,255,0.04)';
+          err.textContent = 'Session saved! Switch to the index.html tab in the editor to open the main tracker.';
+          err.classList.remove('hidden');
+        }
         return;
       }
-      if (typeof __firebase_config === 'undefined' || !__firebase_config) {
-        if (accountSession.pendingVerification) {
-          delete accountSession.pendingVerification;
-          delete accountSession.pendingMode;
-          saveAccountSession();
-        }
-        cloudStatus = 'offline';
-        renderHeaderAndStrip();
-        return;
-      }
-
-      try {
-        cloudStatus = 'connecting';
-        renderHeaderAndStrip();
-        const cfg = JSON.parse(__firebase_config);
-        const sdk = window._cloudSDK;
-        cloudApp = sdk.initializeApp(cfg);
-        cloudAuth = sdk.getAuth(cloudApp);
-        cloudDb = sdk.getFirestore(cloudApp);
-
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await sdk.signInWithCustomToken(cloudAuth, __initial_auth_token);
-        } else {
-          await sdk.signInAnonymously(cloudAuth);
-        }
-
-        cloudAuthUser = cloudAuth.currentUser;
-        if (accountSession.username && cloudAuthUser) {
-          await verifyAndConnectAccount(accountSession.username);
-        } else {
-          cloudStatus = cloudAuthUser ? 'ready' : 'offline';
-          renderHeaderAndStrip();
-        }
-      } catch (err) {
-        console.warn('Cloud sync init error:', err);
-        cloudStatus = 'offline';
-        renderHeaderAndStrip();
-      }
+      window.location.href = './index.html';
     }
 
-    async function verifyAndConnectAccount(username) {
-      const sdk = window._cloudSDK;
-      const docRef = getAccountDocRef(username);
-      const snap = await sdk.getDoc(docRef);
-
-      if (accountSession.pendingVerification) {
-        const mode = accountSession.pendingMode || 'signin';
-        if (mode === 'signup') {
-          if (snap.exists()) {
-            signOutAccount();
-            showToast('Username already taken — please choose another');
-            openAccountModal('signup');
-            return;
-          }
-          delete accountSession.pendingVerification;
-          delete accountSession.pendingMode;
-          saveAccountSession();
-          const nowTs = Date.now();
-          appState._updatedAt = nowTs;
-          await pushStateToCloud({ ...appState, _updatedAt: nowTs });
-          subscribeToAccountCloud(username);
-          showToast(`Account @${username} created & synced!`);
-          return;
-        } else {
-          if (!snap.exists()) {
-            signOutAccount();
-            showToast('Account not found — create an account first');
-            openAccountModal('signup');
-            return;
-          }
-          const data = snap.data();
-          if (data.passHash !== accountSession.passHash) {
-            signOutAccount();
-            showToast('Incorrect password — please try again');
-            openAccountModal('signin');
-            return;
-          }
-          delete accountSession.pendingVerification;
-          delete accountSession.pendingMode;
-          saveAccountSession();
-        }
-      }
-
-      if (snap.exists()) {
-        const data = snap.data();
-        if (data.passHash === accountSession.passHash && data.stateJson) {
-          const remoteState = JSON.parse(data.stateJson);
-          const mergedWorkouts = { ...(remoteState.workouts || {}), ...(appState.workouts || {}) };
-          isApplyingRemoteSnapshot = true;
-          mergeLoadedState(remoteState);
-          appState.workouts = mergedWorkouts;
-          appState._updatedAt = Date.now();
-          applyAccentTheme(appState.accent);
-          await saveState(true);
-          isApplyingRemoteSnapshot = false;
-          await pushStateToCloud({ ...appState, _updatedAt: appState._updatedAt });
-          renderHeaderAndStrip();
-          renderMainView();
-        }
-      }
-
-      subscribeToAccountCloud(username);
-    }
-
-    function subscribeToAccountCloud(username) {
-      if (!cloudDb || !cloudAuthUser || !username) return;
-      if (cloudUnsubscribe) {
-        cloudUnsubscribe();
-        cloudUnsubscribe = null;
-      }
-
-      const sdk = window._cloudSDK;
-      const docRef = getAccountDocRef(username);
-      cloudStatus = 'connecting';
-      renderHeaderAndStrip();
-
-      cloudUnsubscribe = sdk.onSnapshot(
-        docRef,
-        async (snap) => {
-          if (!snap.exists()) {
-            cloudStatus = 'synced';
-            renderHeaderAndStrip();
-            return;
-          }
-          const remote = snap.data();
-          if (remote && remote.stateJson) {
-            try {
-              const remoteState = JSON.parse(remote.stateJson);
-              const localTs = appState._updatedAt || 0;
-              const remoteTs = remote.updatedAt || remoteState._updatedAt || 0;
-              if (remoteTs > localTs + 500) {
-                isApplyingRemoteSnapshot = true;
-                mergeLoadedState(remoteState);
-                appState._updatedAt = remoteTs;
-                applyAccentTheme(appState.accent);
-                await saveState(true);
-                isApplyingRemoteSnapshot = false;
-                renderHeaderAndStrip();
-                renderMainView();
-              }
-            } catch (parseErr) {
-              console.warn('Remote state parse error:', parseErr);
-            }
-          }
-          cloudStatus = 'synced';
-          renderHeaderAndStrip();
-        },
-        () => {
-          cloudStatus = 'offline';
-          renderHeaderAndStrip();
-        }
-      );
-    }
-
-    async function pushStateToCloud(snapshot) {
-      if (!cloudDb || !cloudAuthUser || !accountSession.username) return;
-      try {
-        const sdk = window._cloudSDK;
-        const docRef = getAccountDocRef(accountSession.username);
-        await sdk.setDoc(
-          docRef,
-          {
-            username: accountSession.username,
-            displayName: accountSession.displayName || accountSession.username,
-            passHash: accountSession.passHash,
-            updatedAt: snapshot._updatedAt || Date.now(),
-            stateJson: JSON.stringify(snapshot)
-          },
-          { merge: true }
-        );
-        cloudStatus = 'synced';
-        renderHeaderAndStrip();
-      } catch (err) {
-        cloudStatus = 'offline';
-        renderHeaderAndStrip();
-      }
-    }
-
-    async function handleAccountAuthSubmit(mode) {
-      const rawUser = document.getElementById('authUsernameInput')?.value || '';
-      const rawPass = document.getElementById('authPasswordInput')?.value || '';
-      const username = normalizeUsername(rawUser);
+    async function submitLoginForm() {
+      const rawUser = document.getElementById('loginUsername')?.value || '';
+      const rawPass = document.getElementById('loginPassword')?.value || '';
+      const err = document.getElementById('loginError');
+      const username = rawUser.toLowerCase().trim().replace(/[^a-z0-9._-]/g, '');
 
       if (username.length < 3) {
-        showToast('Username must be at least 3 characters (letters/numbers)');
+        err.textContent = 'Username must be at least 3 characters.';
+        err.classList.remove('hidden');
         return;
       }
       if (rawPass.length < 4) {
-        showToast('Password must be at least 4 characters');
+        err.textContent = 'Password must be at least 4 characters.';
+        err.classList.remove('hidden');
         return;
       }
 
-      const btn = document.getElementById('authSubmitBtn');
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = mode === 'signup' ? 'Creating Account...' : 'Signing In...';
-      }
+      const passHash = await hashPassword(rawPass, username);
+      const userKey = `${ACCOUNT_VAULT_PREFIX}${username}`;
 
+      let existingVault = null;
       try {
-        const passHash = await hashPassword(rawPass, username);
+        existingVault = JSON.parse(localStorage.getItem(userKey) || localStorage.getItem(`${userKey}_backup`) || 'null');
+      } catch (_) {}
+      if (!existingVault) {
+        existingVault = await readUserFromIDB(userKey);
+      }
 
-        if (cloudDb && cloudAuthUser) {
-          const sdk = window._cloudSDK;
-          const docRef = getAccountDocRef(username);
-          const snap = await sdk.getDoc(docRef);
-
-          if (mode === 'signup') {
-            if (snap.exists()) {
-              showToast('Username already taken — try signing in instead');
-              if (btn) {
-                btn.disabled = false;
-                btn.textContent = 'Create Account & Sync';
-              }
-              return;
-            }
-            accountSession = { username, displayName: rawUser.trim(), passHash };
-            saveAccountSession();
-            const nowTs = Date.now();
-            appState._updatedAt = nowTs;
-            await pushStateToCloud({ ...appState, _updatedAt: nowTs });
-            subscribeToAccountCloud(username);
-            closeModal();
-            renderHeaderAndStrip();
-            renderMainView();
-            showToast(`Account @${username} created & synced!`);
-          } else {
-            if (!snap.exists()) {
-              showToast('Account not found — switch to Create Account');
-              if (btn) {
-                btn.disabled = false;
-                btn.textContent = 'Sign In & Restore';
-              }
-              return;
-            }
-            const data = snap.data();
-            if (data.passHash !== passHash) {
-              showToast('Incorrect password');
-              if (btn) {
-                btn.disabled = false;
-                btn.textContent = 'Sign In & Restore';
-              }
-              return;
-            }
-
-            accountSession = { username, displayName: data.displayName || rawUser.trim(), passHash };
-            saveAccountSession();
-
-            if (data.stateJson) {
-              const remoteState = JSON.parse(data.stateJson);
-              const mergedWorkouts = { ...(remoteState.workouts || {}), ...(appState.workouts || {}) };
-              isApplyingRemoteSnapshot = true;
-              mergeLoadedState(remoteState);
-              appState.workouts = mergedWorkouts;
-              appState._updatedAt = Date.now();
-              applyAccentTheme(appState.accent);
-              await saveState(true);
-              isApplyingRemoteSnapshot = false;
-              await pushStateToCloud({ ...appState, _updatedAt: appState._updatedAt });
-            }
-
-            subscribeToAccountCloud(username);
-            closeModal();
-            renderHeaderAndStrip();
-            renderMainView();
-            showToast(`Welcome back, @${username}!`);
+      // Check Supabase cloud vault if connected
+      if (supabaseClient) {
+        try {
+          const { data } = await supabaseClient
+            .from('cadence_profiles')
+            .select('username, pass_hash, state_json')
+            .eq('username', username)
+            .maybeSingle();
+          if (data && data.state_json) {
+            existingVault = data.state_json;
+            if (data.pass_hash) existingVault._passHash = data.pass_hash;
           }
-        } else {
-          accountSession = { username, displayName: rawUser.trim(), passHash };
-          saveAccountSession();
-          await saveState(true);
-          closeModal();
-          renderHeaderAndStrip();
-          renderMainView();
-          showToast(`Signed in as @${username} (Local Profile)`);
-        }
-      } catch (err) {
-        showToast('Could not complete sign-in');
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = mode === 'signup' ? 'Create Account & Sync' : 'Sign In & Restore';
-        }
-      }
-    }
-
-    function signOutAccount() {
-      if (cloudUnsubscribe) {
-        cloudUnsubscribe();
-        cloudUnsubscribe = null;
-      }
-      accountSession = { username: null, displayName: null, passHash: null };
-      saveAccountSession();
-      cloudStatus = cloudAuthUser ? 'ready' : 'offline';
-      closeModal();
-      renderHeaderAndStrip();
-      renderMainView();
-      showToast('Signed out (local data kept on device)');
-    }
-
-    async function forceManualCloudSync() {
-      if (!accountSession.username) return;
-      appState._updatedAt = Date.now();
-      await saveState(false);
-      showToast(`Synced @${accountSession.username}!`);
-    }
-
-    /*************************************************************************
-     * 5. DATE HELPERS, ANALYTICS & PROGRESSIVE OVERLOAD ENGINE
-     *************************************************************************/
-    function toDateStr(dateObj) {
-      const y = dateObj.getFullYear();
-      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-      const d = String(dateObj.getDate()).padStart(2, '0');
-      return `${y}-${m}-${d}`;
-    }
-
-    function parseDateStr(str) {
-      const [y, m, d] = str.split('-').map(Number);
-      return new Date(y, m - 1, d);
-    }
-
-    function getTodayStr() {
-      return toDateStr(new Date());
-    }
-
-    function formatDisplayDate(dateStr) {
-      const d = parseDateStr(dateStr);
-      return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    }
-
-    function getExerciseName(id) {
-      const found = [...DEFAULT_EXERCISES, ...appState.customExercises].find(e => e.id === id);
-      return found ? found.name : id;
-    }
-
-    function getExerciseMuscle(id) {
-      const found = [...DEFAULT_EXERCISES, ...appState.customExercises].find(e => e.id === id);
-      return found ? found.muscle : 'Custom';
-    }
-
-    // Epley Estimated 1RM Formula (or Duration/Score for Cardio)
-    function calcE1RM(weight, reps) {
-      const w = parseFloat(weight) || 0;
-      const r = parseInt(reps, 10) || 0;
-      if (w <= 0 || r <= 0) return 0;
-      if (r === 1) return w;
-      return Math.round(w * (1 + r / 30) * 10) / 10;
-    }
-
-    function getWorkoutIntensity(workout) {
-      if (!workout) return 0;
-      if (workout.quickCheckIn && (!workout.exercises || workout.exercises.length === 0)) {
-        return 2;
-      }
-      let totalSets = 0;
-      let hasPR = false;
-      (workout.exercises || []).forEach(ex => {
-        (ex.sets || []).forEach(s => {
-          if ((parseFloat(s.weight) || 0) > 0 || (parseInt(s.reps, 10) || 0) > 0) {
-            totalSets++;
-            if (s.isPR) hasPR = true;
-          }
-        });
-      });
-      if (totalSets === 0) return 1;
-      if (hasPR || totalSets >= 14) return 4;
-      if (totalSets >= 9) return 3;
-      if (totalSets >= 4) return 2;
-      return 1;
-    }
-
-    function calculateStats() {
-      const allDates = Object.keys(appState.workouts).sort();
-      const totalDays = allDates.length;
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      let daysLast365 = 0;
-      const cutoff = new Date(today);
-      cutoff.setDate(cutoff.getDate() - 364);
-      allDates.forEach(dStr => {
-        const d = parseDateStr(dStr);
-        if (d >= cutoff && d <= today) daysLast365++;
-      });
-
-      // Active weekly streak (Mon-Sun weeks with >=1 workout)
-      const getMondayKey = (dateObj) => {
-        const d = new Date(dateObj);
-        const day = d.getDay();
-        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-        d.setDate(diff);
-        d.setHours(0, 0, 0, 0);
-        return toDateStr(d);
-      };
-
-      const activeWeeks = new Set(allDates.map(dStr => getMondayKey(parseDateStr(dStr))));
-      let weekStreak = 0;
-      let cursor = new Date(today);
-      const currentWeekKey = getMondayKey(cursor);
-      if (!activeWeeks.has(currentWeekKey)) {
-        cursor.setDate(cursor.getDate() - 7);
-      }
-      while (activeWeeks.has(getMondayKey(cursor))) {
-        weekStreak++;
-        cursor.setDate(cursor.getDate() - 7);
+        } catch (_) {}
       }
 
-      return { totalDays, daysLast365, weekStreak };
-    }
-
-    function getExerciseBenchmarks(exerciseId, excludeDateStr = null) {
-      const dates = Object.keys(appState.workouts).sort();
-      let lastSession = null;
-      let bestWeight = 0;
-      let bestE1RM = 0;
-      let bestRepsAtMaxWeight = 0;
-
-      dates.forEach(dStr => {
-        if (excludeDateStr && dStr >= excludeDateStr) return;
-        const w = appState.workouts[dStr];
-        const ex = (w.exercises || []).find(item => item.exerciseId === exerciseId);
-        if (ex && ex.sets && ex.sets.length > 0) {
-          const validSets = ex.sets.filter(s => (parseFloat(s.weight) || 0) > 0 || (parseInt(s.reps, 10) || 0) > 0);
-          if (validSets.length > 0) {
-            lastSession = { date: dStr, sets: validSets };
-            validSets.forEach(s => {
-              const wt = parseFloat(s.weight) || 0;
-              const rp = parseInt(s.reps, 10) || 0;
-              const e1rm = calcE1RM(wt, rp);
-              if (wt > bestWeight) {
-                bestWeight = wt;
-                bestRepsAtMaxWeight = rp;
-              } else if (wt === bestWeight && rp > bestRepsAtMaxWeight) {
-                bestRepsAtMaxWeight = rp;
-              }
-              if (e1rm > bestE1RM) bestE1RM = e1rm;
-            });
-          }
-        }
-      });
-
-      return { lastSession, bestWeight, bestE1RM, bestRepsAtMaxWeight };
-    }
-
-    function evaluateSetOverload(exerciseId, weight, reps, excludeDateStr) {
-      const wt = parseFloat(weight) || 0;
-      const rp = parseInt(reps, 10) || 0;
-      if (wt <= 0 && rp <= 0) return null;
-
-      const isCardio = isCardioExercise(exerciseId);
-      const bench = getExerciseBenchmarks(exerciseId, excludeDateStr);
-      if (!bench.lastSession && bench.bestWeight === 0) return null;
-
-      if (isCardio) {
-        if (wt > bench.bestWeight && bench.bestWeight > 0) {
-          return { type: 'pr', label: 'TIME PR 🏆' };
-        }
-        if (rp > bench.bestRepsAtMaxWeight && bench.bestRepsAtMaxWeight > 0) {
-          return { type: 'pr', label: 'LEVEL PR 🏆' };
-        }
-        return null;
-      }
-
-      const e1rm = calcE1RM(wt, rp);
-      if (wt > bench.bestWeight && bench.bestWeight > 0) {
-        return { type: 'pr', label: 'WEIGHT PR 🏆' };
-      }
-      if (e1rm > bench.bestE1RM && bench.bestE1RM > 0) {
-        return { type: 'pr', label: '1RM PR 🏆' };
-      }
-      if (bench.lastSession) {
-        const lastMaxWt = Math.max(...bench.lastSession.sets.map(s => parseFloat(s.weight) || 0));
-        const lastMaxRpAtWt = Math.max(0, ...bench.lastSession.sets.filter(s => (parseFloat(s.weight) || 0) === wt).map(s => parseInt(s.reps, 10) || 0));
-        if (wt > lastMaxWt || (wt === lastMaxWt && rp > lastMaxRpAtWt && lastMaxRpAtWt > 0)) {
-          return { type: 'overload', label: '+OVERLOAD ↑' };
-        }
-      }
-      return null;
-    }
-
-    /*************************************************************************
-     * 6. HEADER & 7-DAY WEEKLY RHYTHM STRIP
-     *************************************************************************/
-    function renderHeaderAndStrip() {
-      const stats = calculateStats();
-      const accentHex = getAccentHex();
-      const streakBadge = document.getElementById('streakBadge');
-      streakBadge.style.color = accentHex;
-      streakBadge.style.borderColor = 'var(--accent-border)';
-      streakBadge.style.backgroundColor = 'var(--accent-soft)';
-      streakBadge.innerHTML = `🔥 ${stats.weekStreak}w Streak`;
-      document.getElementById('totalDaysBadge').textContent = `${stats.daysLast365}/365d`;
-
-      const syncDot = document.getElementById('headerSyncDot');
-      const accLabel = document.getElementById('headerAccountLabel');
-      if (syncDot && accLabel) {
-        if (accountSession.username) {
-          accLabel.textContent = `@${accountSession.username}`;
-          syncDot.style.backgroundColor = cloudStatus === 'synced' ? accentHex : '#F59E0B';
-        } else {
-          accLabel.textContent = 'Sign In';
-          syncDot.style.backgroundColor = '#8E8E93';
-        }
-      }
-
-      const stripEl = document.getElementById('weeklyStrip');
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayStr = toDateStr(today);
-      const dayOfWeek = today.getDay();
-      const monday = new Date(today);
-      monday.setDate(today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
-
-      const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-      let stripHtml = '';
-
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(monday);
-        d.setDate(monday.getDate() + i);
-        const dStr = toDateStr(d);
-        const isToday = dStr === todayStr;
-        const workout = appState.workouts[dStr];
-        const trained = Boolean(workout);
-
-        let tileStyle = '';
-        let tileClasses = 'flex flex-col items-center justify-center py-2 rounded-2xl border transition active:scale-95 ';
-        if (trained) {
-          tileClasses += 'text-obsidian font-extrabold';
-          tileStyle = `background-color: ${accentHex}; border-color: ${accentHex};`;
-        } else if (isToday) {
-          tileClasses += 'bg-surface text-white font-bold';
-          tileStyle = `border-color: ${accentHex};`;
-        } else {
-          tileClasses += 'bg-surface/70 border-borderDark text-mutedText';
-        }
-
-        stripHtml += `
-          <button onclick="handleDayTap('${dStr}')" class="${tileClasses}" style="${tileStyle}">
-            <span class="text-[10px] uppercase tracking-wider opacity-80">${dayLabels[i]}</span>
-            <span class="text-xs mt-0.5">${d.getDate()}</span>
-            <span class="w-1 h-1 rounded-full mt-1 ${trained ? 'bg-obsidian' : (isToday ? 'bg-white' : 'bg-transparent')}"></span>
-          </button>
-        `;
-      }
-      stripEl.innerHTML = stripHtml;
-    }
-
-    /*************************************************************************
-     * 7. NAVIGATION & MAIN VIEW RENDERING
-     *************************************************************************/
-    function switchTab(tabName) {
-      currentTab = tabName;
-      if (tabName === 'logger' && !activeDraft) {
-        initDraftForDate(activeLoggerDate || getTodayStr());
-      }
-      updateNavHighlight();
-      renderMainView();
-    }
-
-    function updateNavHighlight() {
-      const accentHex = getAccentHex();
-      document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.style.color = '#8E8E93';
-        btn.classList.remove('bg-surface');
-      });
-      const activeBtn = document.getElementById(`nav-${currentTab}`);
-      if (activeBtn) {
-        activeBtn.style.color = accentHex;
-        activeBtn.classList.add('bg-surface');
-      }
-    }
-
-    function renderMainView() {
-      const container = document.getElementById('mainContent');
-      if (currentTab === 'calendar') {
-        renderCalendarView(container);
-      } else if (currentTab === 'logger') {
-        renderLoggerView(container);
-      } else if (currentTab === 'overload') {
-        renderOverloadView(container);
-      } else if (currentTab === 'routines') {
-        renderRoutinesView(container);
-      }
-    }
-
-    /*************************************************************************
-     * 8. SCREEN 1: YEAR GRID & MONTHLY CALENDAR VIEW
-     *************************************************************************/
-    function renderCalendarView(container) {
-      const stats = calculateStats();
-      const todayStr = getTodayStr();
-      const todayWorkout = appState.workouts[todayStr];
-      const accentHex = getAccentHex();
-
-      container.innerHTML = `
-        <!-- Year Grid / Month Calendar Card -->
-        <section class="bg-surface border border-borderDark rounded-3xl p-4 shadow-xl overflow-hidden">
-          <div class="flex items-center justify-between gap-2 mb-3">
-            <div class="min-w-0">
-              <div class="flex items-center gap-2">
-                <h2 class="text-sm font-extrabold tracking-tight text-white">YEAR GRID</h2>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-obsidian border border-borderDark whitespace-nowrap" style="color: ${accentHex};">
-                  ${stats.daysLast365} / 365
-                </span>
-              </div>
-              <p class="text-[11px] text-mutedText mt-0.5 truncate">Every square is a day you showed up</p>
-            </div>
-
-            <!-- Toggle 365 Grid vs Month Calendar + Full Screen Expand -->
-            <div class="flex items-center gap-1.5 shrink-0">
-              <div class="flex bg-obsidian p-1 rounded-xl border border-borderDark">
-                <button onclick="setCalendarMode('year')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition ${calendarMode === 'year' ? 'bg-surface text-white' : 'text-mutedText'}">
-                  365 Grid
-                </button>
-                <button onclick="setCalendarMode('month')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition ${calendarMode === 'month' ? 'bg-surface text-white' : 'text-mutedText'}">
-                  Month
-                </button>
-              </div>
-              <button onclick="openFullScreenYearGrid()" class="p-2 rounded-xl bg-obsidian hover:bg-surfaceHover border border-borderDark text-mutedText hover:text-white transition active:scale-95" title="Expand 365-Day Grid Full Screen" aria-label="Expand 365-Day Grid Full Screen">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Calendar Matrix Container -->
-          <div id="calendarMatrixContainer" class="w-full min-w-0 overflow-hidden"></div>
-
-          <!-- Legend Footer -->
-          <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-borderDark/70 text-[10px] text-mutedText">
-            <span>Tap any square to inspect or log</span>
-            <div class="flex items-center gap-1">
-              <span>Rest</span>
-              <span class="w-2.5 h-2.5 rounded-[2px] tier-0 inline-block"></span>
-              <span class="w-2.5 h-2.5 rounded-[2px] tier-1 inline-block"></span>
-              <span class="w-2.5 h-2.5 rounded-[2px] tier-2 inline-block"></span>
-              <span class="w-2.5 h-2.5 rounded-[2px] tier-3 inline-block"></span>
-              <span class="w-2.5 h-2.5 rounded-[2px] tier-4 inline-block"></span>
-              <span>PR / High Vol</span>
-            </div>
-          </div>
-
-          <!-- Today's Quick Action Bar -->
-          <div class="mt-3.5 grid grid-cols-2 gap-2">
-            <button onclick="openLoggerForDate('${todayStr}')" class="py-2.5 px-3 rounded-2xl font-bold text-xs text-obsidian flex items-center justify-center gap-1.5 active:scale-[0.98] transition" style="background-color: ${accentHex};">
-              <span>${todayWorkout ? '✏️ Edit Today’s Session' : '＋ Log Today’s Workout'}</span>
-            </button>
-            <button onclick="quickCheckInToday()" class="py-2.5 px-3 rounded-2xl bg-obsidian hover:bg-surfaceHover border border-borderDark text-white font-semibold text-xs flex items-center justify-center gap-1.5 active:scale-[0.98] transition">
-              <span>${todayWorkout ? '✓ Checked In Today' : '✓ Quick Check-In'}</span>
-            </button>
-          </div>
-        </section>
-
-        <!-- Start Routine Templates -->
-        <section class="space-y-2.5">
-          <div class="flex items-center justify-between px-1">
-            <h3 class="text-xs font-extrabold uppercase tracking-wider text-mutedText">1-Tap Start Routine</h3>
-            <button onclick="switchTab('routines')" class="text-xs font-semibold" style="color: ${accentHex};">Manage →</button>
-          </div>
-          <div class="grid grid-cols-2 gap-2.5">
-            ${appState.templates.slice(0, 4).map(tpl => `
-              <button onclick="startWorkoutFromTemplate('${tpl.id}')" class="bg-surface hover:bg-surfaceHover border border-borderDark rounded-2xl p-3.5 text-left transition active:scale-[0.98]">
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-obsidian border border-borderDark inline-block mb-1.5" style="color: ${accentHex};">
-                  ${escapeHtml(tpl.tag || 'ROUTINE')}
-                </span>
-                <div class="text-xs font-bold text-white line-clamp-1">${escapeHtml(tpl.name)}</div>
-                <div class="text-[11px] text-mutedText mt-0.5">${tpl.exerciseIds.length} exercises</div>
-              </button>
-            `).join('')}
-          </div>
-        </section>
-
-        <!-- Recent Workouts Feed -->
-        <section class="space-y-2.5">
-          <div class="flex items-center justify-between px-1">
-            <h3 class="text-xs font-extrabold uppercase tracking-wider text-mutedText">Recent Sessions</h3>
-            <span class="text-[11px] text-mutedText">${stats.totalDays} total logged</span>
-          </div>
-          <div class="space-y-2">
-            ${renderRecentSessionsList()}
-          </div>
-        </section>
-      `;
-
-      if (calendarMode === 'year') {
-        render365Grid();
-      } else {
-        renderMonthGrid();
-      }
-    }
-
-    function setCalendarMode(mode) {
-      calendarMode = mode;
-      renderMainView();
-    }
-
-    function buildYearMatrixData(squareClass) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayStr = toDateStr(today);
-
-      // Start on the Monday of the week 52 weeks ago so all 7 rows align Mon -> Sun
-      const start = new Date(today);
-      const todayDow = today.getDay();
-      const currentMonOffset = todayDow === 0 ? -6 : 1 - todayDow;
-      start.setDate(today.getDate() + currentMonOffset - 52 * 7);
-
-      const endSunday = new Date(today);
-      endSunday.setDate(today.getDate() + currentMonOffset + 6);
-
-      let squaresHtml = '';
-      let monthMarkers = [];
-      let cursor = new Date(start);
-      let colIndex = 0;
-      let lastMonth = -1;
-
-      while (cursor <= endSunday) {
-        if (cursor.getDay() === 1) {
-          // Determine the dominant month of this week (using Thursday of that week)
-          const thursday = new Date(cursor);
-          thursday.setDate(cursor.getDate() + 3);
-          const m = thursday.getMonth();
-          if (m !== lastMonth) {
-            // Only add label if it has at least 2 columns of clearance from the previous label
-            const prevCol = monthMarkers.length > 0 ? monthMarkers[monthMarkers.length - 1].col : -99;
-            if (colIndex - prevCol >= 3) {
-              monthMarkers.push({
-                col: colIndex,
-                label: thursday.toLocaleDateString('en-US', { month: 'short' })
-              });
-            }
-            lastMonth = m;
-          }
-          colIndex++;
-        }
-
-        const dStr = toDateStr(cursor);
-        const isFuture = cursor > today;
-        const isToday = dStr === todayStr;
-        const workout = appState.workouts[dStr];
-        const tier = isFuture ? 0 : getWorkoutIntensity(workout);
-
-        squaresHtml += `
-          <button
-            ${isFuture ? 'disabled' : `onclick="${squareClass === 'grid-sq-fs' ? 'closeFullScreenYearGrid(); ' : ''}handleDayTap('${dStr}')"`}
-            title="${dStr}${workout ? ' — ' + escapeHtml(workout.title) : ''}"
-            class="${squareClass} tier-${tier} ${isFuture ? 'opacity-20 cursor-default' : 'cursor-pointer'} ${isToday ? 'ring-1 ring-white' : ''}">
-          </button>
-        `;
-
-        cursor.setDate(cursor.getDate() + 1);
-      }
-
-      return { squaresHtml, monthMarkers, colIndex };
-    }
-
-    function render365Grid() {
-      const target = document.getElementById('calendarMatrixContainer');
-      if (!target) return;
-
-      const { squaresHtml, monthMarkers, colIndex } = buildYearMatrixData('grid-sq');
-      const colStep = 14.5; // 11px square + 3.5px gap
-
-      target.innerHTML = `
-        <div class="flex items-start gap-2 w-full min-w-0">
-          <div class="grid grid-rows-7 gap-[3.5px] text-[9px] text-mutedText font-semibold pt-4 select-none shrink-0">
-            <span class="h-[11px] leading-[11px]">M</span>
-            <span class="h-[11px] leading-[11px]">T</span>
-            <span class="h-[11px] leading-[11px]">W</span>
-            <span class="h-[11px] leading-[11px]">T</span>
-            <span class="h-[11px] leading-[11px]">F</span>
-            <span class="h-[11px] leading-[11px]">S</span>
-            <span class="h-[11px] leading-[11px]">S</span>
-          </div>
-
-          <div id="yearScrollBox" class="overflow-x-auto no-scrollbar flex-1 min-w-0 pb-1">
-            <div class="relative h-4 text-[9px] text-mutedText font-semibold mb-0.5" style="width: ${colIndex * colStep}px;">
-              ${monthMarkers.map(m => `<span style="position:absolute; left:${m.col * colStep}px;">${m.label}</span>`).join('')}
-            </div>
-            <div class="year-grid-wrapper">
-              ${squaresHtml}
-            </div>
-          </div>
-        </div>
-      `;
-
-      const scrollBox = document.getElementById('yearScrollBox');
-      if (scrollBox) scrollBox.scrollLeft = scrollBox.scrollWidth;
-    }
-
-    function openFullScreenYearGrid() {
-      const overlay = document.getElementById('fullScreenGridOverlay');
-      if (!overlay) return;
-
-      const stats = calculateStats();
-      const accentHex = getAccentHex();
-      const { squaresHtml, monthMarkers, colIndex } = buildYearMatrixData('grid-sq-fs');
-      const colStep = 19.5; // 15px square + 4.5px gap
-
-      overlay.innerHTML = `
-        <div class="max-w-3xl w-full mx-auto h-full flex flex-col justify-between">
-          <!-- Top Bar -->
-          <div class="flex items-center justify-between gap-2 pb-3 border-b border-borderDark/80">
-            <div class="flex items-center gap-2.5 min-w-0">
-              <div class="w-8 h-8 rounded-xl bg-surface border border-borderDark flex items-center justify-center shrink-0">
-                <div class="grid grid-cols-2 gap-1">
-                  <span class="w-1.5 h-1.5 rounded-[2px]" style="background-color: ${accentHex};"></span>
-                  <span class="w-1.5 h-1.5 rounded-[2px] bg-borderDark"></span>
-                  <span class="w-1.5 h-1.5 rounded-[2px] bg-borderDark"></span>
-                  <span class="w-1.5 h-1.5 rounded-[2px]" style="background-color: ${accentHex};"></span>
-                </div>
-              </div>
-              <div class="min-w-0">
-                <div class="flex items-center gap-2">
-                  <h2 class="text-sm font-extrabold tracking-tight text-white">YEAR GRID</h2>
-                  <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-surface border border-borderDark whitespace-nowrap" style="color: ${accentHex};">
-                    ${stats.daysLast365} / 365 Days
-                  </span>
-                </div>
-                <p class="text-[11px] text-mutedText truncate">🔥 ${stats.weekStreak}w active streak • Tap any square to inspect or log</p>
-              </div>
-            </div>
-
-            <button onclick="closeFullScreenYearGrid()" class="px-3 py-2 rounded-xl bg-surface hover:bg-surfaceHover border border-borderDark text-xs font-bold text-white flex items-center gap-1.5 active:scale-95 transition shrink-0">
-              <span>✕ Close</span>
-            </button>
-          </div>
-
-          <!-- Centered Card Matching Main App Design -->
-          <div class="flex-1 flex flex-col justify-center py-4 min-h-0">
-            <div class="bg-surface border border-borderDark rounded-3xl p-4 sm:p-5 shadow-2xl overflow-hidden">
-              <div class="flex items-center justify-between mb-3">
-                <div>
-                  <h3 class="text-xs font-extrabold uppercase tracking-wider text-white">53-Week Consistency Matrix</h3>
-                  <p class="text-[11px] text-mutedText">Swipe horizontally to scroll through months</p>
-                </div>
-              </div>
-
-              <div class="flex items-start gap-2 w-full min-w-0">
-                <div class="grid grid-rows-7 gap-[4.5px] text-[10px] text-mutedText font-bold pt-5 select-none shrink-0">
-                  <span class="h-[15px] leading-[15px]">M</span>
-                  <span class="h-[15px] leading-[15px]">T</span>
-                  <span class="h-[15px] leading-[15px]">W</span>
-                  <span class="h-[15px] leading-[15px]">T</span>
-                  <span class="h-[15px] leading-[15px]">F</span>
-                  <span class="h-[15px] leading-[15px]">S</span>
-                  <span class="h-[15px] leading-[15px]">S</span>
-                </div>
-
-                <div id="fullScreenScrollBox" class="overflow-x-auto no-scrollbar flex-1 min-w-0 pb-1">
-                  <div class="relative h-5 text-[10px] text-mutedText font-bold mb-0.5" style="width: ${colIndex * colStep}px;">
-                    ${monthMarkers.map(m => `<span style="position:absolute; left:${m.col * colStep}px;">${m.label}</span>`).join('')}
-                  </div>
-                  <div class="year-grid-fullscreen-scroll">
-                    ${squaresHtml}
-                  </div>
-                </div>
-              </div>
-
-              <!-- Legend Footer -->
-              <div class="flex items-center justify-between mt-4 pt-3 border-t border-borderDark/70 text-[10px] text-mutedText">
-                <span>Tap any square to inspect or log</span>
-                <div class="flex items-center gap-1.5">
-                  <span>Rest</span>
-                  <span class="w-3 h-3 rounded-[3px] tier-0 inline-block"></span>
-                  <span class="w-3 h-3 rounded-[3px] tier-1 inline-block"></span>
-                  <span class="w-3 h-3 rounded-[3px] tier-2 inline-block"></span>
-                  <span class="w-3 h-3 rounded-[3px] tier-3 inline-block"></span>
-                  <span class="w-3 h-3 rounded-[3px] tier-4 inline-block"></span>
-                  <span>PR / High Vol</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-
-      overlay.classList.remove('hidden');
-      overlay.classList.add('flex');
-
-      const fsScrollBox = document.getElementById('fullScreenScrollBox');
-      if (fsScrollBox) fsScrollBox.scrollLeft = fsScrollBox.scrollWidth;
-    }
-
-    function closeFullScreenYearGrid() {
-      const overlay = document.getElementById('fullScreenGridOverlay');
-      if (!overlay) return;
-      overlay.classList.add('hidden');
-      overlay.classList.remove('flex');
-    }
-
-    function renderMonthGrid() {
-      const target = document.getElementById('calendarMatrixContainer');
-      if (!target) return;
-
-      const year = selectedMonthDate.getFullYear();
-      const month = selectedMonthDate.getMonth();
-      const monthName = selectedMonthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-      const todayStr = getTodayStr();
-      const accentHex = getAccentHex();
-
-      const firstDay = new Date(year, month, 1);
-      const startOffset = (firstDay.getDay() + 6) % 7;
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-      let cells = '';
-      for (let i = 0; i < startOffset; i++) {
-        cells += `<div class="h-10 rounded-xl bg-obsidian/40"></div>`;
-      }
-
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const workout = appState.workouts[dStr];
-        const tier = getWorkoutIntensity(workout);
-        const isToday = dStr === todayStr;
-
-        cells += `
-          <button onclick="handleDayTap('${dStr}')" class="h-10 rounded-xl flex flex-col items-center justify-center text-xs font-bold transition active:scale-95 tier-${tier} ${tier >= 3 ? 'text-obsidian' : 'text-white'} ${isToday ? 'ring-1 ring-white' : ''}">
-            <span>${day}</span>
-            ${workout ? `<span class="w-1 h-1 rounded-full mt-0.5 ${tier >= 3 ? 'bg-obsidian' : ''}" style="${tier >= 3 ? '' : `background-color: ${accentHex};`}"></span>` : ''}
-          </button>
-        `;
-      }
-
-      target.innerHTML = `
-        <div class="space-y-2">
-          <div class="flex items-center justify-between px-1">
-            <button onclick="shiftMonth(-1)" class="p-1.5 rounded-lg bg-obsidian border border-borderDark text-xs text-mutedText hover:text-white">←</button>
-            <span class="text-xs font-bold text-white">${monthName}</span>
-            <button onclick="shiftMonth(1)" class="p-1.5 rounded-lg bg-obsidian border border-borderDark text-xs text-mutedText hover:text-white">→</button>
-          </div>
-          <div class="grid grid-cols-7 gap-1.5 text-center text-[10px] font-bold text-mutedText">
-            <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
-          </div>
-          <div class="grid grid-cols-7 gap-1.5">
-            ${cells}
-          </div>
-        </div>
-      `;
-    }
-
-    function shiftMonth(delta) {
-      selectedMonthDate = new Date(selectedMonthDate.getFullYear(), selectedMonthDate.getMonth() + delta, 1);
-      renderMainView();
-    }
-
-    function renderRecentSessionsList() {
-      const dates = Object.keys(appState.workouts).sort().reverse().slice(0, 6);
-      const accentHex = getAccentHex();
-      if (dates.length === 0) {
-        return `<div class="bg-surface border border-borderDark rounded-2xl p-6 text-center text-xs text-mutedText">No workouts logged yet. Tap "+ Log Today's Workout" above to light up your first square!</div>`;
-      }
-
-      return dates.map(dStr => {
-        const w = appState.workouts[dStr];
-        const exList = w.exercises || [];
-        let prCount = 0;
-        let totalVolume = 0;
-        exList.forEach(ex => {
-          const cardio = isCardioExercise(ex.exerciseId);
-          (ex.sets || []).forEach(s => {
-            if (s.isPR) prCount++;
-            if (!cardio) {
-              totalVolume += (parseFloat(s.weight) || 0) * (parseInt(s.reps, 10) || 0);
-            }
-          });
-        });
-
-        return `
-          <div onclick="handleDayTap('${dStr}')" class="bg-surface hover:bg-surfaceHover border border-borderDark rounded-2xl p-3.5 flex items-center justify-between cursor-pointer transition active:scale-[0.99]">
-            <div class="min-w-0 pr-2">
-              <div class="flex items-center gap-2">
-                <span class="text-[11px] font-bold" style="color: ${accentHex};">${formatDisplayDate(dStr)}</span>
-                ${prCount > 0 ? `<span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-coralAccent/15 text-coralAccent">🏆 ${prCount} PR</span>` : ''}
-              </div>
-              <div class="text-sm font-bold text-white truncate mt-0.5">${escapeHtml(w.title || 'Workout Session')}</div>
-              <div class="text-[11px] text-mutedText truncate mt-0.5">
-                ${w.quickCheckIn && exList.length === 0 ? 'Quick Day Check-In' : `${exList.length} exercises • ${Math.round(totalVolume).toLocaleString()} ${appState.unit} vol`}
-              </div>
-            </div>
-            <span class="text-mutedText text-sm">›</span>
-          </div>
-        `;
-      }).join('');
-    }
-
-    /*************************************************************************
-     * 9. SCREEN 2: WORKOUT LOGGER & PROGRESSIVE OVERLOAD DETECTOR
-     *************************************************************************/
-    function initDraftForDate(dateStr, templateId = null) {
-      activeLoggerDate = dateStr;
-      const existing = appState.workouts[dateStr];
-
-      if (existing && !templateId) {
-        activeDraft = JSON.parse(JSON.stringify(existing));
-        if (!activeDraft.exercises) activeDraft.exercises = [];
+      if (currentMode === 'signup' && existingVault && existingVault._passHash) {
+        err.textContent = 'Username already exists — switch to Sign In.';
+        err.classList.remove('hidden');
         return;
       }
 
-      if (templateId) {
-        const tpl = appState.templates.find(t => t.id === templateId);
-        if (tpl) {
-          activeDraft = {
-            title: tpl.name,
-            notes: '',
-            exercises: tpl.exerciseIds.map(exId => {
-              const bench = getExerciseBenchmarks(exId, dateStr);
-              const cardio = isCardioExercise(exId);
-              const defaultSets = bench.lastSession
-                ? bench.lastSession.sets.map(s => ({ weight: s.weight, reps: s.reps, done: false }))
-                : (cardio
-                    ? [{ weight: '', reps: '', done: false }]
-                    : [{ weight: '', reps: '', done: false }, { weight: '', reps: '', done: false }, { weight: '', reps: '', done: false }]);
-              return { exerciseId: exId, sets: defaultSets };
-            })
-          };
-          return;
-        }
-      }
-
-      activeDraft = {
-        title: 'Custom Workout',
-        notes: '',
-        exercises: []
-      };
-    }
-
-    function openLoggerForDate(dateStr, templateId = null) {
-      initDraftForDate(dateStr, templateId);
-      switchTab('logger');
-    }
-
-    function startWorkoutFromTemplate(templateId) {
-      openLoggerForDate(getTodayStr(), templateId);
-    }
-
-    function quickCheckInToday() {
-      const todayStr = getTodayStr();
-      if (appState.workouts[todayStr]) {
-        handleDayTap(todayStr);
-        return;
-      }
-      appState.workouts[todayStr] = {
-        title: 'Active Training Day',
-        quickCheckIn: true,
-        notes: 'Logged via 1-Tap Check-In',
-        exercises: []
-      };
-      saveState();
-      renderHeaderAndStrip();
-      renderMainView();
-      showToast('Day Checked In! Year Grid updated');
-    }
-
-    function renderLoggerView(container) {
-      if (!activeDraft) initDraftForDate(getTodayStr());
-      const accentHex = getAccentHex();
-
-      container.innerHTML = `
-        <div class="space-y-4">
-          <!-- Session Header Card -->
-          <section class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
-            <div class="flex items-center justify-between gap-2">
-              <div class="flex items-center gap-2">
-                <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-obsidian border border-borderDark" style="color: ${accentHex};">
-                  ${formatDisplayDate(activeLoggerDate)}
-                </span>
-                <input type="date" value="${activeLoggerDate}" onchange="openLoggerForDate(this.value)" class="bg-obsidian border border-borderDark rounded-lg px-2 py-1 text-[11px] text-mutedText focus:outline-none" />
-              </div>
-              <button onclick="openTemplateQuickLoadModal()" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-obsidian border border-borderDark text-white hover:border-white/30">
-                Load Routine
-              </button>
-            </div>
-
-            <div>
-              <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Session Title</label>
-              <input
-                type="text"
-                value="${escapeHtml(activeDraft.title)}"
-                oninput="activeDraft.title = this.value"
-                placeholder="e.g., Lower Body & Glutes"
-                class="w-full bg-obsidian border border-borderDark rounded-xl px-3.5 py-2.5 text-sm font-bold text-white focus:outline-none"
-              />
-            </div>
-          </section>
-
-          <!-- Exercises List -->
-          <div id="loggerExercisesList" class="space-y-3">
-            ${activeDraft.exercises.length === 0 ? `
-              <div class="bg-surface border border-dashed border-borderDark rounded-3xl p-6 text-center space-y-2">
-                <p class="text-xs text-mutedText">No exercises added yet. Load a saved routine or add an exercise below.</p>
-              </div>
-            ` : activeDraft.exercises.map((ex, exIdx) => renderExerciseCard(ex, exIdx)).join('')}
-          </div>
-
-          <!-- Add Exercise Button -->
-          <button onclick="openExercisePickerModal()" class="w-full py-3 rounded-2xl bg-surface hover:bg-surfaceHover border border-borderDark text-xs font-bold text-white flex items-center justify-center gap-1.5 transition active:scale-[0.99]">
-            <span>＋ Add Exercise to Session</span>
-          </button>
-
-          <!-- Session Notes & Save Button -->
-          <section class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
-            <div>
-              <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Session Notes / Energy</label>
-              <input
-                type="text"
-                value="${escapeHtml(activeDraft.notes || '')}"
-                oninput="activeDraft.notes = this.value"
-                placeholder="How did the weights feel today?"
-                class="w-full bg-obsidian border border-borderDark rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
-              />
-            </div>
-
-            <button onclick="saveActiveWorkout()" class="w-full py-3.5 rounded-2xl font-extrabold text-sm text-obsidian shadow-lg active:scale-[0.98] transition" style="background-color: ${accentHex};">
-              ✓ Save Workout &amp; Light Up Grid
-            </button>
-          </section>
-        </div>
-      `;
-    }
-
-    function renderExerciseCard(ex, exIdx) {
-      const bench = getExerciseBenchmarks(ex.exerciseId, activeLoggerDate);
-      const isCardio = isCardioExercise(ex.exerciseId);
-      const metricHeader = isCardio ? getCardioMetricLabel(ex.exerciseId) : 'Reps';
-      const weightHeader = isCardio ? 'Minutes' : `Weight (${appState.unit})`;
-      const accentHex = getAccentHex();
-
-      let benchmarkBadge = `<span class="text-[10px] text-mutedText">First time logging — sets your baseline!</span>`;
-      if (bench.lastSession) {
-        const lastStr = isCardio
-          ? bench.lastSession.sets.map(s => `${s.weight}m${s.reps ? ` @ ${s.reps}` : ''}`).join(', ')
-          : bench.lastSession.sets.map(s => `${s.weight}${appState.unit}×${s.reps}`).join(', ');
-        const bestStr = isCardio
-          ? `${bench.bestWeight} min`
-          : `${bench.bestWeight}${appState.unit} (e1RM ${bench.bestE1RM}${appState.unit})`;
-        benchmarkBadge = `
-          <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px]">
-            <span class="text-mutedText">Last: <strong class="text-white/90">${escapeHtml(lastStr)}</strong></span>
-            <span style="color: ${accentHex};">• Best: <strong>${escapeHtml(bestStr)}</strong></span>
-          </div>
-        `;
-      }
-
-      return `
-        <div class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
-          <div class="flex items-start justify-between gap-2">
-            <div>
-              <h3 class="text-sm font-extrabold text-white">${escapeHtml(getExerciseName(ex.exerciseId))}</h3>
-              <div class="mt-0.5">${benchmarkBadge}</div>
-            </div>
-            <button onclick="removeExerciseFromDraft(${exIdx})" class="text-xs text-mutedText hover:text-coralAccent px-2 py-1 rounded-lg bg-obsidian border border-borderDark">
-              ✕
-            </button>
-          </div>
-
-          <!-- Sets Table Header -->
-          <div class="grid grid-cols-12 gap-1.5 text-[10px] font-bold uppercase tracking-wider text-mutedText px-1">
-            <div class="col-span-2">${isCardio ? 'Int' : 'Set'}</div>
-            <div class="col-span-4">${weightHeader}</div>
-            <div class="col-span-3">${metricHeader}</div>
-            <div class="col-span-3 text-right">Status</div>
-          </div>
-
-          <!-- Set Rows -->
-          <div class="space-y-1.5">
-            ${ex.sets.map((s, setIdx) => {
-              const overload = evaluateSetOverload(ex.exerciseId, s.weight, s.reps, activeLoggerDate);
-              return `
-                <div class="grid grid-cols-12 gap-1.5 items-center bg-obsidian border ${overload ? 'border-coralAccent/50' : 'border-borderDark'} rounded-xl px-2 py-1.5">
-                  <div class="col-span-2 flex items-center gap-1">
-                    <span class="text-xs font-extrabold text-mutedText">${setIdx + 1}</span>
-                    ${ex.sets.length > 1 ? `<button onclick="removeSetFromExercise(${exIdx}, ${setIdx})" class="text-[10px] text-mutedText hover:text-coralAccent">×</button>` : ''}
-                  </div>
-                  <div class="col-span-4">
-                    <input
-                      type="number"
-                      step="any"
-                      inputmode="decimal"
-                      value="${s.weight}"
-                      placeholder="${isCardio ? '25' : (bench.lastSession?.sets[setIdx]?.weight || '0')}"
-                      oninput="updateDraftSet(${exIdx}, ${setIdx}, 'weight', this.value)"
-                      class="w-full bg-surface border border-borderDark rounded-lg px-2 py-1.5 text-xs font-bold text-white text-center focus:outline-none"
-                    />
-                  </div>
-                  <div class="col-span-3">
-                    <input
-                      type="${isCardio ? 'text' : 'number'}"
-                      inputmode="${isCardio ? 'text' : 'numeric'}"
-                      value="${s.reps}"
-                      placeholder="${isCardio ? 'Lvl 8' : (bench.lastSession?.sets[setIdx]?.reps || '0')}"
-                      oninput="updateDraftSet(${exIdx}, ${setIdx}, 'reps', this.value)"
-                      class="w-full bg-surface border border-borderDark rounded-lg px-2 py-1.5 text-xs font-bold text-white text-center focus:outline-none"
-                    />
-                  </div>
-                  <div class="col-span-3 flex justify-end">
-                    ${overload
-                      ? `<span class="text-[9px] font-extrabold px-1.5 py-1 rounded-md ${overload.type === 'pr' ? 'bg-coralAccent/20 text-coralAccent' : ''}" style="${overload.type === 'pr' ? '' : `background-color: var(--accent-soft); color: ${accentHex};`}">${overload.label}</span>`
-                      : `<button onclick="toggleSetDone(${exIdx}, ${setIdx})" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition ${s.done ? 'text-obsidian' : 'bg-surface border border-borderDark text-mutedText'}" style="${s.done ? `background-color: ${accentHex};` : ''}">✓</button>`
-                    }
-                  </div>
-                </div>
-              `;
-            }).join('')}
-          </div>
-
-          <button onclick="addSetToExercise(${exIdx})" class="w-full py-1.5 rounded-xl bg-obsidian hover:bg-surfaceHover border border-borderDark text-[11px] font-semibold text-mutedText hover:text-white transition">
-            ${isCardio ? '+ Add Interval' : '+ Add Set'}
-          </button>
-        </div>
-      `;
-    }
-
-    function updateDraftSet(exIdx, setIdx, field, val) {
-      activeDraft.exercises[exIdx].sets[setIdx][field] = val;
-      const ex = activeDraft.exercises[exIdx];
-      const setObj = ex.sets[setIdx];
-      const overload = evaluateSetOverload(ex.exerciseId, setObj.weight, setObj.reps, activeLoggerDate);
-      setObj.isPR = Boolean(overload && overload.type === 'pr');
-      if (parseFloat(setObj.weight) > 0 || (isCardioExercise(ex.exerciseId) ? String(setObj.reps).trim().length > 0 : parseInt(setObj.reps, 10) > 0)) {
-        setObj.done = true;
-      }
-      renderLoggerView(document.getElementById('mainContent'));
-    }
-
-    function toggleSetDone(exIdx, setIdx) {
-      const s = activeDraft.exercises[exIdx].sets[setIdx];
-      s.done = !s.done;
-      renderLoggerView(document.getElementById('mainContent'));
-    }
-
-    function addSetToExercise(exIdx) {
-      const sets = activeDraft.exercises[exIdx].sets;
-      const prev = sets[sets.length - 1] || { weight: '', reps: '' };
-      sets.push({ weight: prev.weight, reps: prev.reps, done: false });
-      renderLoggerView(document.getElementById('mainContent'));
-    }
-
-    function removeSetFromExercise(exIdx, setIdx) {
-      activeDraft.exercises[exIdx].sets.splice(setIdx, 1);
-      renderLoggerView(document.getElementById('mainContent'));
-    }
-
-    function removeExerciseFromDraft(exIdx) {
-      activeDraft.exercises.splice(exIdx, 1);
-      renderLoggerView(document.getElementById('mainContent'));
-    }
-
-    function saveActiveWorkout() {
-      const cleanedExercises = (activeDraft.exercises || [])
-        .map(ex => {
-          const cardio = isCardioExercise(ex.exerciseId);
-          return {
-            exerciseId: ex.exerciseId,
-            sets: (ex.sets || [])
-              .filter(s => (parseFloat(s.weight) || 0) > 0 || (cardio ? String(s.reps || '').trim().length > 0 : (parseInt(s.reps, 10) || 0) > 0))
-              .map(s => {
-                const overload = evaluateSetOverload(ex.exerciseId, s.weight, s.reps, activeLoggerDate);
-                return {
-                  weight: parseFloat(s.weight) || 0,
-                  reps: cardio ? String(s.reps || '').trim() : (parseInt(s.reps, 10) || 0),
-                  isPR: Boolean(overload && overload.type === 'pr')
-                };
-              })
-          };
-        })
-        .filter(ex => ex.sets.length > 0);
-
-      appState.workouts[activeLoggerDate] = {
-        title: (activeDraft.title || '').trim() || 'Workout Session',
-        notes: (activeDraft.notes || '').trim(),
-        quickCheckIn: cleanedExercises.length === 0,
-        exercises: cleanedExercises
-      };
-
-      if (cleanedExercises.length > 0) {
-        selectedOverloadExId = cleanedExercises[0].exerciseId;
-      }
-
-      saveState();
-      renderHeaderAndStrip();
-      switchTab('calendar');
-      showToast('Workout Saved & Year Grid Lit Up!');
-    }
-
-    /*************************************************************************
-     * 10. SCREEN 3: PROGRESSIVE OVERLOAD ANALYTICS & CHARTS
-     *************************************************************************/
-    function renderOverloadView(container) {
-      const loggedExIds = new Set();
-      Object.values(appState.workouts).forEach(w => {
-        (w.exercises || []).forEach(ex => loggedExIds.add(ex.exerciseId));
-      });
-      const allExOptions = [...DEFAULT_EXERCISES, ...appState.customExercises];
-      const availableExercises = allExOptions.filter(e => loggedExIds.has(e.id));
-      const dropdownList = availableExercises.length > 0 ? availableExercises : allExOptions.slice(0, 12);
-
-      if (!dropdownList.some(e => e.id === selectedOverloadExId)) {
-        selectedOverloadExId = dropdownList[0].id;
-      }
-
-      const history = [];
-      Object.keys(appState.workouts).sort().forEach(dStr => {
-        const w = appState.workouts[dStr];
-        const ex = (w.exercises || []).find(item => item.exerciseId === selectedOverloadExId);
-        if (ex && ex.sets && ex.sets.length > 0) {
-          let maxWt = 0;
-          let maxE1RM = 0;
-          let vol = 0;
-          ex.sets.forEach(s => {
-            const wt = parseFloat(s.weight) || 0;
-            const rp = parseInt(s.reps, 10) || 0;
-            const e1rm = calcE1RM(wt, rp);
-            if (wt > maxWt) maxWt = wt;
-            if (e1rm > maxE1RM) maxE1RM = e1rm;
-            vol += wt * rp;
-          });
-          if (maxWt > 0) {
-            history.push({ date: dStr, maxWt, maxE1RM, vol, sets: ex.sets });
-          }
-        }
-      });
-
-      const allTimeMaxWt = history.length ? Math.max(...history.map(h => h.maxWt)) : 0;
-      const allTimeE1RM = history.length ? Math.max(...history.map(h => h.maxE1RM)) : 0;
-      const firstWt = history.length ? history[0].maxWt : 0;
-      const latestWt = history.length ? history[history.length - 1].maxWt : 0;
-      const deltaWt = Math.round((latestWt - firstWt) * 10) / 10;
-      const isCardio = isCardioExercise(selectedOverloadExId);
-      const unitLabel = isCardio ? 'min' : appState.unit;
-      const accentHex = getAccentHex();
-
-      container.innerHTML = `
-        <div class="space-y-4">
-          <section class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
-            <div class="flex items-center justify-between">
-              <div>
-                <h2 class="text-sm font-extrabold text-white">PROGRESSIVE OVERLOAD</h2>
-                <p class="text-[11px] text-mutedText">Track top weight, estimated 1RM &amp; volume trends</p>
-              </div>
-              <span class="text-xs font-extrabold px-2.5 py-1 rounded-xl" style="background-color: var(--accent-soft); color: ${accentHex};">
-                ${deltaWt >= 0 ? `+${deltaWt}` : deltaWt} ${unitLabel}
-              </span>
-            </div>
-
-            <select onchange="selectedOverloadExId = this.value; renderMainView();" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-3 text-xs font-bold text-white focus:outline-none">
-              ${dropdownList.map(ex => `<option value="${ex.id}" ${ex.id === selectedOverloadExId ? 'selected' : ''}>${escapeHtml(ex.name)} (${escapeHtml(ex.muscle)})</option>`).join('')}
-            </select>
-
-            <div class="grid grid-cols-3 gap-2 pt-1">
-              <div class="bg-obsidian border border-borderDark rounded-2xl p-2.5">
-                <span class="text-[10px] text-mutedText font-semibold block">${isCardio ? 'Best Time' : 'All-Time Top'}</span>
-                <span class="text-sm font-extrabold text-white mt-0.5 block">${allTimeMaxWt} ${unitLabel}</span>
-              </div>
-              <div class="bg-obsidian border border-borderDark rounded-2xl p-2.5">
-                <span class="text-[10px] text-mutedText font-semibold block">${isCardio ? 'Sessions' : 'Peak Est. 1RM'}</span>
-                <span class="text-sm font-extrabold mt-0.5 block" style="color: ${accentHex};">${isCardio ? history.length : `${allTimeE1RM} ${unitLabel}`}</span>
-              </div>
-              <div class="bg-obsidian border border-borderDark rounded-2xl p-2.5">
-                <span class="text-[10px] text-mutedText font-semibold block">Total Logged</span>
-                <span class="text-sm font-extrabold text-white mt-0.5 block">${history.length}x</span>
-              </div>
-            </div>
-
-            <div class="bg-obsidian border border-borderDark rounded-2xl p-3">
-              ${renderOverloadSVGChart(history, unitLabel)}
-            </div>
-          </section>
-
-          <section class="space-y-2">
-            <h3 class="text-xs font-extrabold uppercase tracking-wider text-mutedText px-1">Progression Log</h3>
-            ${history.length === 0 ? `
-              <div class="bg-surface border border-borderDark rounded-2xl p-5 text-center text-xs text-mutedText">
-                No sessions logged for this exercise yet.
-              </div>
-            ` : [...history].reverse().map(item => `
-              <div class="bg-surface border border-borderDark rounded-2xl p-3.5 flex items-center justify-between">
-                <div>
-                  <span class="text-[11px] font-bold" style="color: ${accentHex};">${formatDisplayDate(item.date)}</span>
-                  <div class="text-xs font-bold text-white mt-0.5">
-                    ${item.sets.map(s => isCardio ? `${s.weight}m${s.reps ? ` @ ${s.reps}` : ''}` : `${s.weight}${appState.unit} × ${s.reps}`).join('  •  ')}
-                  </div>
-                </div>
-                <div class="text-right">
-                  <span class="text-xs font-extrabold text-white block">${item.maxWt} ${unitLabel}</span>
-                  ${isCardio ? '' : `<span class="text-[10px] text-mutedText">e1RM ${item.maxE1RM}</span>`}
-                </div>
-              </div>
-            `).join('')}
-          </section>
-        </div>
-      `;
-    }
-
-    function renderOverloadSVGChart(history, unitLabel = appState.unit) {
-      const accentHex = getAccentHex();
-      if (history.length < 2) {
-        return `<div class="h-32 flex items-center justify-center text-xs text-mutedText text-center px-4">Log at least 2 sessions of this exercise to unlock your progressive overload curve.</div>`;
-      }
-
-      const width = 320;
-      const height = 130;
-      const padX = 24;
-      const padY = 20;
-
-      const values = history.map(h => h.maxWt);
-      const minVal = Math.min(...values) * 0.92;
-      const maxVal = Math.max(...values) * 1.05 || 10;
-      const range = maxVal - minVal || 1;
-
-      const points = history.map((h, idx) => {
-        const x = padX + (idx / (history.length - 1)) * (width - padX * 2);
-        const y = height - padY - ((h.maxWt - minVal) / range) * (height - padY * 2);
-        return { x, y, val: h.maxWt, date: h.date };
-      });
-
-      const polylineStr = points.map(p => `${p.x},${p.y}`).join(' ');
-      const areaStr = `${points[0].x},${height - padY} ${polylineStr} ${points[points.length - 1].x},${height - padY}`;
-
-      return `
-        <svg viewBox="0 0 ${width} ${height}" class="w-full h-36 overflow-visible">
-          <defs>
-            <linearGradient id="overloadGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="${accentHex}" stop-opacity="0.32" />
-              <stop offset="100%" stop-color="${accentHex}" stop-opacity="0.0" />
-            </linearGradient>
-          </defs>
-          <polygon points="${areaStr}" fill="url(#overloadGrad)" />
-          <polyline fill="none" stroke="${accentHex}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="${polylineStr}" />
-          ${points.map(p => `
-            <circle cx="${p.x}" cy="${p.y}" r="4" fill="#0A0A0C" stroke="${accentHex}" stroke-width="2.5" />
-            <text x="${p.x}" y="${p.y - 8}" text-anchor="middle" fill="#F5F5F7" font-size="9" font-weight="700">${p.val}${unitLabel}</text>
-          `).join('')}
-        </svg>
-      `;
-    }
-
-    /*************************************************************************
-     * 11. SCREEN 4: ROUTINES, ACCOUNT SYNC & SETTINGS
-     *************************************************************************/
-    function renderRoutinesView(container) {
-      const accentHex = getAccentHex();
-      container.innerHTML = `
-        <div class="space-y-4">
-          <!-- Account & Cloud Sync Card -->
-          <section class="bg-surface border border-borderDark rounded-3xl p-4">
-            <div class="flex items-center justify-between gap-2">
-              <div class="flex items-center gap-3 min-w-0">
-                <div class="w-10 h-10 rounded-2xl bg-obsidian border border-borderDark flex items-center justify-center font-extrabold text-sm shrink-0" style="color: ${accentHex};">
-                  ${accountSession.username ? escapeHtml(accountSession.username.slice(0, 2).toUpperCase()) : '👤'}
-                </div>
-                <div class="min-w-0">
-                  <h2 class="text-sm font-extrabold text-white truncate">
-                    ${accountSession.username ? `@${escapeHtml(accountSession.username)}` : 'Sign In / Create Account'}
-                  </h2>
-                  <p class="text-[11px] text-mutedText truncate">
-                    ${accountSession.username
-                      ? (cloudStatus === 'synced' ? 'Cloud synced across devices' : 'Saved to device profile')
-                      : 'Back up workouts & sync across phones'}
-                  </p>
-                </div>
-              </div>
-              <button onclick="openAccountModal()" class="px-3.5 py-2 rounded-xl text-xs font-extrabold shrink-0 transition active:scale-95 ${accountSession.username ? 'bg-obsidian border border-borderDark text-white' : 'text-obsidian'}" style="${accountSession.username ? '' : `background-color: ${accentHex};`}">
-                ${accountSession.username ? 'Manage' : 'Sign In'}
-              </button>
-            </div>
-          </section>
-
-          <!-- Theme / Accent Color Picker Card -->
-          <section class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
-            <div class="flex items-center justify-between">
-              <div>
-                <h2 class="text-sm font-extrabold text-white">THEME &amp; ACCENT COLOR</h2>
-                <p class="text-[11px] text-mutedText">Customize your Year Grid, streaks &amp; highlights</p>
-              </div>
-              <span class="text-[11px] font-bold" style="color: ${accentHex};">${getThemeObj(appState.accent).name}</span>
-            </div>
-            <div class="grid grid-cols-5 gap-2">
-              ${Object.values(ACCENT_THEMES).map(t => {
-                const isSelected = appState.accent === t.id;
-                return `
-                  <button onclick="setAccent('${t.id}')" class="flex flex-col items-center gap-1.5 p-2 rounded-2xl border transition active:scale-95 ${isSelected ? 'bg-obsidian border-white' : 'bg-obsidian/60 border-borderDark hover:border-white/30'}">
-                    <span class="w-6 h-6 rounded-full shadow-md" style="background-color: ${t.hex};"></span>
-                    <span class="text-[10px] font-bold ${isSelected ? 'text-white' : 'text-mutedText'}">${t.name.split(' ')[1]}</span>
-                  </button>
-                `;
-              }).join('')}
-            </div>
-          </section>
-
-          <!-- Workout Routines -->
-          <section class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
-            <div class="flex items-center justify-between">
-              <div>
-                <h2 class="text-sm font-extrabold text-white">WORKOUT ROUTINES</h2>
-                <p class="text-[11px] text-mutedText">Unlimited custom splits — zero paywalls</p>
-              </div>
-              <button onclick="openCreateRoutineModal()" class="px-3 py-1.5 rounded-xl font-bold text-xs text-obsidian" style="background-color: ${accentHex};">
-                ＋ New
-              </button>
-            </div>
-
-            <div class="space-y-2.5">
-              ${appState.templates.map((tpl, idx) => `
-                <div class="bg-obsidian border border-borderDark rounded-2xl p-3.5 space-y-2">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <span class="text-[10px] font-bold uppercase tracking-wider" style="color: ${accentHex};">${escapeHtml(tpl.tag || 'SPLIT')}</span>
-                      <h3 class="text-sm font-bold text-white">${escapeHtml(tpl.name)}</h3>
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                      <button onclick="startWorkoutFromTemplate('${tpl.id}')" class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold" style="background-color: var(--accent-soft); color: ${accentHex};">
-                        Start
-                      </button>
-                      <button onclick="deleteTemplate(${idx})" class="p-1.5 rounded-xl bg-surface text-mutedText hover:text-coralAccent text-xs">
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                  <div class="text-[11px] text-mutedText leading-relaxed">
-                    ${tpl.exerciseIds.map(id => escapeHtml(getExerciseName(id))).join(' • ')}
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </section>
-
-          <!-- Preferences & Data Management -->
-          <section class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
-            <h3 class="text-xs font-extrabold uppercase tracking-wider text-mutedText">App Settings &amp; Backup</h3>
-
-            <div class="flex items-center justify-between bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5">
-              <span class="text-xs font-semibold text-white">Weight Unit</span>
-              <div class="flex gap-1">
-                <button onclick="setUnit('kg')" class="px-3 py-1 rounded-lg text-xs font-bold ${appState.unit === 'kg' ? 'text-obsidian' : 'text-mutedText'}" style="${appState.unit === 'kg' ? `background-color: ${accentHex};` : ''}">KG</button>
-                <button onclick="setUnit('lbs')" class="px-3 py-1 rounded-lg text-xs font-bold ${appState.unit === 'lbs' ? 'text-obsidian' : 'text-mutedText'}" style="${appState.unit === 'lbs' ? `background-color: ${accentHex};` : ''}">LBS</button>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2">
-              <button onclick="exportBackupJSON()" class="py-2.5 px-3 rounded-2xl bg-obsidian border border-borderDark text-xs font-semibold text-white hover:border-white/30">
-                ↓ Export Backup
-              </button>
-              <button onclick="openInstallShortcutModal()" class="py-2.5 px-3 rounded-2xl bg-obsidian border border-borderDark text-xs font-semibold hover:border-white/30" style="color: ${accentHex};">
-                📱 Phone Shortcut
-              </button>
-            </div>
-
-            <button onclick="confirmClearAllData()" class="w-full py-2.5 rounded-2xl bg-coralAccent/10 border border-coralAccent/30 text-coralAccent text-xs font-bold">
-              Reset All Workout History
-            </button>
-          </section>
-        </div>
-      `;
-    }
-
-    function setUnit(u) {
-      appState.unit = u;
-      saveState();
-      renderMainView();
-    }
-
-    function setAccent(themeId) {
-      appState.accent = themeId;
-      applyAccentTheme(themeId);
-      saveState();
-      updateNavHighlight();
-      renderHeaderAndStrip();
-      renderMainView();
-      showToast(`Theme switched to ${getThemeObj(themeId).name}`);
-    }
-
-    function deleteTemplate(idx) {
-      appState.templates.splice(idx, 1);
-      saveState();
-      renderMainView();
-      showToast('Routine removed');
-    }
-
-    function exportBackupJSON() {
-      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(appState, null, 2));
-      const a = document.createElement('a');
-      a.setAttribute('href', dataStr);
-      a.setAttribute('download', `cadence-backup-${getTodayStr()}.json`);
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      showToast('Backup JSON downloaded');
-    }
-
-    function confirmClearAllData() {
-      const accentHex = getAccentHex();
-      openModal(`
-        <div class="space-y-4">
-          <h3 class="text-base font-extrabold text-white">Reset All Workout History?</h3>
-          <p class="text-xs text-mutedText leading-relaxed">This will clear your Year Grid and logged sets so you have a fresh slate. Your custom routines will stay intact.</p>
-          <div class="grid grid-cols-2 gap-2.5 pt-2">
-            <button onclick="closeModal()" class="py-3 rounded-2xl bg-obsidian border border-borderDark text-xs font-bold text-white">Cancel</button>
-            <button onclick="executeClearAllData()" class="py-3 rounded-2xl text-xs font-extrabold text-obsidian" style="background-color: ${accentHex};">Yes, Clear History</button>
-          </div>
-        </div>
-      `);
-    }
-
-    function executeClearAllData() {
-      appState.workouts = {};
-      saveState();
-      closeModal();
-      renderHeaderAndStrip();
-      renderMainView();
-      showToast('All workout history cleared');
-    }
-
-    /*************************************************************************
-     * 12. MODALS (DAY INSPECTOR, EXERCISE PICKER, NEW ROUTINE, ACCOUNT)
-     *************************************************************************/
-    function openModal(html) {
-      const overlay = document.getElementById('modalOverlay');
-      const sheet = document.getElementById('modalSheet');
-      sheet.innerHTML = html;
-      overlay.classList.remove('hidden');
-      overlay.classList.add('flex');
-    }
-
-    function closeModal() {
-      const overlay = document.getElementById('modalOverlay');
-      overlay.classList.add('hidden');
-      overlay.classList.remove('flex');
-    }
-
-    function closeModalOnBackdrop(e) {
-      if (e.target.id === 'modalOverlay') closeModal();
-    }
-
-    function handleDayTap(dateStr) {
-      const workout = appState.workouts[dateStr];
-      if (!workout) {
-        openLoggerForDate(dateStr);
-        return;
-      }
-      openDayDetailModal(dateStr, workout);
-    }
-
-    function openDayDetailModal(dateStr, workout) {
-      const exList = workout.exercises || [];
-      const accentHex = getAccentHex();
-      openModal(`
-        <div class="space-y-4">
-          <div class="flex items-start justify-between">
-            <div>
-              <span class="text-[11px] font-bold uppercase tracking-wider" style="color: ${accentHex};">${formatDisplayDate(dateStr)}</span>
-              <h3 class="text-lg font-extrabold text-white mt-0.5">${escapeHtml(workout.title || 'Workout Session')}</h3>
-              ${workout.notes ? `<p class="text-xs text-mutedText mt-1">"${escapeHtml(workout.notes)}"</p>` : ''}
-            </div>
-            <button onclick="closeModal()" class="p-2 rounded-xl bg-obsidian text-mutedText hover:text-white">✕</button>
-          </div>
-
-          <div class="space-y-2.5 max-h-[50dvh] overflow-y-auto pr-1">
-            ${exList.length === 0 ? `
-              <div class="bg-obsidian border border-borderDark rounded-2xl p-4 text-xs text-mutedText">
-                Logged as an active training day check-in.
-              </div>
-            ` : exList.map(ex => {
-              const cardio = isCardioExercise(ex.exerciseId);
-              return `
-                <div class="bg-obsidian border border-borderDark rounded-2xl p-3">
-                  <div class="text-xs font-bold text-white mb-1.5">${escapeHtml(getExerciseName(ex.exerciseId))}</div>
-                  <div class="flex flex-wrap gap-1.5">
-                    ${ex.sets.map(s => `
-                      <span class="text-[11px] font-semibold px-2 py-1 rounded-lg bg-surface border ${s.isPR ? 'border-coralAccent text-coralAccent' : 'border-borderDark text-white/90'}">
-                        ${cardio ? `${s.weight}m${s.reps ? ` @ ${escapeHtml(String(s.reps))}` : ''}` : `${s.weight}${appState.unit} × ${s.reps}`} ${s.isPR ? '🏆' : ''}
-                      </span>
-                    `).join('')}
-                  </div>
-                </div>
-              `;
-            }).join('')}
-          </div>
-
-          <div class="grid grid-cols-2 gap-2.5 pt-2">
-            <button onclick="deleteWorkoutForDate('${dateStr}')" class="py-3 rounded-2xl bg-coralAccent/15 border border-coralAccent/30 text-coralAccent text-xs font-bold">
-              Delete Log
-            </button>
-            <button onclick="closeModal(); openLoggerForDate('${dateStr}');" class="py-3 rounded-2xl text-xs font-extrabold text-obsidian" style="background-color: ${accentHex};">
-              Edit Workout
-            </button>
-          </div>
-        </div>
-      `);
-    }
-
-    function deleteWorkoutForDate(dateStr) {
-      delete appState.workouts[dateStr];
-      saveState();
-      closeModal();
-      renderHeaderAndStrip();
-      renderMainView();
-      showToast('Workout removed');
-    }
-
-    // Exercise Picker Modal (Keyboard-Safe In-Place Filtering)
-    let pickerMuscleFilter = 'All';
-
-    function openExercisePickerModal(searchTerm = '', muscleFilter = null) {
-      if (muscleFilter !== null) pickerMuscleFilter = muscleFilter;
-      const accentHex = getAccentHex();
-      const muscles = ['All', 'Glutes / Lower', 'Back', 'Chest', 'Shoulders', 'Arms', 'Core & Cardio', 'Full Body'];
-
-      openModal(`
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="text-base font-extrabold text-white">Add Exercise</h3>
-            <button onclick="closeModal()" class="p-1.5 rounded-xl bg-obsidian text-mutedText hover:text-white">✕</button>
-          </div>
-
-          <input
-            id="pickerSearchInput"
-            type="text"
-            value="${escapeHtml(searchTerm)}"
-            oninput="filterExercisePickerList()"
-            placeholder="Search 160+ exercises (e.g. StairMaster, Hip Thrust)..."
-            class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-xs text-white focus:outline-none"
-          />
-
-          <div id="pickerMusclePills" class="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
-            ${muscles.map(m => {
-              const active = pickerMuscleFilter === m;
-              return `
-                <button onclick="setPickerMuscleFilter('${m}')" class="px-2.5 py-1 rounded-xl text-[10px] font-bold whitespace-nowrap border transition ${active ? 'text-obsidian border-transparent' : 'bg-obsidian border-borderDark text-mutedText'}" style="${active ? `background-color: ${accentHex};` : ''}">
-                  ${m}
-                </button>
-              `;
-            }).join('')}
-          </div>
-
-          <div id="pickerExerciseList" class="max-h-60 overflow-y-auto space-y-1.5 pr-1"></div>
-
-          <div class="pt-2 border-t border-borderDark flex gap-2">
-            <input id="customExInput" type="text" placeholder="Custom lift or machine name..." class="flex-1 bg-obsidian border border-borderDark rounded-xl px-3 py-2 text-xs text-white focus:outline-none" />
-            <button onclick="createAndSelectCustomExercise()" class="px-3.5 py-2 rounded-xl text-xs font-extrabold text-obsidian" style="background-color: ${accentHex};">
-              + Create
-            </button>
-          </div>
-        </div>
-      `);
-
-      filterExercisePickerList();
-    }
-
-    function setPickerMuscleFilter(muscle) {
-      pickerMuscleFilter = muscle;
-      const accentHex = getAccentHex();
-      const muscles = ['All', 'Glutes / Lower', 'Back', 'Chest', 'Shoulders', 'Arms', 'Core & Cardio', 'Full Body'];
-      const pillsEl = document.getElementById('pickerMusclePills');
-      if (pillsEl) {
-        pillsEl.innerHTML = muscles.map(m => {
-          const active = pickerMuscleFilter === m;
-          return `
-            <button onclick="setPickerMuscleFilter('${m}')" class="px-2.5 py-1 rounded-xl text-[10px] font-bold whitespace-nowrap border transition ${active ? 'text-obsidian border-transparent' : 'bg-obsidian border-borderDark text-mutedText'}" style="${active ? `background-color: ${accentHex};` : ''}">
-              ${m}
-            </button>
-          `;
-        }).join('');
-      }
-      filterExercisePickerList();
-    }
-
-    function filterExercisePickerList() {
-      const listEl = document.getElementById('pickerExerciseList');
-      if (!listEl) return;
-      const searchTerm = (document.getElementById('pickerSearchInput')?.value || '').toLowerCase().trim();
-      const allEx = [...DEFAULT_EXERCISES, ...appState.customExercises];
-      const filtered = allEx.filter(e => {
-        const matchesSearch = !searchTerm || e.name.toLowerCase().includes(searchTerm) || e.muscle.toLowerCase().includes(searchTerm);
-        const matchesMuscle = pickerMuscleFilter === 'All' || e.muscle === pickerMuscleFilter;
-        return matchesSearch && matchesMuscle;
-      });
-      const accentHex = getAccentHex();
-
-      listEl.innerHTML = filtered.length === 0
-        ? `<div class="text-center py-6 text-xs text-mutedText">No matching exercises. Create it below!</div>`
-        : filtered.map(ex => `
-            <button onclick="addExerciseToDraft('${ex.id}')" class="w-full bg-obsidian hover:bg-surfaceHover border border-borderDark rounded-2xl px-3.5 py-2.5 flex items-center justify-between text-left transition">
-              <div>
-                <div class="text-xs font-bold text-white">${escapeHtml(ex.name)}</div>
-                <div class="text-[10px] text-mutedText">${escapeHtml(ex.muscle)}${isCardioExercise(ex.id) ? ' • Minutes & Machine' : ''}</div>
-              </div>
-              <span class="text-xs font-bold" style="color: ${accentHex};">+ Add</span>
-            </button>
-          `).join('');
-    }
-
-    function addExerciseToDraft(exerciseId) {
-      const bench = getExerciseBenchmarks(exerciseId, activeLoggerDate);
-      const cardio = isCardioExercise(exerciseId);
-      const defaultSets = bench.lastSession
-        ? bench.lastSession.sets.map(s => ({ weight: s.weight, reps: s.reps, done: false }))
-        : (cardio
-            ? [{ weight: '', reps: '', done: false }]
-            : [{ weight: '', reps: '', done: false }, { weight: '', reps: '', done: false }, { weight: '', reps: '', done: false }]);
-
-      activeDraft.exercises.push({ exerciseId, sets: defaultSets });
-      closeModal();
-      renderLoggerView(document.getElementById('mainContent'));
-    }
-
-    function createAndSelectCustomExercise() {
-      const input = document.getElementById('customExInput');
-      const name = (input?.value || '').trim();
-      if (!name) return;
-      const id = 'custom-' + Date.now();
-      const cardio = CARDIO_KEYWORDS.some(kw => name.toLowerCase().includes(kw));
-      appState.customExercises.push({
-        id,
-        name,
-        muscle: cardio ? 'Core & Cardio' : 'Custom',
-        isCardio: cardio
-      });
-      saveState();
-      addExerciseToDraft(id);
-      showToast(`Added "${name}"`);
-    }
-
-    function openTemplateQuickLoadModal() {
-      const accentHex = getAccentHex();
-      openModal(`
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="text-base font-extrabold text-white">Load Saved Routine</h3>
-            <button onclick="closeModal()" class="p-1.5 rounded-xl bg-obsidian text-mutedText hover:text-white">✕</button>
-          </div>
-          <div class="space-y-2">
-            ${appState.templates.map(tpl => `
-              <button onclick="closeModal(); openLoggerForDate('${activeLoggerDate}', '${tpl.id}');" class="w-full bg-obsidian hover:bg-surfaceHover border border-borderDark rounded-2xl p-3.5 text-left">
-                <div class="text-xs font-bold text-white">${escapeHtml(tpl.name)}</div>
-                <div class="text-[11px] text-mutedText mt-0.5">${tpl.exerciseIds.map(id => escapeHtml(getExerciseName(id))).join(' • ')}</div>
-              </button>
-            `).join('')}
-          </div>
-          <button onclick="closeModal(); openCreateRoutineModal();" class="w-full py-2.5 rounded-2xl text-xs font-bold text-obsidian" style="background-color: ${accentHex};">
-            ＋ Create New Routine
-          </button>
-        </div>
-      `);
-    }
-
-    // New Workout Routine Modal
-    let routineCreatorSelectedIds = [];
-    let routineCreatorMuscleFilter = 'All';
-
-    function openCreateRoutineModal() {
-      routineCreatorSelectedIds = [];
-      routineCreatorMuscleFilter = 'All';
-      const accentHex = getAccentHex();
-      const muscles = ['All', 'Glutes / Lower', 'Back', 'Chest', 'Shoulders', 'Arms', 'Core & Cardio', 'Full Body'];
-
-      openModal(`
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="text-base font-extrabold text-white">New Workout Routine</h3>
-            <button onclick="closeModal()" class="p-1.5 rounded-xl bg-obsidian text-mutedText hover:text-white">✕</button>
-          </div>
-
-          <input id="newTplName" type="text" placeholder="Routine Name (e.g., Push Day / Glute Focus)" class="w-full bg-obsidian border border-borderDark rounded-xl px-3.5 py-2.5 text-xs font-bold text-white focus:outline-none" />
-
-          <div class="flex gap-2">
-            <input id="newTplTag" type="text" placeholder="Tag (e.g., UPPER)" class="w-1/3 bg-obsidian border border-borderDark rounded-xl px-3 py-2 text-xs text-white focus:outline-none" />
-            <input id="routineExSearch" type="text" oninput="filterRoutineCreatorList()" placeholder="Search 160+ exercises..." class="flex-1 bg-obsidian border border-borderDark rounded-xl px-3 py-2 text-xs text-white focus:outline-none" />
-          </div>
-
-          <div id="routineMusclePills" class="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
-            ${muscles.map(m => {
-              const active = routineCreatorMuscleFilter === m;
-              return `
-                <button onclick="setRoutineMuscleFilter('${m}')" class="px-2.5 py-1 rounded-xl text-[10px] font-bold whitespace-nowrap border transition ${active ? 'text-obsidian border-transparent' : 'bg-obsidian border-borderDark text-mutedText'}" style="${active ? `background-color: ${accentHex};` : ''}">
-                  ${m}
-                </button>
-              `;
-            }).join('')}
-          </div>
-
-          <div id="routineCreatorExList" class="max-h-52 overflow-y-auto space-y-1.5 pr-1"></div>
-
-          <div class="flex gap-2 pt-1 border-t border-borderDark">
-            <input id="routineCustomExInput" type="text" placeholder="Or add custom lift / machine..." class="flex-1 bg-obsidian border border-borderDark rounded-xl px-3 py-2 text-xs text-white focus:outline-none" />
-            <button onclick="addCustomExerciseInRoutineModal()" class="px-3 py-2 rounded-xl bg-obsidian border border-borderDark text-xs font-bold text-white hover:border-white/30">
-              + Add
-            </button>
-          </div>
-
-          <button onclick="saveNewTemplate()" id="saveRoutineBtn" class="w-full py-3 rounded-2xl text-xs font-extrabold text-obsidian" style="background-color: ${accentHex};">
-            Save Routine (0 exercises)
-          </button>
-        </div>
-      `);
-
-      filterRoutineCreatorList();
-    }
-
-    function setRoutineMuscleFilter(muscle) {
-      routineCreatorMuscleFilter = muscle;
-      const accentHex = getAccentHex();
-      const muscles = ['All', 'Glutes / Lower', 'Back', 'Chest', 'Shoulders', 'Arms', 'Core & Cardio', 'Full Body'];
-      const pillsEl = document.getElementById('routineMusclePills');
-      if (pillsEl) {
-        pillsEl.innerHTML = muscles.map(m => {
-          const active = routineCreatorMuscleFilter === m;
-          return `
-            <button onclick="setRoutineMuscleFilter('${m}')" class="px-2.5 py-1 rounded-xl text-[10px] font-bold whitespace-nowrap border transition ${active ? 'text-obsidian border-transparent' : 'bg-obsidian border-borderDark text-mutedText'}" style="${active ? `background-color: ${accentHex};` : ''}">
-              ${m}
-            </button>
-          `;
-        }).join('');
-      }
-      filterRoutineCreatorList();
-    }
-
-    function filterRoutineCreatorList() {
-      const listEl = document.getElementById('routineCreatorExList');
-      if (!listEl) return;
-      const search = (document.getElementById('routineExSearch')?.value || '').toLowerCase().trim();
-      const allEx = [...DEFAULT_EXERCISES, ...appState.customExercises];
-      const filtered = allEx.filter(ex => {
-        const matchesSearch = !search || ex.name.toLowerCase().includes(search) || ex.muscle.toLowerCase().includes(search);
-        const matchesMuscle = routineCreatorMuscleFilter === 'All' || ex.muscle === routineCreatorMuscleFilter;
-        return matchesSearch && matchesMuscle;
-      });
-      const accentHex = getAccentHex();
-
-      listEl.innerHTML = filtered.length === 0
-        ? `<div class="text-center py-5 text-xs text-mutedText">No exercises found. Add it as a custom lift below!</div>`
-        : filtered.map(ex => {
-            const checked = routineCreatorSelectedIds.includes(ex.id);
-            return `
-              <button onclick="toggleRoutineExSelection('${ex.id}')" class="w-full flex items-center justify-between bg-obsidian border ${checked ? 'border-white/40' : 'border-borderDark'} rounded-xl px-3 py-2 text-left transition">
-                <div class="min-w-0 pr-2">
-                  <div class="text-xs font-semibold text-white truncate">${escapeHtml(ex.name)}</div>
-                  <div class="text-[10px] text-mutedText">${escapeHtml(ex.muscle)}${isCardioExercise(ex.id) ? ' • Minutes' : ''}</div>
-                </div>
-                <span class="w-5 h-5 rounded-md flex items-center justify-center text-[11px] font-extrabold shrink-0 ${checked ? 'text-obsidian' : 'bg-surface border border-borderDark text-transparent'}" style="${checked ? `background-color: ${accentHex};` : ''}">
-                  ✓
-                </span>
-              </button>
-            `;
-          }).join('');
-    }
-
-    function toggleRoutineExSelection(exId) {
-      const idx = routineCreatorSelectedIds.indexOf(exId);
-      if (idx === -1) routineCreatorSelectedIds.push(exId);
-      else routineCreatorSelectedIds.splice(idx, 1);
-
-      const saveBtn = document.getElementById('saveRoutineBtn');
-      if (saveBtn) {
-        saveBtn.textContent = `Save Routine (${routineCreatorSelectedIds.length} exercise${routineCreatorSelectedIds.length === 1 ? '' : 's'})`;
-      }
-      filterRoutineCreatorList();
-    }
-
-    function addCustomExerciseInRoutineModal() {
-      const input = document.getElementById('routineCustomExInput');
-      const name = (input?.value || '').trim();
-      if (!name) return;
-      const id = 'custom-' + Date.now();
-      const cardio = CARDIO_KEYWORDS.some(kw => name.toLowerCase().includes(kw));
-      appState.customExercises.push({
-        id,
-        name,
-        muscle: cardio ? 'Core & Cardio' : 'Custom',
-        isCardio: cardio
-      });
-      routineCreatorSelectedIds.push(id);
-      input.value = '';
-      saveState();
-
-      const saveBtn = document.getElementById('saveRoutineBtn');
-      if (saveBtn) {
-        saveBtn.textContent = `Save Routine (${routineCreatorSelectedIds.length} exercise${routineCreatorSelectedIds.length === 1 ? '' : 's'})`;
-      }
-      filterRoutineCreatorList();
-      showToast(`Added "${name}"`);
-    }
-
-    function saveNewTemplate() {
-      const name = (document.getElementById('newTplName')?.value || '').trim();
-      const tag = (document.getElementById('newTplTag')?.value || '').trim().toUpperCase() || 'CUSTOM';
-      if (!name || routineCreatorSelectedIds.length === 0) {
-        showToast('Enter a name and select at least 1 exercise');
+      if (currentMode === 'signin' && existingVault && existingVault._passHash && existingVault._passHash !== passHash) {
+        err.textContent = `Incorrect password for @${username}.`;
+        err.classList.remove('hidden');
         return;
       }
 
-      appState.templates.push({
-        id: 'tpl-' + Date.now(),
-        name,
-        tag,
-        exerciseIds: [...routineCreatorSelectedIds]
-      });
-      saveState();
-      closeModal();
-      renderMainView();
-      showToast('Routine saved!');
+      localStorage.removeItem(GUEST_MODE_KEY);
+      localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify({
+        username,
+        displayName: rawUser.trim(),
+        passHash,
+        expiresAt: Date.now() + SIXTY_DAYS_MS,
+        pendingVerification: true,
+        pendingMode: currentMode
+      }));
+
+      goToMainApp();
     }
-
-    // Theme Picker Modal
-    function openThemePickerModal() {
-      const accentHex = getAccentHex();
-      openModal(`
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-base font-extrabold text-white">App Color Theme</h3>
-              <p class="text-xs text-mutedText">Choose your Year Grid &amp; accent color</p>
-            </div>
-            <button onclick="closeModal()" class="p-2 rounded-xl bg-obsidian text-mutedText hover:text-white">✕</button>
-          </div>
-          <div class="space-y-2">
-            ${Object.values(ACCENT_THEMES).map(t => {
-              const active = appState.accent === t.id;
-              return `
-                <button onclick="setAccent('${t.id}'); closeModal();" class="w-full flex items-center justify-between bg-obsidian border ${active ? 'border-white' : 'border-borderDark'} rounded-2xl p-3.5 transition">
-                  <div class="flex items-center gap-3">
-                    <span class="w-6 h-6 rounded-full" style="background-color: ${t.hex};"></span>
-                    <span class="text-xs font-bold text-white">${t.name}</span>
-                  </div>
-                  <div class="flex items-center gap-1">
-                    ${t.tiers.map(c => `<span class="w-3 h-3 rounded-[3px]" style="background-color:${c};"></span>`).join('')}
-                  </div>
-                </button>
-              `;
-            }).join('')}
-          </div>
-          <button onclick="closeModal()" class="w-full py-3 rounded-2xl text-xs font-extrabold text-obsidian" style="background-color: ${accentHex};">
-            Done
-          </button>
-        </div>
-      `);
-    }
-
-    // Account Sign In / Sign Up Modal
-    function openAccountModal(defaultMode = 'signin') {
-      const accentHex = getAccentHex();
-
-      if (accountSession.username) {
-        const stats = calculateStats();
-        openModal(`
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-2xl bg-obsidian border border-borderDark flex items-center justify-center text-base font-extrabold" style="color: ${accentHex};">
-                  ${escapeHtml(accountSession.username.slice(0, 2).toUpperCase())}
-                </div>
-                <div>
-                  <h3 class="text-base font-extrabold text-white">@${escapeHtml(accountSession.username)}</h3>
-                  <p class="text-[11px] font-semibold flex items-center gap-1.5" style="color: ${cloudStatus === 'synced' ? accentHex : '#F59E0B'};">
-                    <span class="w-2 h-2 rounded-full inline-block" style="background-color: ${cloudStatus === 'synced' ? accentHex : '#F59E0B'};"></span>
-                    ${cloudStatus === 'synced' ? 'Cloud Sync Active' : 'Local Profile Active'}
-                  </p>
-                </div>
-              </div>
-              <button onclick="closeModal()" class="p-2 rounded-xl bg-obsidian text-mutedText hover:text-white">✕</button>
-            </div>
-
-            <div class="bg-obsidian border border-borderDark rounded-2xl p-3.5 grid grid-cols-3 gap-2 text-center">
-              <div>
-                <span class="text-[10px] text-mutedText uppercase font-semibold block">Workouts</span>
-                <span class="text-sm font-extrabold text-white">${stats.totalDays}</span>
-              </div>
-              <div>
-                <span class="text-[10px] text-mutedText uppercase font-semibold block">Routines</span>
-                <span class="text-sm font-extrabold text-white">${appState.templates.length}</span>
-              </div>
-              <div>
-                <span class="text-[10px] text-mutedText uppercase font-semibold block">Streak</span>
-                <span class="text-sm font-extrabold" style="color: ${accentHex};">${stats.weekStreak}w</span>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2.5 pt-1">
-              <button onclick="signOutAccount()" class="py-3 rounded-2xl bg-coralAccent/15 border border-coralAccent/30 text-coralAccent text-xs font-extrabold">
-                Sign Out
-              </button>
-              <button onclick="forceManualCloudSync()" class="py-3 rounded-2xl text-xs font-extrabold text-obsidian" style="background-color: ${accentHex};">
-                Sync Now
-              </button>
-            </div>
-          </div>
-        `);
-        return;
-      }
-
-      const isSignup = defaultMode === 'signup';
-      openModal(`
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-base font-extrabold text-white">${isSignup ? 'Create Account' : 'Sign In to CADENCE'}</h3>
-              <p class="text-xs text-mutedText">Save &amp; sync your workouts across devices</p>
-            </div>
-            <button onclick="closeModal()" class="p-2 rounded-xl bg-obsidian text-mutedText hover:text-white">✕</button>
-          </div>
-
-          <div class="grid grid-cols-2 gap-1.5 bg-obsidian border border-borderDark p-1 rounded-2xl">
-            <button onclick="openAccountModal('signin')" class="py-2 rounded-xl text-xs font-extrabold transition ${!isSignup ? 'text-obsidian' : 'text-mutedText hover:text-white'}" style="${!isSignup ? `background-color: ${accentHex};` : ''}">
-              Sign In
-            </button>
-            <button onclick="openAccountModal('signup')" class="py-2 rounded-xl text-xs font-extrabold transition ${isSignup ? 'text-obsidian' : 'text-mutedText hover:text-white'}" style="${isSignup ? `background-color: ${accentHex};` : ''}">
-              Create Account
-            </button>
-          </div>
-
-          <form onsubmit="event.preventDefault(); handleAccountAuthSubmit('${isSignup ? 'signup' : 'signin'}');" class="space-y-3">
-            <div>
-              <label class="text-[11px] font-bold text-mutedText uppercase tracking-wider block mb-1">Username</label>
-              <input id="authUsernameInput" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. alexlifts" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-3 text-sm text-white focus:outline-none" />
-            </div>
-            <div>
-              <label class="text-[11px] font-bold text-mutedText uppercase tracking-wider block mb-1">Password</label>
-              <input id="authPasswordInput" type="password" autocomplete="${isSignup ? 'new-password' : 'current-password'}" placeholder="••••••••" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-3 text-sm text-white focus:outline-none" />
-            </div>
-
-            <button id="authSubmitBtn" type="submit" class="w-full py-3.5 rounded-2xl text-xs font-extrabold text-obsidian transition active:scale-[0.98]" style="background-color: ${accentHex};">
-              ${isSignup ? 'Create Account & Sync' : 'Sign In & Restore'}
-            </button>
-          </form>
-        </div>
-      `);
-    }
-
-    // Add to Home Screen Guide Modal
-    function openInstallShortcutModal() {
-      const accentHex = getAccentHex();
-      openModal(`
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <h3 class="text-base font-extrabold text-white">Add CADENCE to Home Screen</h3>
-            <button onclick="closeModal()" class="p-1.5 rounded-xl bg-obsidian text-mutedText hover:text-white">✕</button>
-          </div>
-
-          <div class="space-y-3 text-xs text-mutedText leading-relaxed">
-            <div class="bg-obsidian border border-borderDark rounded-2xl p-3.5 space-y-1">
-              <div class="font-bold text-white">🍎 iPhone (Safari)</div>
-              <p>1. Open your GitHub Pages URL in <strong class="text-white">Safari</strong>.</p>
-              <p>2. Tap the <strong class="text-white">Share button</strong> at the bottom of Safari.</p>
-              <p>3. Scroll down and tap <strong style="color: ${accentHex};">Add to Home Screen</strong>.</p>
-            </div>
-
-            <div class="bg-obsidian border border-borderDark rounded-2xl p-3.5 space-y-1">
-              <div class="font-bold text-white">🤖 Android (Chrome)</div>
-              <p>1. Open your GitHub Pages URL in <strong class="text-white">Chrome</strong>.</p>
-              <p>2. Tap the <strong class="text-white">⋮ menu</strong> in the top-right corner.</p>
-              <p>3. Tap <strong style="color: ${accentHex};">Add to Home screen</strong> or <strong style="color: ${accentHex};">Install App</strong>.</p>
-            </div>
-          </div>
-
-          <button onclick="closeModal()" class="w-full py-3 rounded-2xl text-xs font-extrabold text-obsidian" style="background-color: ${accentHex};">
-            Got It
-          </button>
-        </div>
-      `);
-    }
-
-    /*************************************************************************
-     * 13. UTILITIES & INITIALIZATION
-     *************************************************************************/
-    function escapeHtml(str) {
-      return String(str || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    }
-
-    let toastTimer = null;
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      const inner = document.getElementById('toastInner');
-      const accentHex = getAccentHex();
-      inner.style.borderColor = 'var(--accent-border)';
-      inner.style.color = accentHex;
-      inner.innerHTML = `<span>●</span><span>${escapeHtml(msg)}</span>`;
-      toast.classList.remove('opacity-0');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => {
-        toast.classList.add('opacity-0');
-      }, 2400);
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      if (window.location.hash === '#login') {
-        setTimeout(() => openAccountModal('signin'), 250);
-      } else if (window.location.hash === '#signup') {
-        setTimeout(() => openAccountModal('signup'), 250);
-      }
-    });
-
-    (async function bootCadenceApp() {
-      applyAccentTheme(appState.accent);
-      renderHeaderAndStrip();
-      updateNavHighlight();
-      renderMainView();
-
-      await hydrateStateFromVault();
-      renderHeaderAndStrip();
-      updateNavHighlight();
-      renderMainView();
-    })();
   </script>
 </body>
 </html>
