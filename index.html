@@ -163,7 +163,7 @@
             </div>
             <div class="flex items-center gap-1.5 mt-1 whitespace-nowrap">
               <span id="streakBadge" class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border transition-colors shrink-0" style="color: var(--accent); background-color: var(--accent-soft); border-color: var(--accent-border);">
-                🔥 0 Week Streak
+                🔥 0w Streak
               </span>
               <span id="totalDaysBadge" class="text-[10px] text-mutedText font-medium shrink-0">
                 0/365d
@@ -173,153 +173,258 @@
         </div>
 
         <div class="flex items-center gap-1.5 shrink-0">
-          <!-- Quick Accent Theme Swatch Button -->
-          <button onclick="openThemePickerModal()" title="Change Theme Color" class="w-8 h-8 rounded-xl bg-surface border border-borderDark text-white hover:bg-surfaceHover active:scale-95 transition flex items-center justify-center shrink-0" aria-label="Change Theme Color">
-            <span class="w-3.5 h-3.5 rounded-full block border border-white/30 shadow-sm" style="background-color: var(--accent);"></span>
+          <!-- Theme Color Quick Switcher -->
+          <button onclick="openThemePickerModal()" class="p-2 rounded-xl bg-surface hover:bg-surfaceHover border border-borderDark flex items-center justify-center transition active:scale-95" title="Change App Color" aria-label="Change App Color">
+            <span class="w-4 h-4 rounded-full block border border-white/25 transition-colors" style="background-color: var(--accent);"></span>
           </button>
 
-          <!-- Home Screen Shortcut Guide Button -->
-          <button onclick="openInstallModal()" title="Add to Home Screen" class="w-8 h-8 rounded-xl bg-surface border border-borderDark text-mutedText hover:text-white active:scale-95 transition flex items-center justify-center shrink-0" aria-label="Add to Home Screen">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          <!-- Add to Home Screen Shortcut Guide -->
+          <button onclick="openInstallModal()" class="p-2 rounded-xl bg-surface hover:bg-surfaceHover border border-borderDark text-mutedText hover:text-white transition active:scale-95" title="Install as Phone Shortcut" aria-label="Install as Phone Shortcut">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0-12L8 8m4-4l4 4" />
             </svg>
           </button>
 
-          <!-- Primary Quick Log Button -->
-          <button onclick="openLoggerForDate(getTodayStr())" class="px-3 h-8 rounded-xl bg-[var(--accent)] text-obsidian font-extrabold text-xs tracking-tight flex items-center gap-1 shadow-lg active:scale-95 transition shrink-0">
+          <!-- Quick Log Today Button -->
+          <button onclick="openLoggerForDate(getTodayStr())" class="px-3 py-2 rounded-xl font-bold text-xs text-obsidian flex items-center gap-1 active:scale-95 transition whitespace-nowrap" style="background-color: var(--accent);">
             <svg class="w-3.5 h-3.5 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
-            Log
+            <span>Log</span>
           </button>
         </div>
       </div>
 
-      <!-- 7-Day Weekly Strip -->
-      <div class="mt-3.5">
-        <div id="weeklyStrip" class="grid grid-cols-7 gap-1.5">
-          <!-- Rendered dynamically by JS -->
-        </div>
-      </div>
+      <!-- 7-Day Weekly Rhythm Strip (CADENCE Signature Top Bar) -->
+      <div id="weeklyStrip" class="grid grid-cols-7 gap-1.5 mt-3"></div>
     </header>
 
-    <!-- Main Content Viewport -->
+    <!-- Main Scrollable Viewport -->
     <main id="mainContent" class="flex-1 px-4 pt-4 pb-safe space-y-4">
-      <!-- Views are injected/toggled dynamically -->
+      <!-- Dynamic Tab Content Injected Here -->
     </main>
 
     <!-- Bottom Tab Navigation -->
-    <nav class="fixed bottom-0 left-0 right-0 z-30 bg-obsidian/95 backdrop-blur-xl border-t border-borderDark bottom-nav-safe">
-      <div class="max-w-lg mx-auto grid grid-cols-4 px-2 pt-1.5">
-        <button onclick="switchTab('calendar')" data-tab="calendar" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl transition">
-          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <rect x="3" y="4" width="18" height="18" rx="3" />
+    <nav class="fixed bottom-0 left-0 right-0 z-30 bg-obsidian/92 backdrop-blur-xl border-t border-borderDark/80 bottom-nav-safe">
+      <div class="max-w-lg mx-auto grid grid-cols-4 px-2 pt-2">
+        <button onclick="switchTab('calendar')" data-tab="calendar" class="nav-btn flex flex-col items-center gap-1 py-1 text-xs font-semibold transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="4" />
             <path d="M16 2v4M8 2v4M3 10h18" />
           </svg>
-          <span class="text-[10px] font-semibold">Year Grid</span>
+          <span class="text-[10px]">Year Grid</span>
         </button>
 
-        <button onclick="switchTab('log')" data-tab="log" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl transition">
-          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <button onclick="switchTab('log')" data-tab="log" class="nav-btn flex flex-col items-center gap-1 py-1 text-xs font-semibold transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
           </svg>
-          <span class="text-[10px] font-semibold">Workout</span>
+          <span class="text-[10px]">Workout</span>
         </button>
 
-        <button onclick="switchTab('progress')" data-tab="progress" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl transition">
-          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <button onclick="switchTab('progress')" data-tab="progress" class="nav-btn flex flex-col items-center gap-1 py-1 text-xs font-semibold transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
           </svg>
-          <span class="text-[10px] font-semibold">Overload</span>
+          <span class="text-[10px]">Overload</span>
         </button>
 
-        <button onclick="switchTab('settings')" data-tab="settings" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl transition">
-          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <button onclick="switchTab('settings')" data-tab="settings" class="nav-btn flex flex-col items-center gap-1 py-1 text-xs font-semibold transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
           </svg>
-          <span class="text-[10px] font-semibold">Routines</span>
+          <span class="text-[10px]">Routines</span>
         </button>
       </div>
     </nav>
 
-    <!-- Bottom Sheet / Modal Container -->
-    <div id="modalOverlay" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onclick="closeModalOnBackdrop(event)">
-      <div id="modalSheet" class="w-full max-w-lg bg-surface border-t sm:border border-borderDark rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto p-5 animate-slide-up shadow-2xl">
+    <!-- Toast Notification Banner -->
+    <div id="toastContainer" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none flex flex-col items-center gap-2 w-11/12 max-w-sm"></div>
+
+    <!-- Modal / Bottom Sheet Container -->
+    <div id="modalOverlay" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4" onclick="closeModalOnBackdrop(event)">
+      <div id="modalSheet" class="bg-surface border border-borderDark w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 max-h-[88vh] overflow-y-auto animate-slide-up shadow-2xl" onclick="event.stopPropagation()">
         <!-- Dynamic Modal Content -->
       </div>
     </div>
 
-    <!-- Custom Toast Notification -->
-    <div id="toastContainer" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none flex flex-col items-center gap-2 w-full max-w-sm px-4"></div>
   </div>
 
   <script>
     /*************************************************************************
-     * CADENCE — WORKOUT & PROGRESSIVE OVERLOAD LOG
-     * Single-file Offline PWA with LocalStorage Persistence
+     * CADENCE — OFFLINE WORKOUT & PROGRESSIVE OVERLOAD ENGINE
      *************************************************************************/
+    const STORAGE_KEY = 'cadence_workout_tracker_v2';
+    const BACKUP_STORAGE_KEY = 'cadence_workout_tracker_mirror_v2';
+    const IDB_NAME = 'CadenceVaultDB';
+    const IDB_STORE = 'app_state_store';
+    let isStateHydrated = false;
+    let isSavingInProgress = false;
 
-    const STORAGE_KEY = 'cadence_pwa_data_v1';
-
-    // Curated Dark-Mode Accent Presets (Rose Pink Default)
     const ACCENT_THEMES = {
-      pink: {
-        id: 'pink',
-        name: 'Rose Pink',
-        hex: '#FF4D94',
-        rgb: '255, 77, 148'
-      },
-      lime: {
-        id: 'lime',
-        name: 'Volt Lime',
-        hex: '#C8FF00',
-        rgb: '200, 255, 0'
-      },
-      coral: {
-        id: 'coral',
-        name: 'Electric Coral',
-        hex: '#FF5E5B',
-        rgb: '255, 94, 91'
-      },
-      lavender: {
-        id: 'lavender',
-        name: 'Cyber Lavender',
-        hex: '#B388FF',
-        rgb: '179, 136, 255'
-      },
-      cyan: {
-        id: 'cyan',
-        name: 'Ice Cyan',
-        hex: '#00E5FF',
-        rgb: '0, 229, 255'
-      }
+      pink: { id: 'pink', name: 'Rose Pink', hex: '#FF4D94', rgb: '255, 77, 148' },
+      lime: { id: 'lime', name: 'Volt Lime', hex: '#C6F432', rgb: '198, 244, 50' },
+      coral: { id: 'coral', name: 'Electric Coral', hex: '#FF5E3A', rgb: '255, 94, 58' },
+      lavender: { id: 'lavender', name: 'Cyber Lavender', hex: '#B388FF', rgb: '179, 136, 255' },
+      cyan: { id: 'cyan', name: 'Ice Cyan', hex: '#38BDF8', rgb: '56, 189, 248' }
     };
 
-    // Default Pre-Loaded Exercises Categorized by Muscle Group
+    // Comprehensive Encyclopedia of Exercises Categorized by Muscle Group
     const DEFAULT_EXERCISES = [
-      // Glutes & Lower Body
+      // Glutes & Lower Body (Squats, Hinges, Thrusts, Machines, Calves)
       { id: 'ex_hip_thrust', name: 'Barbell Hip Thrust', category: 'Glutes / Lower' },
-      { id: 'ex_rdl', name: 'Romanian Deadlift (RDL)', category: 'Glutes / Lower' },
+      { id: 'ex_smith_hip_thrust', name: 'Smith Machine Hip Thrust', category: 'Glutes / Lower' },
+      { id: 'ex_kas_glute_bridge', name: 'KAS Glute Bridge', category: 'Glutes / Lower' },
+      { id: 'ex_single_leg_thrust', name: 'Single-Leg Dumbbell Hip Thrust', category: 'Glutes / Lower' },
+      { id: 'ex_rdl', name: 'Barbell Romanian Deadlift (RDL)', category: 'Glutes / Lower' },
+      { id: 'ex_db_rdl', name: 'Dumbbell Romanian Deadlift', category: 'Glutes / Lower' },
+      { id: 'ex_b_stance_rdl', name: 'B-Stance Dumbbell RDL', category: 'Glutes / Lower' },
+      { id: 'ex_conv_deadlift', name: 'Conventional Barbell Deadlift', category: 'Glutes / Lower' },
+      { id: 'ex_sumo_deadlift', name: 'Sumo Barbell Deadlift', category: 'Glutes / Lower' },
+      { id: 'ex_trap_bar_dl', name: 'Trap Bar (Hex Bar) Deadlift', category: 'Glutes / Lower' },
+      { id: 'ex_good_morning', name: 'Barbell Good Morning', category: 'Glutes / Lower' },
+      { id: 'ex_back_ext_glute', name: '45° Glute Hyperextension', category: 'Glutes / Lower' },
       { id: 'ex_bss', name: 'Bulgarian Split Squat', category: 'Glutes / Lower' },
       { id: 'ex_cable_kickback', name: 'Cable Glute Kickback', category: 'Glutes / Lower' },
+      { id: 'ex_cable_pull_through', name: 'Cable Glute Pull-Through', category: 'Glutes / Lower' },
+      { id: 'ex_step_up', name: 'Deficit Dumbbell Step-Up', category: 'Glutes / Lower' },
+      { id: 'ex_walking_lunge', name: 'Dumbbell Walking Lunges', category: 'Glutes / Lower' },
+      { id: 'ex_reverse_lunge', name: 'Barbell / Smith Reverse Lunge', category: 'Glutes / Lower' },
+      { id: 'ex_curtsy_lunge', name: 'Dumbbell Curtsy Lunge', category: 'Glutes / Lower' },
       { id: 'ex_squat', name: 'Barbell Back Squat', category: 'Glutes / Lower' },
+      { id: 'ex_front_squat', name: 'Barbell Front Squat', category: 'Glutes / Lower' },
+      { id: 'ex_goblet_squat', name: 'Dumbbell Goblet Squat', category: 'Glutes / Lower' },
+      { id: 'ex_smith_squat', name: 'Smith Machine Squat', category: 'Glutes / Lower' },
+      { id: 'ex_hack_squat', name: 'Hack Squat Machine', category: 'Glutes / Lower' },
+      { id: 'ex_pendulum_squat', name: 'Pendulum Squat Machine', category: 'Glutes / Lower' },
+      { id: 'ex_v_squat', name: 'V-Squat Machine', category: 'Glutes / Lower' },
+      { id: 'ex_belt_squat', name: 'Belt Squat Machine', category: 'Glutes / Lower' },
+      { id: 'ex_sissy_squat', name: 'Sissy Squat', category: 'Glutes / Lower' },
       { id: 'ex_leg_press', name: '45° Leg Press', category: 'Glutes / Lower' },
+      { id: 'ex_single_leg_press', name: 'Single-Leg Press', category: 'Glutes / Lower' },
+      { id: 'ex_leg_extension', name: 'Seated Leg Extension', category: 'Glutes / Lower' },
       { id: 'ex_leg_curl', name: 'Seated Hamstring Curl', category: 'Glutes / Lower' },
+      { id: 'ex_lying_leg_curl', name: 'Lying Hamstring Curl', category: 'Glutes / Lower' },
+      { id: 'ex_nordic_curl', name: 'Nordic Hamstring Curl', category: 'Glutes / Lower' },
       { id: 'ex_abductor', name: 'Hip Abduction Machine', category: 'Glutes / Lower' },
+      { id: 'ex_adductor', name: 'Hip Adduction Machine', category: 'Glutes / Lower' },
+      { id: 'ex_standing_calf', name: 'Standing Calf Raise', category: 'Glutes / Lower' },
+      { id: 'ex_seated_calf', name: 'Seated Calf Raise', category: 'Glutes / Lower' },
+      { id: 'ex_leg_press_calf', name: 'Leg Press Calf Raise', category: 'Glutes / Lower' },
 
-      // Upper Body Push & Pull
-      { id: 'ex_lat_pulldown', name: 'Lat Pulldown (Wide Grip)', category: 'Upper Body' },
-      { id: 'ex_seated_row', name: 'Seated Cable Row', category: 'Upper Body' },
-      { id: 'ex_db_bench', name: 'Incline Dumbbell Press', category: 'Upper Body' },
-      { id: 'ex_ohp', name: 'Dumbbell Shoulder Press', category: 'Upper Body' },
-      { id: 'ex_lat_raise', name: 'Cable Lateral Raise', category: 'Upper Body' },
-      { id: 'ex_tricep_push', name: 'Rope Tricep Pushdown', category: 'Upper Body' },
-      { id: 'ex_bicep_curl', name: 'Incline Dumbbell Curl', category: 'Upper Body' },
+      // Back & Lats
+      { id: 'ex_pullup', name: 'Pull-Ups (Bodyweight / Weighted)', category: 'Back' },
+      { id: 'ex_chinup', name: 'Chin-Ups (Supinated Grip)', category: 'Back' },
+      { id: 'ex_assisted_pullup', name: 'Machine Assisted Pull-Up', category: 'Back' },
+      { id: 'ex_lat_pulldown', name: 'Lat Pulldown (Wide Grip)', category: 'Back' },
+      { id: 'ex_close_pulldown', name: 'Close-Grip / MAG Lat Pulldown', category: 'Back' },
+      { id: 'ex_underhand_pulldown', name: 'Reverse-Grip Lat Pulldown', category: 'Back' },
+      { id: 'ex_single_arm_pulldown', name: 'Single-Arm Kneeling Cable Pulldown', category: 'Back' },
+      { id: 'ex_straight_arm_pulldown', name: 'Straight-Arm Cable Lat Pushdown', category: 'Back' },
+      { id: 'ex_seated_row', name: 'Seated Cable Row (V-Bar)', category: 'Back' },
+      { id: 'ex_wide_cable_row', name: 'Wide-Grip Seated Cable Row', category: 'Back' },
+      { id: 'ex_barbell_row', name: 'Bent-Over Barbell Row', category: 'Back' },
+      { id: 'ex_pendlay_row', name: 'Pendlay Row', category: 'Back' },
+      { id: 'ex_db_row', name: 'Single-Arm Dumbbell Row', category: 'Back' },
+      { id: 'ex_chest_supp_row', name: 'Chest-Supported Dumbbell Row', category: 'Back' },
+      { id: 'ex_tbar_row', name: 'T-Bar Row (Chest-Supported)', category: 'Back' },
+      { id: 'ex_meadows_row', name: 'Landmine Meadows Row', category: 'Back' },
+      { id: 'ex_iso_high_row', name: 'Iso-Lateral High Row Machine', category: 'Back' },
+      { id: 'ex_iso_low_row', name: 'Iso-Lateral Low Row Machine', category: 'Back' },
+      { id: 'ex_db_pullover', name: 'Dumbbell Lat Pullover', category: 'Back' },
+      { id: 'ex_rack_pull', name: 'Barbell Rack Pull', category: 'Back' },
+      { id: 'ex_barbell_shrug', name: 'Barbell Shrugs', category: 'Back' },
+      { id: 'ex_db_shrug', name: 'Dumbbell Shrugs', category: 'Back' },
+      { id: 'ex_back_hyperext', name: 'Lower Back Hyperextension', category: 'Back' },
 
-      // Core & Conditioning
-      { id: 'ex_cable_crunch', name: 'Cable Rope Crunch', category: 'Core & Cardio' },
+      // Chest
+      { id: 'ex_flat_bb_bench', name: 'Flat Barbell Bench Press', category: 'Chest' },
+      { id: 'ex_incline_bb_bench', name: 'Incline Barbell Bench Press', category: 'Chest' },
+      { id: 'ex_decline_bb_bench', name: 'Decline Barbell Bench Press', category: 'Chest' },
+      { id: 'ex_flat_db_bench', name: 'Flat Dumbbell Bench Press', category: 'Chest' },
+      { id: 'ex_db_bench', name: 'Incline Dumbbell Press', category: 'Chest' },
+      { id: 'ex_smith_incline_press', name: 'Smith Machine Incline Chest Press', category: 'Chest' },
+      { id: 'ex_machine_chest_press', name: 'Seated Machine Chest Press', category: 'Chest' },
+      { id: 'ex_incline_machine_press', name: 'Iso-Lateral Incline Chest Press', category: 'Chest' },
+      { id: 'ex_pec_deck', name: 'Pec Deck / Machine Chest Fly', category: 'Chest' },
+      { id: 'ex_cable_fly_high', name: 'High-to-Low Cable Crossover Fly', category: 'Chest' },
+      { id: 'ex_cable_fly_low', name: 'Low-to-High Cable Chest Fly', category: 'Chest' },
+      { id: 'ex_db_fly', name: 'Incline Dumbbell Chest Fly', category: 'Chest' },
+      { id: 'ex_chest_dips', name: 'Weighted Chest Dips', category: 'Chest' },
+      { id: 'ex_pushups', name: 'Push-Ups (Standard / Weighted)', category: 'Chest' },
+      { id: 'ex_deficit_pushup', name: 'Deficit Push-Ups', category: 'Chest' },
+
+      // Shoulders
+      { id: 'ex_bb_ohp', name: 'Standing Barbell Overhead Press (OHP)', category: 'Shoulders' },
+      { id: 'ex_seated_bb_press', name: 'Seated Barbell Shoulder Press', category: 'Shoulders' },
+      { id: 'ex_ohp', name: 'Seated Dumbbell Shoulder Press', category: 'Shoulders' },
+      { id: 'ex_arnold_press', name: 'Arnold Dumbbell Press', category: 'Shoulders' },
+      { id: 'ex_machine_shoulder_press', name: 'Machine Shoulder Press', category: 'Shoulders' },
+      { id: 'ex_smith_shoulder_press', name: 'Smith Machine Overhead Press', category: 'Shoulders' },
+      { id: 'ex_db_lat_raise', name: 'Dumbbell Lateral Raise', category: 'Shoulders' },
+      { id: 'ex_lat_raise', name: 'Cable Lateral Raise', category: 'Shoulders' },
+      { id: 'ex_cuff_lat_raise', name: 'Behind-the-Back Cable Lateral Raise', category: 'Shoulders' },
+      { id: 'ex_machine_lat_raise', name: 'Machine Lateral Raise', category: 'Shoulders' },
+      { id: 'ex_lean_lat_raise', name: 'Incline Bench Lateral Raise', category: 'Shoulders' },
+      { id: 'ex_front_raise', name: 'Dumbbell / Cable Front Raise', category: 'Shoulders' },
+      { id: 'ex_reverse_pec_deck', name: 'Reverse Pec Deck (Rear Delt Fly)', category: 'Shoulders' },
+      { id: 'ex_rear_delt_cable', name: 'Cross-Body Cable Rear Delt Fly', category: 'Shoulders' },
+      { id: 'ex_db_rear_fly', name: 'Bent-Over Dumbbell Rear Delt Fly', category: 'Shoulders' },
+      { id: 'ex_face_pull', name: 'Cable Rope Face Pull', category: 'Shoulders' },
+      { id: 'ex_upright_row', name: 'Cable / EZ-Bar Upright Row', category: 'Shoulders' },
+
+      // Arms (Biceps, Triceps, Forearms)
+      { id: 'ex_bb_curl', name: 'Standing Barbell Bicep Curl', category: 'Arms' },
+      { id: 'ex_ez_bar_curl', name: 'EZ-Bar Bicep Curl', category: 'Arms' },
+      { id: 'ex_alt_db_curl', name: 'Alternating Dumbbell Curl', category: 'Arms' },
+      { id: 'ex_bicep_curl', name: 'Incline Dumbbell Bicep Curl', category: 'Arms' },
+      { id: 'ex_hammer_curl', name: 'Dumbbell Hammer Curl', category: 'Arms' },
+      { id: 'ex_rope_hammer_curl', name: 'Cable Rope Hammer Curl', category: 'Arms' },
+      { id: 'ex_preacher_curl', name: 'Preacher Curl (EZ-Bar / Machine)', category: 'Arms' },
+      { id: 'ex_bayesian_curl', name: 'Bayesian Cable Bicep Curl', category: 'Arms' },
+      { id: 'ex_spider_curl', name: 'Spider Curl', category: 'Arms' },
+      { id: 'ex_concentration_curl', name: 'Concentration Curl', category: 'Arms' },
+      { id: 'ex_reverse_curl', name: 'EZ-Bar Reverse Curl', category: 'Arms' },
+      { id: 'ex_wrist_curl', name: 'Dumbbell / Barbell Wrist Curl', category: 'Arms' },
+      { id: 'ex_tricep_push', name: 'Rope Tricep Pushdown', category: 'Arms' },
+      { id: 'ex_vbar_pushdown', name: 'V-Bar / Straight-Bar Tricep Pushdown', category: 'Arms' },
+      { id: 'ex_single_arm_pushdown', name: 'Single-Arm Cable Tricep Pushdown', category: 'Arms' },
+      { id: 'ex_overhead_cable_ext', name: 'Overhead Cable Rope Tricep Extension', category: 'Arms' },
+      { id: 'ex_katana_ext', name: 'Cross-Cable Tricep Extension (Katana)', category: 'Arms' },
+      { id: 'ex_db_overhead_ext', name: 'Seated Dumbbell Overhead Tricep Extension', category: 'Arms' },
+      { id: 'ex_skullcrusher', name: 'EZ-Bar Skullcrushers', category: 'Arms' },
+      { id: 'ex_jm_press', name: 'Smith Machine JM Press', category: 'Arms' },
+      { id: 'ex_close_grip_bench', name: 'Close-Grip Barbell Bench Press', category: 'Arms' },
+      { id: 'ex_tricep_dips', name: 'Bench / Machine Tricep Dips', category: 'Arms' },
+
+      // Core, Abs & Conditioning
+      { id: 'ex_cable_crunch', name: 'Kneeling Cable Rope Crunch', category: 'Core & Cardio' },
       { id: 'ex_hanging_raise', name: 'Hanging Leg Raise', category: 'Core & Cardio' },
+      { id: 'ex_captains_chair', name: 'Captain’s Chair Knee / Leg Raise', category: 'Core & Cardio' },
+      { id: 'ex_ab_wheel', name: 'Ab Wheel Rollout', category: 'Core & Cardio' },
+      { id: 'ex_decline_situp', name: 'Decline Bench Weighted Sit-Up', category: 'Core & Cardio' },
+      { id: 'ex_machine_crunch', name: 'Seated Ab Crunch Machine', category: 'Core & Cardio' },
+      { id: 'ex_pallof_press', name: 'Cable Pallof Press (Anti-Rotation)', category: 'Core & Cardio' },
+      { id: 'ex_russian_twist', name: 'Weighted Russian Twist', category: 'Core & Cardio' },
+      { id: 'ex_plank', name: 'Weighted Forearm Plank (Seconds)', category: 'Core & Cardio' },
+      { id: 'ex_dead_bug', name: 'Dead Bug / Hollow Body Hold', category: 'Core & Cardio' },
+      { id: 'ex_woodchopper', name: 'High-to-Low Cable Woodchopper', category: 'Core & Cardio' },
       { id: 'ex_incline_walk', name: 'Incline Treadmill Walk (12-3-30)', category: 'Core & Cardio' },
+      { id: 'ex_stairmaster', name: 'StairMaster Climber', category: 'Core & Cardio' },
+      { id: 'ex_rowing_erg', name: 'Concept2 Rowing Ergometer', category: 'Core & Cardio' },
+      { id: 'ex_assault_bike', name: 'Assault / Echo Air Bike', category: 'Core & Cardio' },
+      { id: 'ex_sled_push', name: 'Prowler Sled Push / Pull', category: 'Core & Cardio' },
+      { id: 'ex_farmers_walk', name: 'Heavy Dumbbell Farmer’s Walk', category: 'Core & Cardio' },
+      { id: 'ex_kettlebell_swing', name: 'Russian Kettlebell Swing', category: 'Core & Cardio' },
+
+      // Full Body & Olympic Lifts
+      { id: 'ex_power_clean', name: 'Barbell Power Clean', category: 'Full Body' },
+      { id: 'ex_hang_clean', name: 'Barbell Hang Clean', category: 'Full Body' },
+      { id: 'ex_clean_jerk', name: 'Clean & Jerk', category: 'Full Body' },
+      { id: 'ex_snatch', name: 'Barbell Snatch', category: 'Full Body' },
+      { id: 'ex_thruster', name: 'Barbell / Dumbbell Thruster', category: 'Full Body' },
+      { id: 'ex_turkish_getup', name: 'Kettlebell Turkish Get-Up', category: 'Full Body' },
+      { id: 'ex_burpees', name: 'Burpees / Devil’s Press', category: 'Full Body' },
     ];
 
     // Default Reusable Templates
@@ -515,40 +620,153 @@
     }
 
     /*************************************************************************
-     * STORAGE PERSISTENCE
+     * MULTI-LAYER STORAGE PERSISTENCE (IndexedDB + LocalStorage Vault)
+     * Prevents iOS Safari / Home Screen Web Clips from resetting user data
      *************************************************************************/
-    function loadState() {
+    function openVaultDB() {
+      return new Promise((resolve, reject) => {
+        if (!window.indexedDB) {
+          reject(new Error('IndexedDB unavailable'));
+          return;
+        }
+        const request = indexedDB.open(IDB_NAME, 1);
+        request.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(IDB_STORE)) {
+            db.createObjectStore(IDB_STORE);
+          }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function writeToVaultIDB(snapshot) {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          appState = { ...appState, ...parsed };
-          if (!ACCENT_THEMES[appState.accent]) {
-            appState.accent = 'pink';
-          }
-          // Automatically clear legacy auto-seeded sample workouts so the user gets a clean slate
-          if (appState.hasSampleData) {
-            appState.workouts = {};
-            appState.hasSampleData = false;
-            saveState();
-          }
-        } else {
-          // First visit: start completely clean with 0 workouts so the user fills in their own data
-          appState.workouts = {};
-          appState.hasSampleData = false;
-          saveState();
+        const db = await openVaultDB();
+        return await new Promise((resolve, reject) => {
+          const tx = db.transaction(IDB_STORE, 'readwrite');
+          tx.objectStore(IDB_STORE).put(snapshot, STORAGE_KEY);
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => reject(tx.error);
+        });
+      } catch (e) {
+        return false;
+      }
+    }
+
+    async function readFromVaultIDB() {
+      try {
+        const db = await openVaultDB();
+        return await new Promise((resolve, reject) => {
+          const tx = db.transaction(IDB_STORE, 'readonly');
+          const req = tx.objectStore(IDB_STORE).get(STORAGE_KEY);
+          req.onsuccess = () => resolve(req.result || null);
+          req.onerror = () => reject(req.error);
+        });
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function requestPersistentStorage() {
+      if (navigator.storage && navigator.storage.persist) {
+        navigator.storage.persist().catch(() => {});
+      }
+    }
+
+    function mergeLoadedState(parsed) {
+      if (!parsed || typeof parsed !== 'object') return;
+      appState = {
+        ...appState,
+        ...parsed,
+        exercises: Array.isArray(parsed.exercises) ? parsed.exercises : appState.exercises,
+        templates: Array.isArray(parsed.templates) ? parsed.templates : appState.templates,
+        workouts: (parsed.workouts && typeof parsed.workouts === 'object') ? parsed.workouts : appState.workouts
+      };
+      if (!ACCENT_THEMES[appState.accent]) {
+        appState.accent = 'pink';
+      }
+      // Clear only legacy auto-seeded sample workouts if flagged
+      if (appState.hasSampleData) {
+        appState.workouts = {};
+        appState.hasSampleData = false;
+      }
+    }
+
+    async function loadState() {
+      requestPersistentStorage();
+      let loadedData = null;
+
+      // 1. Check primary and mirror localStorage first (synchronous)
+      try {
+        const rawPrimary = localStorage.getItem(STORAGE_KEY);
+        const rawMirror = localStorage.getItem(BACKUP_STORAGE_KEY);
+        if (rawPrimary) {
+          loadedData = JSON.parse(rawPrimary);
+        } else if (rawMirror) {
+          loadedData = JSON.parse(rawMirror);
         }
       } catch (e) {
-        console.error('Failed to load state:', e);
+        console.warn('LocalStorage read failed, falling back to IndexedDB:', e);
       }
+
+      // 2. Check IndexedDB (survives iOS WebClip / Safari cache sweeps much better)
+      const idbData = await readFromVaultIDB();
+      if (idbData && typeof idbData === 'object') {
+        if (!loadedData) {
+          loadedData = idbData;
+        } else {
+          // Pick whichever store has the newer save timestamp
+          const lsTs = loadedData._updatedAt || 0;
+          const idbTs = idbData._updatedAt || 0;
+          if (idbTs > lsTs) {
+            loadedData = idbData;
+          }
+        }
+      }
+
+      if (loadedData) {
+        mergeLoadedState(loadedData);
+        // Merge any newly added default encyclopedia exercises without removing user's custom ones
+        const existingIds = new Set(appState.exercises.map(e => e.id));
+        DEFAULT_EXERCISES.forEach(defEx => {
+          if (!existingIds.has(defEx.id)) {
+            appState.exercises.push(defEx);
+          }
+        });
+      } else {
+        // Brand new user: initialize clean slate once and persist immediately
+        appState.workouts = {};
+        appState.hasSampleData = false;
+      }
+
+      isStateHydrated = true;
+      await saveState();
       applyAccentTheme(appState.accent);
     }
 
-    function saveState() {
+    async function saveState() {
+      if (!isStateHydrated) return;
+      const snapshot = {
+        ...appState,
+        _updatedAt: Date.now()
+      };
+      const serialized = JSON.stringify(snapshot);
+
+      // Write to dual localStorage keys
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+        localStorage.setItem(STORAGE_KEY, serialized);
+        localStorage.setItem(BACKUP_STORAGE_KEY, serialized);
       } catch (e) {
-        showToast('Storage warning: Unable to save locally', 'error');
+        console.warn('LocalStorage write warning:', e);
+      }
+
+      // Write to IndexedDB Vault
+      if (!isSavingInProgress) {
+        isSavingInProgress = true;
+        await writeToVaultIDB(snapshot);
+        isSavingInProgress = false;
       }
     }
 
@@ -2039,11 +2257,11 @@
     // 2. Exercise Picker & Custom Exercise Modal
     function openExercisePickerModal(filterCat = 'All', searchQuery = '') {
       const accentHex = getAccentHex();
-      const categories = ['All', 'Glutes / Lower', 'Upper Body', 'Core & Cardio', 'Custom'];
+      const categories = ['All', 'Glutes / Lower', 'Back', 'Chest', 'Shoulders', 'Arms', 'Core & Cardio', 'Full Body', 'Custom'];
 
       const filtered = appState.exercises.filter(ex => {
         const matchesCat = filterCat === 'All' || ex.category === filterCat;
-        const matchesQuery = ex.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesQuery = ex.name.toLowerCase().includes(searchQuery.toLowerCase()) || ex.category.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesCat && matchesQuery;
       });
 
@@ -2054,49 +2272,45 @@
             <button onclick="closeModal()" class="p-2 rounded-xl bg-obsidian text-mutedText hover:text-white">✕</button>
           </div>
 
-          <!-- Search Bar -->
           <input
             type="text"
-            id="exSearchInput"
             value="${escapeHtml(searchQuery)}"
             oninput="openExercisePickerModal('${filterCat}', this.value)"
-            placeholder="Search exercises (e.g. Hip Thrust, RDL, Lat...)"
+            placeholder="Search ${appState.exercises.length}+ exercises..."
             class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-xs text-white placeholder-mutedText outline-none"
           />
 
-          <!-- Category Pills -->
-          <div class="flex gap-1.5 overflow-x-auto no-scrollbar">
+          <div class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
             ${categories.map(cat => `
-              <button onclick="openExercisePickerModal('${cat}', document.getElementById('exSearchInput').value)" class="px-3 py-1.5 rounded-xl text-[11px] font-bold shrink-0 border transition ${filterCat === cat ? 'text-obsidian' : 'bg-obsidian border-borderDark text-mutedText'}" style="${filterCat === cat ? `background-color: ${accentHex}; border-color: ${accentHex};` : ''}">
+              <button
+                onclick="openExercisePickerModal('${cat}', '${escapeHtml(searchQuery)}')"
+                class="px-3 py-1.5 rounded-xl text-[11px] font-bold shrink-0 border transition ${filterCat === cat ? 'text-obsidian' : 'bg-obsidian border-borderDark text-mutedText'}"
+                style="${filterCat === cat ? `background-color: ${accentHex}; border-color: ${accentHex};` : ''}"
+              >
                 ${cat}
               </button>
             `).join('')}
           </div>
 
-          <!-- Exercise List -->
           <div class="space-y-1.5 max-h-60 overflow-y-auto pr-1">
-            ${filtered.map(ex => {
-              const bench = getExerciseBenchmarks(ex.id, activeSession.date);
-              const sub = bench.bestWeight > 0 ? `Best: ${bench.bestWeight}${appState.unit} × ${bench.bestWeightReps}` : ex.category;
-              return `
-                <button onclick="addExerciseToSession('${ex.id}')" class="w-full text-left bg-obsidian hover:bg-white/5 border border-borderDark rounded-2xl p-3 flex items-center justify-between">
-                  <div>
-                    <p class="text-xs font-bold text-white">${escapeHtml(ex.name)}</p>
-                    <p class="text-[10px] text-mutedText mt-0.5">${sub}</p>
-                  </div>
-                  <span class="text-sm font-extrabold" style="color: ${accentHex};">+</span>
-                </button>
-              `;
-            }).join('') || `<p class="text-xs text-mutedText text-center py-4">No matching exercises found.</p>`}
+            ${filtered.map(ex => `
+              <button onclick="addExerciseToActiveSession('${ex.id}')" class="w-full text-left bg-obsidian hover:bg-white/5 border border-borderDark rounded-2xl p-3 flex items-center justify-between transition">
+                <div>
+                  <p class="text-xs font-bold text-white">${escapeHtml(ex.name)}</p>
+                  <p class="text-[10px] text-mutedText">${escapeHtml(ex.category)}</p>
+                </div>
+                <span class="text-xs font-extrabold" style="color: ${accentHex};">+ Add</span>
+              </button>
+            `).join('') || `<p class="text-xs text-mutedText text-center py-4">No matching exercises found.</p>`}
           </div>
 
-          <!-- Quick Create Custom Exercise -->
+          <!-- Create Custom Exercise -->
           <div class="pt-3 border-t border-borderDark space-y-2">
-            <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText">Create Custom Exercise</label>
+            <p class="text-[11px] font-bold text-white">Or Create Custom Exercise</p>
             <div class="flex gap-2">
-              <input type="text" id="newCustomExName" placeholder="e.g., Smith Machine Squat" class="flex-1 bg-obsidian border border-borderDark rounded-xl px-3 py-2 text-xs text-white outline-none" />
+              <input type="text" id="customExNameInput" placeholder="e.g., Smith Machine Squat" class="flex-1 bg-obsidian border border-borderDark rounded-xl px-3 py-2 text-xs text-white outline-none" />
               <button onclick="createAndAddCustomExercise()" class="px-3.5 py-2 rounded-xl text-xs font-extrabold text-obsidian shrink-0" style="background-color: ${accentHex};">
-                + Create
+                Create
               </button>
             </div>
           </div>
@@ -2104,17 +2318,17 @@
       `);
     }
 
-    function addExerciseToSession(exerciseId) {
+    function addExerciseToActiveSession(exerciseId) {
       const bench = getExerciseBenchmarks(exerciseId, activeSession.date);
-      const prefillWeight = bench.lastSession && bench.lastSession.sets[0] ? bench.lastSession.sets[0].weight : '';
-      const prefillReps = bench.lastSession && bench.lastSession.sets[0] ? bench.lastSession.sets[0].reps : 10;
+      const defaultWeight = bench.lastSession && bench.lastSession.sets[0] ? bench.lastSession.sets[0].weight : '';
+      const defaultReps = bench.lastSession && bench.lastSession.sets[0] ? bench.lastSession.sets[0].reps : 10;
 
       activeSession.entries.push({
         exerciseId,
         sets: [
-          { weight: prefillWeight, reps: prefillReps, rir: '2', completed: false },
-          { weight: prefillWeight, reps: prefillReps, rir: '1', completed: false },
-          { weight: prefillWeight, reps: prefillReps, rir: '1', completed: false }
+          { weight: defaultWeight, reps: defaultReps, rir: '2', completed: false },
+          { weight: defaultWeight, reps: defaultReps, rir: '1', completed: false },
+          { weight: defaultWeight, reps: defaultReps, rir: '1', completed: false }
         ]
       });
       closeModal();
@@ -2122,63 +2336,179 @@
     }
 
     function createAndAddCustomExercise() {
-      const input = document.getElementById('newCustomExName');
+      const input = document.getElementById('customExNameInput');
       const name = (input ? input.value : '').trim();
       if (!name) {
         showToast('Enter an exercise name');
         return;
       }
       const newId = 'ex_custom_' + Date.now();
-      appState.exercises.unshift({
-        id: newId,
-        name,
-        category: 'Custom'
-      });
+      appState.exercises.unshift({ id: newId, name, category: 'Custom' });
       saveState();
-      addExerciseToSession(newId);
+      addExerciseToActiveSession(newId);
       showToast(`Added "${name}"`);
     }
 
-    // 3. Create Reusable Routine Modal
-    function openCreateTemplateModal() {
+    // 3. Create Reusable Routine Modal (With Search, Category Filter & Custom Exercise Creation)
+    let routineBuilderSelectedIds = new Set();
+
+    function openCreateTemplateModal(resetSelection = true) {
+      if (resetSelection) {
+        routineBuilderSelectedIds = new Set();
+      }
       const accentHex = getAccentHex();
+      const categories = ['All', 'Glutes / Lower', 'Back', 'Chest', 'Shoulders', 'Arms', 'Core & Cardio', 'Full Body', 'Custom'];
+
       openModal(`
-        <div class="space-y-3.5">
+        <div class="space-y-3">
           <div class="flex items-center justify-between">
-            <h3 class="text-base font-extrabold text-white">New Workout Routine</h3>
+            <div>
+              <h3 class="text-base font-extrabold text-white">New Workout Routine</h3>
+              <p class="text-[11px] text-mutedText"><span id="tplSelectedCount" style="color: ${accentHex};" class="font-bold">0</span> exercises selected</p>
+            </div>
             <button onclick="closeModal()" class="p-2 rounded-xl bg-obsidian text-mutedText hover:text-white">✕</button>
           </div>
 
-          <input type="text" id="tplNameInput" placeholder="Routine Name (e.g., Glute Focus Day)" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-xs font-bold text-white outline-none" />
+          <input type="text" id="tplNameInput" placeholder="Routine Name (e.g., Glutes & Hamstrings)" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-xs font-bold text-white outline-none" />
 
-          <div class="space-y-1.5 max-h-60 overflow-y-auto pr-1">
-            <p class="text-[10px] font-bold uppercase tracking-wider text-mutedText">Select Exercises:</p>
-            ${appState.exercises.map(ex => `
-              <label class="flex items-center justify-between bg-obsidian border border-borderDark rounded-xl p-2.5 cursor-pointer">
-                <span class="text-xs font-semibold text-white">${escapeHtml(ex.name)}</span>
-                <input type="checkbox" value="${ex.id}" class="tpl-ex-check accent-limeAccent w-4 h-4" />
-              </label>
+          <!-- Search Filter inside Routine Builder -->
+          <input
+            type="text"
+            id="tplExSearchInput"
+            oninput="filterTemplateExerciseList()"
+            placeholder="Search ${appState.exercises.length}+ exercises..."
+            class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2 text-xs text-white placeholder-mutedText outline-none"
+          />
+
+          <!-- Muscle Group Filter Pills -->
+          <div id="tplCatPills" class="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+            ${categories.map((cat, idx) => `
+              <button
+                type="button"
+                data-cat="${cat}"
+                onclick="selectTemplateCategory('${cat}')"
+                class="tpl-cat-btn px-2.5 py-1 rounded-xl text-[10px] font-bold shrink-0 border transition ${idx === 0 ? 'text-obsidian' : 'bg-obsidian border-borderDark text-mutedText'}"
+                style="${idx === 0 ? `background-color: ${accentHex}; border-color: ${accentHex};` : ''}"
+              >
+                ${cat}
+              </button>
             `).join('')}
           </div>
 
-          <button onclick="saveNewTemplate()" class="w-full py-3 rounded-2xl text-xs font-extrabold text-obsidian" style="background-color: ${accentHex};">
+          <!-- Filtered Exercise Checklist -->
+          <div id="tplExerciseChecklist" class="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+          </div>
+
+          <!-- Quick Add Custom Exercise Directly While Building Routine -->
+          <div class="pt-2 border-t border-borderDark/70 flex gap-2">
+            <input type="text" id="tplQuickCustomEx" placeholder="Missing a lift? Type custom name..." class="flex-1 bg-obsidian border border-borderDark rounded-xl px-3 py-2 text-xs text-white outline-none" />
+            <button type="button" onclick="quickCreateExerciseForTemplate()" class="px-3 py-2 rounded-xl bg-obsidian border border-borderDark text-xs font-bold text-white hover:bg-white/5 shrink-0">
+              + Add
+            </button>
+          </div>
+
+          <button onclick="saveNewTemplate()" class="w-full py-3 rounded-2xl text-xs font-extrabold text-obsidian shadow-lg" style="background-color: ${accentHex};">
             Save Routine
           </button>
         </div>
       `);
+
+      window._activeTplFilterCat = 'All';
+      filterTemplateExerciseList();
+    }
+
+    function selectTemplateCategory(cat) {
+      window._activeTplFilterCat = cat;
+      const accentHex = getAccentHex();
+      document.querySelectorAll('.tpl-cat-btn').forEach(btn => {
+        const isSelected = btn.dataset.cat === cat;
+        if (isSelected) {
+          btn.style.backgroundColor = accentHex;
+          btn.style.borderColor = accentHex;
+          btn.style.color = '#0A0A0C';
+        } else {
+          btn.style.backgroundColor = '#0A0A0C';
+          btn.style.borderColor = '#232329';
+          btn.style.color = '#8E8E93';
+        }
+      });
+      filterTemplateExerciseList();
+    }
+
+    function toggleRoutineBuilderExercise(exId) {
+      if (routineBuilderSelectedIds.has(exId)) {
+        routineBuilderSelectedIds.delete(exId);
+      } else {
+        routineBuilderSelectedIds.add(exId);
+      }
+      const countEl = document.getElementById('tplSelectedCount');
+      if (countEl) countEl.textContent = routineBuilderSelectedIds.size;
+    }
+
+    function filterTemplateExerciseList() {
+      const listEl = document.getElementById('tplExerciseChecklist');
+      if (!listEl) return;
+      const q = (document.getElementById('tplExSearchInput')?.value || '').toLowerCase().trim();
+      const cat = window._activeTplFilterCat || 'All';
+      const accentHex = getAccentHex();
+
+      const filtered = appState.exercises.filter(ex => {
+        const matchCat = cat === 'All' || ex.category === cat;
+        const matchQ = !q || ex.name.toLowerCase().includes(q) || ex.category.toLowerCase().includes(q);
+        return matchCat && matchQ;
+      });
+
+      listEl.innerHTML = filtered.map(ex => {
+        const checked = routineBuilderSelectedIds.has(ex.id);
+        return `
+          <label class="flex items-center justify-between bg-obsidian border ${checked ? 'border-white/30' : 'border-borderDark'} rounded-xl p-2.5 cursor-pointer transition">
+            <div class="min-w-0 pr-2">
+              <span class="text-xs font-semibold text-white block truncate">${escapeHtml(ex.name)}</span>
+              <span class="text-[10px] text-mutedText">${escapeHtml(ex.category)}</span>
+            </div>
+            <input
+              type="checkbox"
+              value="${ex.id}"
+              ${checked ? 'checked' : ''}
+              onchange="toggleRoutineBuilderExercise('${ex.id}'); filterTemplateExerciseList();"
+              style="accent-color: ${accentHex};"
+              class="w-4 h-4 shrink-0"
+            />
+          </label>
+        `;
+      }).join('') || `<p class="text-xs text-mutedText text-center py-4">No matching exercises. Add it below!</p>`;
+    }
+
+    function quickCreateExerciseForTemplate() {
+      const input = document.getElementById('tplQuickCustomEx');
+      const name = (input ? input.value : '').trim();
+      if (!name) {
+        showToast('Type an exercise name first');
+        return;
+      }
+      const newId = 'ex_custom_' + Date.now();
+      appState.exercises.unshift({ id: newId, name, category: 'Custom' });
+      routineBuilderSelectedIds.add(newId);
+      saveState();
+      input.value = '';
+      const countEl = document.getElementById('tplSelectedCount');
+      if (countEl) countEl.textContent = routineBuilderSelectedIds.size;
+      filterTemplateExerciseList();
+      showToast(`Created & selected "${name}"`);
     }
 
     function saveNewTemplate() {
       const name = document.getElementById('tplNameInput').value.trim();
-      const checked = Array.from(document.querySelectorAll('.tpl-ex-check:checked')).map(cb => cb.value);
+      const checked = Array.from(routineBuilderSelectedIds);
       if (!name || checked.length === 0) {
-        showToast('Enter a name and select at least 1 exercise');
+        showToast('Enter a routine name and select at least 1 exercise');
         return;
       }
+      const firstEx = appState.exercises.find(e => e.id === checked[0]);
       appState.templates.unshift({
         id: 'tpl_' + Date.now(),
         name,
-        tag: 'Custom',
+        tag: firstEx ? firstEx.category : 'Custom',
         exerciseIds: checked
       });
       saveState();
@@ -2304,43 +2634,29 @@
     }
 
     /*************************************************************************
-     * INITIALIZATION & OFFLINE SERVICE WORKER REGISTRATION
+     * INITIALIZATION & LIFECYCLE AUTOSAVE
      *************************************************************************/
-    function registerInlineServiceWorker() {
-      if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
-        const swCode = `
-          const CACHE_NAME = 'cadence-app-v1';
-          self.addEventListener('install', (e) => {
-            self.skipWaiting();
-          });
-          self.addEventListener('activate', (e) => {
-            e.waitUntil(self.clients.claim());
-          });
-          self.addEventListener('fetch', (e) => {
-            if (e.request.method !== 'GET') return;
-            e.respondWith(
-              fetch(e.request)
-                .then((res) => {
-                  const copy = res.clone();
-                  caches.open(CACHE_NAME).then((cache) => cache.put(e.request, copy));
-                  return res;
-                })
-                .catch(() => caches.match(e.request))
-            );
-          });
-        `;
-        const blob = new Blob([swCode], { type: 'application/javascript' });
-        const swUrl = URL.createObjectURL(blob);
-        navigator.serviceWorker.register(swUrl).catch(() => {});
-      }
+    function setupLifecycleAutosave() {
+      // Flush state whenever iOS switches apps, locks screen, or backgrounds the Web Clip
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+          saveState();
+        }
+      });
+      window.addEventListener('pagehide', () => {
+        saveState();
+      });
+      window.addEventListener('beforeunload', () => {
+        saveState();
+      });
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      loadState();
+    window.addEventListener('DOMContentLoaded', async () => {
+      await loadState();
       initSessionForDate(getTodayStr());
       renderHeaderAndStrip();
       renderMainView();
-      registerInlineServiceWorker();
+      setupLifecycleAutosave();
     });
   </script>
 </body>
