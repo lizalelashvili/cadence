@@ -21,7 +21,6 @@
   <script>
     (function enforceSixtyDaySessionGate() {
       try {
-        // Skip redirect in sandboxed editor previews
         if (window.location.protocol === 'about:' || window.location.href.startsWith('blob:')) return;
 
         const SESSION_KEY = 'cadence_account_session_v1';
@@ -32,21 +31,18 @@
         if (rawSession) {
           const parsed = JSON.parse(rawSession);
           if (parsed && parsed.username) {
-            // Check 60-day expiration (grant 60 days if legacy session lacked expiresAt)
             if (!parsed.expiresAt) {
               parsed.expiresAt = Date.now() + SIXTY_DAYS_MS;
               localStorage.setItem(SESSION_KEY, JSON.stringify(parsed));
             }
             if (Date.now() < parsed.expiresAt) {
-              return; // Valid 2-month session — allow entry into tracker
+              return;
             } else {
-              // 2 months elapsed — clear expired session and require sign in
               localStorage.removeItem(SESSION_KEY);
             }
           }
         }
 
-        // Allow explicit Guest mode if chosen on login.html
         if (localStorage.getItem(GUEST_KEY) === 'true') {
           return;
         }
@@ -158,7 +154,7 @@
 </head>
 <body class="bg-obsidian text-[#F5F5F7] antialiased min-h-[100dvh] flex flex-col selection:bg-accent selection:text-obsidian">
 
-  <!-- Toast Notification Banner (z-[70] so it always renders above modals) -->
+  <!-- Toast Notification Banner -->
   <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-[70] pointer-events-none opacity-0 transition-all duration-300 transform -translate-y-3 w-[92%] max-w-sm">
     <div id="toastInner" class="bg-surface border border-borderDark text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-sm font-medium backdrop-blur-md">
       <span id="toastIcon" class="w-2.5 h-2.5 rounded-full bg-accent shrink-0"></span>
@@ -192,20 +188,19 @@
         </div>
       </div>
 
-      <!-- Right Actions: Account Pill, Accent Switcher & Quick Log -->
+      <!-- Right Actions: Profile Pill, Accent Switcher & Quick Log -->
       <div class="flex items-center gap-1.5 shrink-0">
-        <!-- Account Sync / Sign In Button -->
-        <button id="accountStatusBtn" type="button" onclick="openAccountModal()" title="Account & Cloud Sync" class="h-8 px-2.5 rounded-full bg-surface border border-borderDark hover:border-white/20 flex items-center gap-1.5 transition active:scale-95 max-w-[116px]">
-          <span id="accountDot" class="w-2 h-2 rounded-full bg-mutedText shrink-0"></span>
-          <span id="accountLabel" class="text-[11px] font-bold text-white truncate">Sign In</span>
+        <button id="accountStatusBtn" type="button" onclick="openAccountModal()" title="Profile & Weekly Goal" class="h-8 pl-1.5 pr-2.5 rounded-full bg-surface border border-borderDark hover:border-white/20 flex items-center gap-1.5 transition active:scale-95 max-w-[124px]">
+          <span id="headerAvatarWrap" class="w-5 h-5 rounded-full bg-accentDim text-accent flex items-center justify-center text-[10px] font-extrabold overflow-hidden shrink-0">
+            <span id="accountDot" class="w-2 h-2 rounded-full bg-mutedText"></span>
+          </span>
+          <span id="accountLabel" class="text-[11px] font-bold text-white truncate">Profile</span>
         </button>
 
-        <!-- Accent Color Switcher -->
         <button type="button" onclick="openThemeModal()" title="Change Accent Color" class="w-8 h-8 rounded-full bg-surface border border-borderDark hover:border-white/20 flex items-center justify-center transition active:scale-95 shrink-0">
           <span class="w-3.5 h-3.5 rounded-full bg-accent shadow-sm"></span>
         </button>
 
-        <!-- Quick Log CTA -->
         <button type="button" onclick="startOrResumeTodayWorkout()" class="h-8 px-3 rounded-full bg-accent text-obsidian font-extrabold text-[11px] tracking-tight flex items-center gap-1 hover:opacity-95 active:scale-95 transition shadow-lg shrink-0">
           <span>＋</span><span>Log</span>
         </button>
@@ -220,12 +215,11 @@
 
   <!-- Main Scrollable Content Area -->
   <main id="appMain" class="flex-1 max-w-lg w-full mx-auto px-3.5 pt-3.5 pb-28 space-y-4">
-    <!-- Dynamically populated by renderCurrentView() -->
   </main>
 
-  <!-- Bottom Floating Navigation Bar -->
+  <!-- Bottom Floating Navigation Bar (5 Tabs including Body Measurements) -->
   <nav class="fixed bottom-0 inset-x-0 z-30 bg-obsidian/95 backdrop-blur-xl border-t border-borderDark/80 safe-bottom">
-    <div class="max-w-lg mx-auto px-3 py-2 grid grid-cols-4 gap-1.5">
+    <div class="max-w-lg mx-auto px-2.5 py-2 grid grid-cols-5 gap-1">
       <button type="button" onclick="switchTab('home')" data-tab="home" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-2xl text-accent bg-surface border border-borderDark transition">
         <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <rect x="3" y="4" width="18" height="18" rx="3" />
@@ -246,6 +240,13 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
         </svg>
         <span class="text-[10px] font-bold tracking-tight">Overload</span>
+      </button>
+
+      <button type="button" onclick="switchTab('measurements')" data-tab="measurements" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-2xl text-mutedText hover:text-white transition">
+        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M3 12h12M3 18h18M17 9v6" />
+        </svg>
+        <span class="text-[10px] font-bold tracking-tight">Body</span>
       </button>
 
       <button type="button" onclick="switchTab('templates')" data-tab="templates" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-2xl text-mutedText hover:text-white transition">
@@ -276,7 +277,6 @@
       <div class="w-full max-w-5xl bg-surface border border-borderDark rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col justify-center">
         <div id="fsGridHost" class="w-full overflow-x-auto no-scrollbar"></div>
 
-        <!-- Legend matching main card -->
         <div class="mt-4 pt-3 border-t border-borderDark/70 flex items-center justify-between text-[11px] text-mutedText">
           <span>Full Rolling 53-Week Matrix</span>
           <div class="flex items-center gap-1.5">
@@ -302,9 +302,7 @@
     // =========================================================================
     // 1. STORAGE KEYS, ACCENT THEMES & DUAL-VAULT + SUPABASE CLOUD PERSISTENCE
     // =========================================================================
-    // Optional: Paste your Supabase Project URL & Anon Key here to hardcode for all devices,
-    // OR paste them once inside the in-app Account -> Cloud Sync Settings panel!
-    const DEFAULT_SUPABASE_URL = 'https://mltxjcmaogktsrztmjgo.supabase.co/rest/v1/';
+    const DEFAULT_SUPABASE_URL = 'https://mltxjcmaogktsrztmjgo.supabase.co';
     const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sdHhqY21hb2drdHNyenRtamdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1MTk0NjUsImV4cCI6MjExMTA5NTQ2NX0.ydMzpen6oScu07nIZEuAIKJVAXaIinAshn07MjY169Y';
     const SUPABASE_CONFIG_KEY = 'cadence_supabase_config_v1';
 
@@ -318,17 +316,17 @@
     const IDB_STORE = 'stateStore';
 
     let supabaseClient = null;
-    let cloudSyncStatus = 'offline'; // 'offline' | 'syncing' | 'synced' | 'error'
+    let cloudSyncStatus = 'offline';
 
     function getSupabaseConfig() {
       try {
         const saved = JSON.parse(localStorage.getItem(SUPABASE_CONFIG_KEY) || 'null');
         if (saved && saved.url && saved.anonKey) {
-          return { url: saved.url.trim(), anonKey: saved.anonKey.trim() };
+          return { url: saved.url.trim().replace(/\/rest\/v1\/?$/, ''), anonKey: saved.anonKey.trim() };
         }
       } catch (_) {}
       if (DEFAULT_SUPABASE_URL && DEFAULT_SUPABASE_ANON_KEY) {
-        return { url: DEFAULT_SUPABASE_URL.trim(), anonKey: DEFAULT_SUPABASE_ANON_KEY.trim() };
+        return { url: DEFAULT_SUPABASE_URL.trim().replace(/\/rest\/v1\/?$/, ''), anonKey: DEFAULT_SUPABASE_ANON_KEY.trim() };
       }
       return null;
     }
@@ -357,7 +355,6 @@
       if (!supabaseClient || !username) return false;
       try {
         cloudSyncStatus = 'syncing';
-        updateAccountHeaderUI();
         const { error } = await supabaseClient
           .from('cadence_profiles')
           .upsert({
@@ -369,15 +366,12 @@
 
         if (error) {
           cloudSyncStatus = 'error';
-          updateAccountHeaderUI();
           return false;
         }
         cloudSyncStatus = 'synced';
-        updateAccountHeaderUI();
         return true;
       } catch (_) {
         cloudSyncStatus = 'error';
-        updateAccountHeaderUI();
         return false;
       }
     }
@@ -614,7 +608,10 @@
     function getDefaultState() {
       return {
         accent: 'pink',
-        workouts: {}, // { 'YYYY-MM-DD': { title, exercises: [...], durationMins, notes, updatedAt } }
+        weeklyGoal: 4,
+        profilePhoto: '',
+        measurements: [],
+        workouts: {},
         templates: JSON.parse(JSON.stringify(DEFAULT_TEMPLATES)),
         customExercises: [],
         _updatedAt: 0
@@ -624,16 +621,17 @@
     let appState = getDefaultState();
     let isStateHydrated = false;
     let idbWriteQueue = Promise.resolve();
-    let accountSession = null; // { username, displayName, passHash }
+    let accountSession = null;
 
     let currentTab = 'home';
-    let gridMode = 'year'; // 'year' | 'month'
+    let gridMode = 'year';
     let selectedDateStr = getLocalDateKey(new Date());
     let activeDraft = null;
     let selectedOverloadExercise = '';
     let pickerSearchQuery = '';
     let pickerCategory = 'All';
     let customTemplateDraftSelection = [];
+    let pickerAddedThisOpen = new Set();
 
     function getLocalDateKey(dateObj) {
       const y = dateObj.getFullYear();
@@ -644,11 +642,11 @@
 
     function parseLocalDateKey(dateStr) {
       const [y, m, d] = dateStr.split('-').map(Number);
-      return new Date(y, m - 1, d);
+      return new Date(y, (m || 1) - 1, d || 1);
     }
 
     function escapeHtml(str) {
-      return String(str || '')
+      return String(str ?? '')
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
@@ -656,44 +654,48 @@
         .replace(/'/g, '&#39;');
     }
 
+    function getAllExercises() {
+      const custom = Array.isArray(appState.customExercises) ? appState.customExercises : [];
+      const seen = new Set(EXERCISE_CATALOG.map(e => e.name.toLowerCase()));
+      const merged = [...EXERCISE_CATALOG];
+      custom.forEach(c => {
+        if (c && c.name && !seen.has(c.name.toLowerCase())) {
+          merged.push(c);
+          seen.add(c.name.toLowerCase());
+        }
+      });
+      return merged;
+    }
+
     function isCardioExercise(name) {
       if (!name) return false;
-      const lower = name.toLowerCase();
-      if (CARDIO_MACHINE_CONFIGS[name]) return true;
+      const lower = name.toLowerCase().trim();
       const found = getAllExercises().find(e => e.name.toLowerCase() === lower);
-      if (found && (found.isCardio || found.muscle === 'Cardio')) return true;
-      const keywords = ['stairmaster', 'stair', 'treadmill', 'cardio', 'row', 'erg', 'bike', 'cycling', 'spin', 'elliptical', 'run', 'jog', 'walk', 'sprint', 'sled', 'jump rope', 'swim', 'skierg', 'hiit'];
-      return keywords.some(k => lower.includes(k));
+      if (found && (found.isCardio || (found.muscle && found.muscle.toLowerCase() === 'cardio'))) {
+        return true;
+      }
+      return /stairmaster|treadmill|row|erg|bike|cycling|elliptical|skierg|sled|jump rope|swim|run|walk|cardio|sprint/i.test(lower);
     }
 
     function getCardioConfig(name) {
-      if (CARDIO_MACHINE_CONFIGS[name]) return CARDIO_MACHINE_CONFIGS[name];
-      return {
-        primaryLabel: 'Minutes',
-        secondaryLabel: 'Level / Speed',
-        placeholderSecondary: 'Lvl 6'
-      };
+      const exact = CARDIO_MACHINE_CONFIGS[name];
+      if (exact) return exact;
+      const key = Object.keys(CARDIO_MACHINE_CONFIGS).find(k => k.toLowerCase() === String(name || '').toLowerCase());
+      if (key) return CARDIO_MACHINE_CONFIGS[key];
+      return { primaryLabel: 'Minutes', secondaryLabel: 'Level / Dist', placeholderSecondary: 'Lvl 8' };
     }
 
     function extractNumericMetric(val) {
       if (typeof val === 'number') return isNaN(val) ? 0 : val;
-      const match = String(val || '').match(/(\d+(\.\d+)?)/);
+      const str = String(val || '').trim();
+      if (!str) return 0;
+      const match = str.match(/(\d+(\.\d+)?)/);
       return match ? parseFloat(match[1]) : 0;
     }
 
-    function getAllExercises() {
-      const map = new Map();
-      EXERCISE_CATALOG.forEach(ex => map.set(ex.name.toLowerCase(), ex));
-      (appState.customExercises || []).forEach(ex => {
-        if (ex && ex.name) map.set(ex.name.toLowerCase(), ex);
-      });
-      return Array.from(map.values());
-    }
-
-    // IndexedDB Helper
-    function openVaultDB() {
+    function openVaultIDB() {
       return new Promise((resolve, reject) => {
-        if (!window.indexedDB) return reject(new Error('IndexedDB unavailable'));
+        if (!window.indexedDB) return reject(new Error('No IndexedDB'));
         const req = indexedDB.open(IDB_NAME, 1);
         req.onupgradeneeded = (e) => {
           const db = e.target.result;
@@ -708,26 +710,27 @@
 
     async function readFromIDB(key) {
       try {
-        const db = await openVaultDB();
+        const db = await openVaultIDB();
         return await new Promise((resolve) => {
           const tx = db.transaction(IDB_STORE, 'readonly');
-          const req = tx.objectStore(IDB_STORE).get(key);
-          req.onsuccess = () => resolve(req.result || null);
-          req.onerror = () => resolve(null);
+          const store = tx.objectStore(IDB_STORE);
+          const getReq = store.get(key);
+          getReq.onsuccess = () => resolve(getReq.result || null);
+          getReq.onerror = () => resolve(null);
         });
       } catch (_) {
         return null;
       }
     }
 
-    function enqueueIDBWrite(entries) {
+    function queueWriteToIDB(key, value) {
       idbWriteQueue = idbWriteQueue.then(async () => {
         try {
-          const db = await openVaultDB();
+          const db = await openVaultIDB();
           await new Promise((resolve) => {
             const tx = db.transaction(IDB_STORE, 'readwrite');
             const store = tx.objectStore(IDB_STORE);
-            entries.forEach(([k, v]) => store.put(v, k));
+            store.put(value, key);
             tx.oncomplete = () => resolve(true);
             tx.onerror = () => resolve(false);
           });
@@ -736,11 +739,53 @@
       return idbWriteQueue;
     }
 
-    function safeJSONParse(raw) {
+    function safeJSONParse(str) {
       try {
-        return raw ? JSON.parse(raw) : null;
+        return JSON.parse(str);
       } catch (_) {
         return null;
+      }
+    }
+
+    function getUserVaultKey(username) {
+      return `${ACCOUNT_VAULT_PREFIX}${String(username || '').toLowerCase().trim()}`;
+    }
+
+    async function loadUserVault(username) {
+      if (!username) return null;
+      const key = getUserVaultKey(username);
+      const idbData = await readFromIDB(key);
+      const lsPrimary = safeJSONParse(localStorage.getItem(key));
+      const lsBackup = safeJSONParse(localStorage.getItem(`${key}_backup`));
+
+      const candidates = [idbData, lsPrimary, lsBackup].filter(Boolean);
+
+      if (supabaseClient) {
+        const remote = await pullStateFromSupabase(username);
+        if (remote && remote.state) {
+          if (remote.passHash) remote.state._passHash = remote.passHash;
+          candidates.push(remote.state);
+        }
+      }
+
+      if (candidates.length === 0) return null;
+      candidates.sort((a, b) => (b._updatedAt || 0) - (a._updatedAt || 0));
+      return candidates[0];
+    }
+
+    async function saveUserVault(username, stateSnapshot) {
+      if (!username) return;
+      const key = getUserVaultKey(username);
+      const serialized = JSON.stringify(stateSnapshot);
+      try {
+        localStorage.setItem(key, serialized);
+        localStorage.setItem(`${key}_backup`, serialized);
+      } catch (_) {}
+      await queueWriteToIDB(key, stateSnapshot);
+
+      if (supabaseClient) {
+        const hash = (accountSession && accountSession.passHash) || stateSnapshot._passHash || '';
+        pushStateToSupabase(username, hash, stateSnapshot);
       }
     }
 
@@ -748,6 +793,15 @@
       if (!rawObj || typeof rawObj !== 'object') return;
       if (rawObj.accent && THEMES[rawObj.accent]) {
         appState.accent = rawObj.accent;
+      }
+      if (typeof rawObj.weeklyGoal === 'number' && rawObj.weeklyGoal >= 1 && rawObj.weeklyGoal <= 7) {
+        appState.weeklyGoal = rawObj.weeklyGoal;
+      }
+      if (typeof rawObj.profilePhoto === 'string') {
+        appState.profilePhoto = rawObj.profilePhoto;
+      }
+      if (Array.isArray(rawObj.measurements)) {
+        appState.measurements = rawObj.measurements;
       }
       if (rawObj.workouts && typeof rawObj.workouts === 'object') {
         appState.workouts = rawObj.workouts;
@@ -769,160 +823,46 @@
       }
     }
 
-    async function saveState(stampTime = true) {
-      if (!isStateHydrated) return;
-      if (stampTime) {
-        appState._updatedAt = Date.now();
-      }
-      const snapshot = JSON.parse(JSON.stringify(appState));
-      const serialized = JSON.stringify(snapshot);
-      const idbEntries = [];
-
-      if (accountSession && accountSession.username) {
-        snapshot._passHash = accountSession.passHash || snapshot._passHash || '';
-        snapshot._displayName = accountSession.displayName || accountSession.username;
-        const userSerialized = JSON.stringify(snapshot);
-        const userKey = `${ACCOUNT_VAULT_PREFIX}${accountSession.username}`;
-        const expiresAt = accountSession.expiresAt || (Date.now() + SIXTY_DAYS_MS);
-        accountSession.expiresAt = expiresAt;
-        try {
-          localStorage.setItem(userKey, userSerialized);
-          localStorage.setItem(`${userKey}_backup`, userSerialized);
-          localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify({
-            username: accountSession.username,
-            displayName: accountSession.displayName || accountSession.username,
-            passHash: snapshot._passHash,
-            expiresAt
-          }));
-          localStorage.removeItem(GUEST_MODE_KEY);
-        } catch (_) {}
-        idbEntries.push([userKey, snapshot]);
-      } else {
-        try {
-          localStorage.setItem(STORAGE_KEY, serialized);
-          localStorage.setItem(MIRROR_STORAGE_KEY, serialized);
-        } catch (_) {}
-        idbEntries.push(['primary_state', snapshot]);
-      }
-
-      await enqueueIDBWrite(idbEntries);
-
-      // Push to Supabase cloud if signed in & configured
-      if (accountSession && accountSession.username && supabaseClient) {
-        pushStateToSupabase(accountSession.username, snapshot._passHash, snapshot);
-      }
-    }
-
-    async function loadUserVault(username) {
-      const userKey = `${ACCOUNT_VAULT_PREFIX}${username}`;
-      const idbUser = await readFromIDB(userKey);
-      const lsUser = safeJSONParse(localStorage.getItem(userKey)) || safeJSONParse(localStorage.getItem(`${userKey}_backup`));
-      let localBest = null;
-      if (idbUser && lsUser) {
-        localBest = (idbUser._updatedAt || 0) >= (lsUser._updatedAt || 0) ? idbUser : lsUser;
-      } else {
-        localBest = idbUser || lsUser || null;
-      }
-
-      // Also check Supabase cloud if connected
-      if (supabaseClient) {
-        const remote = await pullStateFromSupabase(username);
-        if (remote && remote.state) {
-          const remoteState = remote.state;
-          if (remote.passHash && !remoteState._passHash) {
-            remoteState._passHash = remote.passHash;
-          }
-          if (!localBest || (remoteState._updatedAt || 0) >= (localBest._updatedAt || 0)) {
-            return remoteState;
-          }
-        }
-      }
-
-      return localBest;
-    }
-
     async function hydrateStateFromVault() {
       initSupabaseClient();
-      if (navigator.storage && navigator.storage.persist) {
-        navigator.storage.persist().catch(() => {});
-      }
 
       const savedSession = safeJSONParse(localStorage.getItem(ACCOUNT_SESSION_KEY));
-      const idbPrimary = await readFromIDB('primary_state');
-      const lsPrimary = safeJSONParse(localStorage.getItem(STORAGE_KEY)) || safeJSONParse(localStorage.getItem(MIRROR_STORAGE_KEY));
-      const guestCandidate = (idbPrimary && lsPrimary)
-        ? ((idbPrimary._updatedAt || 0) >= (lsPrimary._updatedAt || 0) ? idbPrimary : lsPrimary)
-        : (idbPrimary || lsPrimary);
-
       if (savedSession && savedSession.username) {
-        if (savedSession.expiresAt && Date.now() >= savedSession.expiresAt) {
+        const isExpired = savedSession.expiresAt && Date.now() >= savedSession.expiresAt;
+        if (!isExpired) {
+          accountSession = savedSession;
+          if (!accountSession.expiresAt) {
+            accountSession.expiresAt = Date.now() + SIXTY_DAYS_MS;
+            localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify(accountSession));
+          }
+        } else {
           localStorage.removeItem(ACCOUNT_SESSION_KEY);
           accountSession = null;
-          appState = getDefaultState();
-          if (guestCandidate) mergeLoadedState(guestCandidate);
-        } else {
-          const uname = savedSession.username.toLowerCase().trim();
-          const userVault = await loadUserVault(uname);
-          const sessionExpiry = savedSession.expiresAt || (Date.now() + SIXTY_DAYS_MS);
+        }
+      }
 
-          if (savedSession.pendingVerification) {
-            if (savedSession.pendingMode === 'signup') {
-              if (userVault && userVault._passHash && userVault._passHash !== savedSession.passHash) {
-                localStorage.removeItem(ACCOUNT_SESSION_KEY);
-                appState = getDefaultState();
-                if (guestCandidate) mergeLoadedState(guestCandidate);
-              } else {
-                accountSession = {
-                  username: uname,
-                  displayName: savedSession.displayName || uname,
-                  passHash: savedSession.passHash,
-                  expiresAt: sessionExpiry
-                };
-                appState = getDefaultState();
-                if (userVault) {
-                  mergeLoadedState(userVault);
-                } else if (guestCandidate && Object.keys(guestCandidate.workouts || {}).length > 0) {
-                  mergeLoadedState(guestCandidate);
-                }
-                appState._passHash = savedSession.passHash;
-                appState._displayName = accountSession.displayName;
-              }
-            } else {
-              if (userVault && userVault._passHash && userVault._passHash !== savedSession.passHash) {
-                localStorage.removeItem(ACCOUNT_SESSION_KEY);
-                appState = getDefaultState();
-                if (guestCandidate) mergeLoadedState(guestCandidate);
-              } else {
-                accountSession = {
-                  username: uname,
-                  displayName: savedSession.displayName || (userVault && userVault._displayName) || uname,
-                  passHash: savedSession.passHash,
-                  expiresAt: sessionExpiry
-                };
-                appState = getDefaultState();
-                if (userVault) mergeLoadedState(userVault);
-                appState._passHash = savedSession.passHash;
-                appState._displayName = accountSession.displayName;
-              }
-            }
-          } else {
-            accountSession = {
-              username: uname,
-              displayName: savedSession.displayName || uname,
-              passHash: savedSession.passHash || (userVault && userVault._passHash) || '',
-              expiresAt: sessionExpiry
-            };
-            appState = getDefaultState();
-            if (userVault) {
-              mergeLoadedState(userVault);
-            }
-          }
+      if (accountSession && accountSession.username) {
+        const userCandidate = await loadUserVault(accountSession.username);
+        if (userCandidate) {
+          mergeLoadedState(userCandidate);
+        } else {
+          appState = getDefaultState();
+          if (accountSession.passHash) appState._passHash = accountSession.passHash;
+          if (accountSession.displayName) appState._displayName = accountSession.displayName;
+        }
+        if (accountSession.pendingMode) {
+          delete accountSession.pendingMode;
+          localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify(accountSession));
         }
       } else {
-        accountSession = null;
-        appState = getDefaultState();
-        if (guestCandidate) {
-          mergeLoadedState(guestCandidate);
+        const idbPrimary = await readFromIDB('primary_state');
+        const lsPrimary = safeJSONParse(localStorage.getItem(STORAGE_KEY));
+        const lsMirror = safeJSONParse(localStorage.getItem(MIRROR_STORAGE_KEY));
+
+        const candidates = [idbPrimary, lsPrimary, lsMirror].filter(Boolean);
+        if (candidates.length > 0) {
+          candidates.sort((a, b) => (b._updatedAt || 0) - (a._updatedAt || 0));
+          mergeLoadedState(candidates[0]);
         }
       }
 
@@ -932,18 +872,27 @@
       await saveState(false);
     }
 
-    // Flush storage whenever app goes to background or closes
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden' && isStateHydrated) {
-        saveState(false);
+    async function saveState(bumpTimestamp = true) {
+      if (!isStateHydrated) return;
+      if (bumpTimestamp) {
+        appState._updatedAt = Date.now();
       }
-    });
-    window.addEventListener('pagehide', () => {
-      if (isStateHydrated) saveState(false);
-    });
-    window.addEventListener('beforeunload', () => {
-      if (isStateHydrated) saveState(false);
-    });
+      if (accountSession && accountSession.username) {
+        if (accountSession.passHash) appState._passHash = accountSession.passHash;
+        if (accountSession.displayName) appState._displayName = accountSession.displayName;
+        const snapshot = JSON.parse(JSON.stringify(appState));
+        await saveUserVault(accountSession.username, snapshot);
+        return;
+      }
+
+      const snapshot = JSON.parse(JSON.stringify(appState));
+      const serialized = JSON.stringify(snapshot);
+      try {
+        localStorage.setItem(STORAGE_KEY, serialized);
+        localStorage.setItem(MIRROR_STORAGE_KEY, serialized);
+      } catch (_) {}
+      await queueWriteToIDB('primary_state', snapshot);
+    }
 
     // =========================================================================
     // 4. ACCENT THEME & DYNAMIC HOME SCREEN ICON GENERATOR
@@ -1074,7 +1023,7 @@
     });
 
     // =========================================================================
-    // 6. ACCOUNT AUTHENTICATION & ISOLATED VAULT SWITCHING
+    // 6. PROFILE, PHOTO UPLOAD, WEEKLY WORKOUT GOAL & ACCOUNT AUTH
     // =========================================================================
     async function hashPassword(password, salt) {
       const raw = `${salt.toLowerCase().trim()}::${password}`;
@@ -1095,185 +1044,125 @@
     }
 
     function updateAccountHeaderUI() {
-      const dot = document.getElementById('accountDot');
+      const avatarWrap = document.getElementById('headerAvatarWrap');
       const label = document.getElementById('accountLabel');
-      if (!dot || !label) return;
+      if (!avatarWrap || !label) return;
+
+      if (appState.profilePhoto) {
+        avatarWrap.innerHTML = `<img src="${appState.profilePhoto}" alt="Profile" class="w-full h-full object-cover" />`;
+      } else if (accountSession && accountSession.username) {
+        avatarWrap.innerHTML = `<span class="text-[10px] font-extrabold text-accent">${escapeHtml(accountSession.username[0].toUpperCase())}</span>`;
+      } else {
+        avatarWrap.innerHTML = `<span id="accountDot" class="w-2 h-2 rounded-full bg-mutedText"></span>`;
+      }
+
       if (accountSession && accountSession.username) {
-        if (supabaseClient && cloudSyncStatus === 'synced') {
-          dot.className = 'w-2 h-2 rounded-full bg-emerald-400 shrink-0';
-        } else if (supabaseClient && cloudSyncStatus === 'syncing') {
-          dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0';
-        } else {
-          dot.className = 'w-2 h-2 rounded-full bg-accent shrink-0';
-        }
         label.textContent = `@${accountSession.username}`;
       } else {
-        dot.className = 'w-2 h-2 rounded-full bg-mutedText shrink-0';
-        label.textContent = 'Sign In';
+        label.textContent = 'Profile';
       }
     }
 
-    const SUPABASE_SQL_SCHEMA = `create table if not exists cadence_profiles (
-  username text primary key,
-  pass_hash text not null,
-  state_json jsonb not null,
-  updated_at timestamptz default now()
-);
+    function handleProfilePhotoUpload(event) {
+      const file = event.target && event.target.files && event.target.files[0];
+      if (!file) return;
 
-alter table cadence_profiles enable row level security;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = async () => {
+          const canvas = document.createElement('canvas');
+          const size = 220;
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
 
-create policy "Allow public profile sync"
-  on cadence_profiles for all
-  using (true)
-  with check (true);`;
+          const minSide = Math.min(img.width, img.height);
+          const sx = (img.width - minSide) / 2;
+          const sy = (img.height - minSide) / 2;
+          ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
 
-    function openSupabaseConfigModal() {
-      const current = getSupabaseConfig() || { url: '', anonKey: '' };
-      openModal(`
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-base font-extrabold text-white">Supabase Cloud Server</h3>
-              <p class="text-[11px] text-mutedText">Connect your free Supabase project for cross-device sync</p>
-            </div>
-            <button type="button" onclick="openAccountModal()" class="w-8 h-8 rounded-full bg-obsidian border border-borderDark text-mutedText hover:text-white flex items-center justify-center text-xs">✕</button>
-          </div>
-
-          <div class="space-y-2.5">
-            <div>
-              <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Project URL</label>
-              <input id="sbUrlInput" type="url" value="${escapeHtml(current.url)}" placeholder="https://xyzcompany.supabase.co" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-base sm:text-xs text-white focus:outline-none focus:border-accent" />
-            </div>
-            <div>
-              <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Anon Public Key</label>
-              <input id="sbKeyInput" type="text" value="${escapeHtml(current.anonKey)}" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI..." class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-base sm:text-xs text-white focus:outline-none focus:border-accent" />
-            </div>
-          </div>
-
-          <div class="bg-obsidian border border-borderDark rounded-2xl p-3 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-extrabold uppercase tracking-wider text-accent">1-Click SQL Table Setup</span>
-              <button type="button" onclick="copySupabaseSQL()" class="text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-surface border border-borderDark text-white hover:border-white/20">Copy SQL</button>
-            </div>
-            <p class="text-[11px] text-mutedText leading-relaxed">Run this once in your Supabase <span class="text-white font-semibold">SQL Editor</span> to create the <code class="text-accent">cadence_profiles</code> sync table:</p>
-            <pre id="sbSqlBlock" class="text-[10px] text-mutedText bg-surface/80 p-2.5 rounded-xl overflow-x-auto select-all">${escapeHtml(SUPABASE_SQL_SCHEMA)}</pre>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2.5">
-            <button type="button" onclick="disconnectSupabaseConfig()" class="py-3 rounded-2xl bg-obsidian border border-borderDark text-xs font-bold text-mutedText hover:text-coralAccent transition">
-              Disconnect
-            </button>
-            <button type="button" onclick="saveSupabaseConfig()" class="py-3 rounded-2xl bg-accent text-obsidian text-xs font-extrabold shadow-lg transition">
-              Connect &amp; Sync
-            </button>
-          </div>
-        </div>
-      `);
+          appState.profilePhoto = canvas.toDataURL('image/jpeg', 0.82);
+          await saveState(true);
+          updateAccountHeaderUI();
+          openAccountModal();
+          showToast('Profile photo updated!');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
     }
 
-    function copySupabaseSQL() {
-      const ta = document.createElement('textarea');
-      ta.value = SUPABASE_SQL_SCHEMA;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      showToast('SQL schema copied!');
-    }
-
-    async function saveSupabaseConfig() {
-      const url = (document.getElementById('sbUrlInput')?.value || '').trim();
-      const anonKey = (document.getElementById('sbKeyInput')?.value || '').trim();
-      if (!url || !anonKey) {
-        showToast('Enter both Project URL and Anon Key', true);
-        return;
-      }
-      localStorage.setItem(SUPABASE_CONFIG_KEY, JSON.stringify({ url, anonKey }));
-      initSupabaseClient();
-      if (accountSession && accountSession.username) {
-        const remote = await loadUserVault(accountSession.username);
-        if (remote) {
-          mergeLoadedState(remote);
-          applyTheme(appState.accent, false);
-        }
-        await saveState(true);
-      }
+    async function removeProfilePhoto() {
+      appState.profilePhoto = '';
+      await saveState(true);
       updateAccountHeaderUI();
-      renderHeaderStats();
-      renderCurrentView();
-      closeModal();
-      showToast('Supabase cloud connected!');
+      openAccountModal();
+      showToast('Profile photo removed');
     }
 
-    function disconnectSupabaseConfig() {
-      localStorage.removeItem(SUPABASE_CONFIG_KEY);
-      supabaseClient = null;
-      cloudSyncStatus = 'offline';
-      updateAccountHeaderUI();
-      closeModal();
-      showToast('Disconnected Supabase');
-    }
-
-    async function manualCloudSyncNow() {
-      if (!supabaseClient || !accountSession) {
-        openSupabaseConfigModal();
-        return;
-      }
-      showToast('Syncing with Supabase...');
-      const remote = await loadUserVault(accountSession.username);
-      if (remote && (remote._updatedAt || 0) > (appState._updatedAt || 0)) {
-        mergeLoadedState(remote);
-        applyTheme(appState.accent, false);
-      }
-      await saveState(false);
+    async function setWeeklyWorkoutGoal(daysCount) {
+      const goal = Math.max(1, Math.min(7, Number(daysCount) || 4));
+      appState.weeklyGoal = goal;
+      await saveState(true);
       renderHeaderStats();
-      renderCurrentView();
-      showToast(cloudSyncStatus === 'synced' ? 'Cloud synced!' : 'Sync failed — check SQL/keys', cloudSyncStatus !== 'synced');
+      openAccountModal();
+      showToast(`Weekly goal set to ${goal}x / week`);
     }
 
     function openAccountModal(initialMode = 'signin') {
       if (accountSession && accountSession.username) {
         const totalSessions = Object.keys(appState.workouts || {}).length;
-        const daysLeft = accountSession.expiresAt
-          ? Math.max(1, Math.ceil((accountSession.expiresAt - Date.now()) / (24 * 60 * 60 * 1000)))
-          : 60;
-        const isCloudConnected = Boolean(supabaseClient);
+        const currentGoal = appState.weeklyGoal || 4;
+        const streak = calculateWeeklyStreak();
+        const avatarHtml = appState.profilePhoto
+          ? `<img src="${appState.profilePhoto}" alt="Profile" class="w-full h-full object-cover" />`
+          : `<span class="text-accent font-extrabold text-lg">@${escapeHtml(accountSession.username[0].toUpperCase())}</span>`;
+
+        const goalButtons = [1, 2, 3, 4, 5, 6, 7].map(n => `
+          <button type="button" onclick="setWeeklyWorkoutGoal(${n})" class="h-9 rounded-xl text-xs font-extrabold border transition ${
+            currentGoal === n
+              ? 'bg-accent text-obsidian border-accent shadow'
+              : 'bg-obsidian border-borderDark text-mutedText hover:text-white'
+          }">${n}d</button>
+        `).join('');
+
         openModal(`
           <div class="space-y-4">
             <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2.5">
-                <div class="w-10 h-10 rounded-2xl bg-accentDim border border-accent/30 flex items-center justify-center text-accent font-extrabold text-sm">
-                  @${escapeHtml(accountSession.username[0].toUpperCase())}
-                </div>
+              <div class="flex items-center gap-3">
+                <label for="profilePhotoInput" class="relative w-14 h-14 rounded-2xl bg-accentDim border border-accent/30 flex items-center justify-center overflow-hidden cursor-pointer shrink-0">
+                  ${avatarHtml}
+                  <span class="absolute inset-x-0 bottom-0 bg-black/70 text-[9px] font-bold text-white text-center py-0.5">Edit</span>
+                </label>
+                <input id="profilePhotoInput" type="file" accept="image/*" onchange="handleProfilePhotoUpload(event)" class="hidden" />
                 <div>
                   <h3 class="text-base font-extrabold text-white">@${escapeHtml(accountSession.username)}</h3>
-                  <p class="text-[11px] text-mutedText">Signed in (${daysLeft}d left) • ${totalSessions} workout${totalSessions === 1 ? '' : 's'} saved</p>
+                  <p class="text-[11px] text-mutedText mt-0.5">${totalSessions} workout${totalSessions === 1 ? '' : 's'} logged • ${streak}w streak</p>
+                  <div class="flex items-center gap-2 mt-1">
+                    <label for="profilePhotoInput" class="text-[11px] font-bold text-accent cursor-pointer hover:underline">Upload Photo</label>
+                    ${appState.profilePhoto ? `<button type="button" onclick="removeProfilePhoto()" class="text-[11px] font-bold text-mutedText hover:text-coralAccent">• Remove</button>` : ''}
+                  </div>
                 </div>
               </div>
               <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-obsidian border border-borderDark text-mutedText hover:text-white flex items-center justify-center text-xs">✕</button>
             </div>
 
-            <div class="bg-obsidian border border-borderDark rounded-2xl p-3.5 text-xs text-mutedText space-y-2">
+            <!-- Weekly Workout Goal Selector -->
+            <div class="bg-obsidian border border-borderDark rounded-2xl p-3.5 space-y-2.5">
               <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full ${isCloudConnected ? 'bg-emerald-400' : 'bg-amber-400'}"></span>
-                  <span class="text-white font-semibold">${isCloudConnected ? 'Supabase Cloud Connected' : 'Local Device Vault Only'}</span>
-                </div>
-                <button type="button" onclick="openSupabaseConfigModal()" class="text-[11px] font-extrabold text-accent hover:underline">
-                  ${isCloudConnected ? 'Configure' : 'Connect Cloud →'}
-                </button>
+                <span class="text-xs font-extrabold text-white">Weekly Workout Goal</span>
+                <span class="text-[11px] font-extrabold text-accent">${currentGoal}x / week</span>
               </div>
-              <p>${isCloudConnected
-                ? `Workouts automatically sync to Supabase under <span class="text-white font-semibold">@${escapeHtml(accountSession.username)}</span>.`
-                : `Connect a free Supabase URL to sync <span class="text-white font-semibold">@${escapeHtml(accountSession.username)}</span> across all your devices.`}</p>
+              <p class="text-[11px] text-mutedText">Hit ${currentGoal} workout${currentGoal === 1 ? '' : 's'} per week to keep your streak alive.</p>
+              <div class="grid grid-cols-7 gap-1.5 pt-0.5">
+                ${goalButtons}
+              </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-2">
-              <button type="button" onclick="manualCloudSyncNow()" class="py-3 rounded-2xl bg-obsidian border border-borderDark text-xs font-bold text-white hover:border-white/20 transition">
-                Sync Now
-              </button>
+            <div class="grid grid-cols-2 gap-2.5">
               <button type="button" onclick="exportBackupJSON()" class="py-3 rounded-2xl bg-obsidian border border-borderDark text-xs font-bold text-white hover:border-white/20 transition">
-                Backup
+                Export Data
               </button>
               <button type="button" onclick="signOutAccount()" class="py-3 rounded-2xl bg-coralAccent/15 border border-coralAccent/30 text-xs font-bold text-coralAccent hover:bg-coralAccent/25 transition">
                 Sign Out
@@ -1285,13 +1174,12 @@ create policy "Allow public profile sync"
       }
 
       const isSignup = initialMode === 'signup';
-      const isCloudConnected = Boolean(supabaseClient);
       openModal(`
         <div class="space-y-4">
           <div class="flex items-center justify-between">
             <div>
               <h3 class="text-base font-extrabold text-white">${isSignup ? 'Create Profile' : 'Sign In to CADENCE'}</h3>
-              <p class="text-[11px] text-mutedText">${isCloudConnected ? 'Synced with Supabase Cloud' : 'Keep your workout history in a dedicated profile vault'}</p>
+              <p class="text-[11px] text-mutedText">Save your workouts, body stats, and weekly streak</p>
             </div>
             <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-obsidian border border-borderDark text-mutedText hover:text-white flex items-center justify-center text-xs">✕</button>
           </div>
@@ -1319,13 +1207,6 @@ create policy "Allow public profile sync"
               ${isSignup ? 'Create Profile' : 'Sign In'}
             </button>
           </form>
-
-          <div class="pt-2 border-t border-borderDark flex items-center justify-between text-[11px]">
-            <span class="text-mutedText">${isCloudConnected ? 'Supabase server active' : 'Want cross-device sync?'}</span>
-            <button type="button" onclick="openSupabaseConfigModal()" class="font-bold text-accent hover:underline">
-              ${isCloudConnected ? 'Server Settings' : 'Connect Supabase →'}
-            </button>
-          </div>
         </div>
       `);
     }
@@ -1334,7 +1215,7 @@ create policy "Allow public profile sync"
       const rawUser = document.getElementById('modalAuthUser')?.value || '';
       const rawPass = document.getElementById('modalAuthPass')?.value || '';
       const errBox = document.getElementById('modalAuthError');
-      const username = rawUser.toLowerCase().trim().replace(/[^a-z0-9._-]/g, '');
+      const username = rawUser.toLowerCase().trim().replace(/[^a-z0-9@._-]/g, '');
 
       if (username.length < 3) {
         if (errBox) {
@@ -1370,6 +1251,7 @@ create policy "Allow public profile sync"
           freshState.workouts = JSON.parse(JSON.stringify(appState.workouts));
           freshState.templates = JSON.parse(JSON.stringify(appState.templates));
           freshState.customExercises = JSON.parse(JSON.stringify(appState.customExercises));
+          freshState.measurements = JSON.parse(JSON.stringify(appState.measurements || []));
           freshState.accent = appState.accent;
         }
 
@@ -1455,7 +1337,7 @@ create policy "Allow public profile sync"
     }
 
     // =========================================================================
-    // 7. ANALYTICS, STREAKS & PROGRESSIVE OVERLOAD ENGINE
+    // 7. ANALYTICS, WEEKLY GOAL STREAKS & PROGRESSIVE OVERLOAD ENGINE
     // =========================================================================
     function computeWorkoutIntensity(workout) {
       if (!workout || !Array.isArray(workout.exercises) || workout.exercises.length === 0) {
@@ -1488,6 +1370,8 @@ create policy "Allow public profile sync"
       const dates = Object.keys(appState.workouts || {});
       if (dates.length === 0) return 0;
 
+      const goal = Math.max(1, Math.min(7, Number(appState.weeklyGoal) || 4));
+
       const getMondayKey = (d) => {
         const copy = new Date(d.getFullYear(), d.getMonth(), d.getDate());
         const day = copy.getDay();
@@ -1496,18 +1380,23 @@ create policy "Allow public profile sync"
         return getLocalDateKey(copy);
       };
 
-      const activeWeeks = new Set(dates.map(ds => getMondayKey(parseLocalDateKey(ds))));
+      const weekCounts = {};
+      dates.forEach(ds => {
+        const wk = getMondayKey(parseLocalDateKey(ds));
+        weekCounts[wk] = (weekCounts[wk] || 0) + 1;
+      });
+
       const today = new Date();
       let cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       const thisWeekKey = getMondayKey(cursor);
+      let streak = 0;
 
-      if (!activeWeeks.has(thisWeekKey)) {
-        cursor.setDate(cursor.getDate() - 7);
-        if (!activeWeeks.has(getMondayKey(cursor))) return 0;
+      if ((weekCounts[thisWeekKey] || 0) >= goal) {
+        streak++;
       }
 
-      let streak = 0;
-      while (activeWeeks.has(getMondayKey(cursor))) {
+      cursor.setDate(cursor.getDate() - 7);
+      while ((weekCounts[getMondayKey(cursor)] || 0) >= goal) {
         streak++;
         cursor.setDate(cursor.getDate() - 7);
       }
@@ -1615,7 +1504,7 @@ create policy "Allow public profile sync"
 
       const today = new Date();
       const todayKey = getLocalDateKey(today);
-      const dayOfWeek = today.getDay(); // 0=Sun..6=Sat
+      const dayOfWeek = today.getDay();
       const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
       const monday = new Date(today.getFullYear(), today.getMonth(), today.getDate() + mondayOffset);
       const dayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -1657,7 +1546,6 @@ create policy "Allow public profile sync"
       const todayClean = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       const todayKey = getLocalDateKey(todayClean);
 
-      // Start 52 full weeks prior to the Monday of the current week (53 columns x 7 rows = 371 cells, last 365 active)
       const dow = todayClean.getDay();
       const mondayOffset = dow === 0 ? -6 : 1 - dow;
       const currentWeekMonday = new Date(todayClean.getFullYear(), todayClean.getMonth(), todayClean.getDate() + mondayOffset);
@@ -1692,14 +1580,12 @@ create policy "Allow public profile sync"
         weeks.push(col);
       }
 
-      // Compute clean non-overlapping month labels across the 53 columns
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       const monthLabels = new Array(53).fill('');
       let lastShownMonth = -1;
       let lastLabelCol = -4;
 
       for (let w = 0; w < 53; w++) {
-        // Count dominant month in this week column
         const counts = {};
         weeks[w].forEach(c => {
           if (!c.isFuture && !c.isBeforeWindow) {
@@ -1912,6 +1798,8 @@ create policy "Allow public profile sync"
         renderLoggerView(main);
       } else if (currentTab === 'overload') {
         renderOverloadView(main);
+      } else if (currentTab === 'measurements') {
+        renderMeasurementsView(main);
       } else if (currentTab === 'templates') {
         renderTemplatesView(main);
       }
@@ -1998,12 +1886,10 @@ create policy "Allow public profile sync"
             </div>
           </div>
 
-          <!-- Grid / Calendar Viewport -->
           <div id="yearGridScrollBox" class="w-full overflow-x-auto no-scrollbar pb-1">
             ${gridMode === 'year' ? renderMatrixHTML(matrixData, false) : renderMonthCalendarHTML()}
           </div>
 
-          <!-- Legend -->
           <div class="mt-3 pt-2.5 border-t border-borderDark/70 flex items-center justify-between text-[10px] text-mutedText">
             <span>Tap any square to inspect or log</span>
             <div class="flex items-center gap-1">
@@ -2017,7 +1903,6 @@ create policy "Allow public profile sync"
             </div>
           </div>
 
-          <!-- Primary Action Row -->
           <div class="mt-3.5 grid grid-cols-2 gap-2.5">
             <button type="button" onclick="startOrResumeTodayWorkout()" class="py-3 px-3 rounded-2xl bg-accent text-obsidian font-extrabold text-xs tracking-tight shadow-lg active:scale-[0.98] transition">
               ${todayWorkout ? '✎ Edit Today’s Session' : '＋ Log Today’s Workout'}
@@ -2051,7 +1936,6 @@ create policy "Allow public profile sync"
         </section>
       `;
 
-      // Auto-scroll 365 grid to the most recent weeks on the right
       if (gridMode === 'year') {
         const scrollBox = document.getElementById('yearGridScrollBox');
         if (scrollBox) scrollBox.scrollLeft = scrollBox.scrollWidth;
@@ -2220,7 +2104,6 @@ create policy "Allow public profile sync"
               <button type="button" onclick="removeExerciseFromDraft(${exIdx})" class="text-xs font-bold text-mutedText hover:text-coralAccent px-2 py-1">Remove</button>
             </div>
 
-            <!-- Column Headers -->
             <div class="grid grid-cols-12 gap-2 px-2 text-[10px] font-extrabold uppercase tracking-wider text-mutedText">
               <div class="col-span-2 text-center">${cardio ? 'Block' : 'Set'}</div>
               <div class="col-span-4 text-center">${cardio ? escapeHtml(cardioCfg.primaryLabel) : 'KG'}</div>
@@ -2241,7 +2124,6 @@ create policy "Allow public profile sync"
 
       container.innerHTML = `
         <div class="space-y-3.5">
-          <!-- Session Title & Date Card -->
           <div class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
             <div class="flex items-center justify-between gap-2">
               <span class="text-[10px] font-extrabold uppercase tracking-wider text-accent">Session Log • ${dateStr}</span>
@@ -2256,7 +2138,6 @@ create policy "Allow public profile sync"
             />
           </div>
 
-          <!-- Exercises List -->
           ${exercisesHtml || `
             <div class="bg-surface border border-borderDark rounded-3xl p-6 text-center space-y-2">
               <p class="text-sm font-extrabold text-white">Empty Session</p>
@@ -2264,12 +2145,10 @@ create policy "Allow public profile sync"
             </div>
           `}
 
-          <!-- Add Exercise Button -->
           <button type="button" onclick="openExercisePickerModal('draft')" class="w-full py-3.5 rounded-2xl bg-surface border border-dashed border-accent/60 text-accent font-extrabold text-xs tracking-tight hover:bg-accentDim transition active:scale-[0.99]">
             ＋ Add Exercise or Cardio Machine
           </button>
 
-          <!-- Save Session CTA -->
           <div class="pt-1 flex gap-2.5">
             <button type="button" onclick="saveActiveWorkout()" class="flex-1 py-3.5 rounded-2xl bg-accent text-obsidian font-extrabold text-xs tracking-tight shadow-xl active:scale-[0.98] transition">
               Save Session to Year Grid
@@ -2279,7 +2158,6 @@ create policy "Allow public profile sync"
       `;
     }
 
-    // Updates set state and PR badge in-place WITHOUT rebuilding the input element (prevents mobile keyboard dismissal!)
     function updateDraftSet(exIdx, setIdx, field, value) {
       if (!activeDraft || !activeDraft.exercises[exIdx]) return;
       const setObj = activeDraft.exercises[exIdx].sets[setIdx];
@@ -2361,30 +2239,62 @@ create policy "Allow public profile sync"
     }
 
     // =========================================================================
-    // 12. EXERCISE PICKER MODAL (NON-DISMISSING KEYBOARD SEARCH + CUSTOM ADD)
+    // 12. EXERCISE PICKER MODAL (MULTI-SELECT WITHOUT CLOSING + ROUTINE SAVE)
     // =========================================================================
     function openExercisePickerModal(targetMode = 'draft') {
       pickerSearchQuery = '';
       pickerCategory = 'All';
+      pickerAddedThisOpen = new Set();
       const categories = ['All', 'Glutes', 'Quads', 'Chest', 'Back', 'Shoulders', 'Arms', 'Core', 'Cardio'];
 
+      const footerHtml = targetMode === 'template'
+        ? `
+          <div class="pt-2 border-t border-borderDark grid grid-cols-2 gap-2">
+            <button type="button" onclick="openCreateTemplateModal(true)" class="py-3 rounded-2xl bg-obsidian border border-borderDark text-xs font-bold text-white hover:border-white/20">
+              ← Back (${customTemplateDraftSelection.length})
+            </button>
+            <button type="button" onclick="saveNewTemplateFromPicker()" class="py-3 rounded-2xl bg-accent text-obsidian text-xs font-extrabold shadow-lg active:scale-[0.98] transition">
+              Save Routine (${customTemplateDraftSelection.length})
+            </button>
+          </div>
+        `
+        : `
+          <div class="pt-2 border-t border-borderDark">
+            <button type="button" onclick="closeModal()" class="w-full py-3 rounded-2xl bg-accent text-obsidian text-xs font-extrabold shadow-lg active:scale-[0.98] transition">
+              Done Adding Exercises
+            </button>
+          </div>
+        `;
+
       openModal(`
-        <div class="space-y-3.5">
+        <div class="space-y-3">
           <div class="flex items-center justify-between">
-            <h3 class="text-base font-extrabold text-white">Add Exercise</h3>
-            <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-obsidian border border-borderDark text-mutedText hover:text-white flex items-center justify-center text-xs">✕</button>
+            <div>
+              <h3 class="text-base font-extrabold text-white">${targetMode === 'template' ? 'Select Routine Exercises' : 'Add Exercises'}</h3>
+              <p class="text-[11px] text-mutedText">Tap multiple exercises — window stays open</p>
+            </div>
+            <button type="button" onclick="${targetMode === 'template' ? 'openCreateTemplateModal(true)' : 'closeModal()'}" class="w-8 h-8 rounded-full bg-obsidian border border-borderDark text-mutedText hover:text-white flex items-center justify-center text-xs">✕</button>
           </div>
 
-          <!-- Search Input stays static in DOM so mobile keyboard never closes -->
+          ${targetMode === 'template' ? `
+            <input
+              id="pickerRoutineNameInput"
+              type="text"
+              value="${escapeHtml(draftTemplateName)}"
+              oninput="draftTemplateName = this.value"
+              placeholder="Routine Name (e.g. Glutes & Hamstrings)"
+              class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-base sm:text-xs font-bold text-white focus:outline-none focus:border-accent"
+            />
+          ` : ''}
+
           <input
             id="pickerSearchInput"
             type="text"
-            placeholder="Search exercises or StairMaster, Treadmill..."
+            placeholder="Search exercises or type custom exercise..."
             oninput="filterExercisePickerList(this.value, '${targetMode}')"
             class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-base sm:text-sm text-white focus:outline-none focus:border-accent"
           />
 
-          <!-- Category Filter Pills -->
           <div id="pickerCatPills" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
             ${categories.map(cat => `
               <button type="button" data-cat="${cat}" onclick="selectPickerCategory('${cat}', '${targetMode}')" class="picker-cat-btn px-3 py-1.5 rounded-full text-[11px] font-bold shrink-0 border transition ${
@@ -2393,12 +2303,39 @@ create policy "Allow public profile sync"
             `).join('')}
           </div>
 
-          <!-- Filtered Results Container -->
-          <div id="pickerExerciseList" class="space-y-1.5 max-h-[48dvh] overflow-y-auto pr-0.5"></div>
+          <div id="pickerExerciseList" class="space-y-1.5 max-h-[42dvh] overflow-y-auto pr-0.5"></div>
+
+          <div id="pickerFooterWrap">${footerHtml}</div>
         </div>
       `);
 
       renderPickerExerciseItems(targetMode);
+    }
+
+    function updatePickerFooter(targetMode) {
+      const wrap = document.getElementById('pickerFooterWrap');
+      if (!wrap) return;
+      if (targetMode === 'template') {
+        wrap.innerHTML = `
+          <div class="pt-2 border-t border-borderDark grid grid-cols-2 gap-2">
+            <button type="button" onclick="openCreateTemplateModal(true)" class="py-3 rounded-2xl bg-obsidian border border-borderDark text-xs font-bold text-white hover:border-white/20">
+              ← Back (${customTemplateDraftSelection.length})
+            </button>
+            <button type="button" onclick="saveNewTemplateFromPicker()" class="py-3 rounded-2xl bg-accent text-obsidian text-xs font-extrabold shadow-lg active:scale-[0.98] transition">
+              Save Routine (${customTemplateDraftSelection.length})
+            </button>
+          </div>
+        `;
+      } else {
+        const addedCount = pickerAddedThisOpen.size;
+        wrap.innerHTML = `
+          <div class="pt-2 border-t border-borderDark">
+            <button type="button" onclick="closeModal()" class="w-full py-3 rounded-2xl bg-accent text-obsidian text-xs font-extrabold shadow-lg active:scale-[0.98] transition">
+              ${addedCount > 0 ? `Done (${addedCount} Added)` : 'Done'}
+            </button>
+          </div>
+        `;
+      }
     }
 
     function selectPickerCategory(cat, targetMode) {
@@ -2435,13 +2372,19 @@ create policy "Allow public profile sync"
 
       let html = filtered.map(ex => {
         const cardio = isCardioExercise(ex.name);
+        const isSelected = targetMode === 'template'
+          ? customTemplateDraftSelection.some(n => n.toLowerCase() === ex.name.toLowerCase())
+          : pickerAddedThisOpen.has(ex.name.toLowerCase());
+
         return `
-          <button type="button" onclick="pickExerciseItem('${escapeHtml(ex.name).replace(/'/g, "\\'")}', '${targetMode}')" class="w-full p-3 rounded-2xl bg-obsidian hover:bg-surfaceHover border border-borderDark flex items-center justify-between text-left transition active:scale-[0.99]">
+          <button type="button" onclick="pickExerciseItem('${escapeHtml(ex.name).replace(/'/g, "\\'")}', '${targetMode}')" class="w-full p-3 rounded-2xl bg-obsidian hover:bg-surfaceHover border ${isSelected ? 'border-accent/60' : 'border-borderDark'} flex items-center justify-between text-left transition active:scale-[0.99]">
             <div>
               <p class="text-xs font-extrabold text-white">${escapeHtml(ex.name)}</p>
               <p class="text-[10px] text-mutedText mt-0.5">${escapeHtml(ex.muscle || 'Custom')}${cardio ? ' • Tracks Minutes & Machine Setting' : ''}</p>
             </div>
-            <span class="text-xs font-extrabold text-accent">＋ Add</span>
+            <span class="text-xs font-extrabold ${isSelected ? 'bg-accent/20 px-2.5 py-1 rounded-full text-accent' : 'text-accent'}">
+              ${isSelected ? '✓ Added' : '＋ Add'}
+            </span>
           </button>
         `;
       }).join('');
@@ -2480,10 +2423,16 @@ create policy "Allow public profile sync"
 
     function pickExerciseItem(name, targetMode) {
       if (targetMode === 'template') {
-        if (!customTemplateDraftSelection.includes(name)) {
+        const idx = customTemplateDraftSelection.findIndex(n => n.toLowerCase() === name.toLowerCase());
+        if (idx >= 0) {
+          customTemplateDraftSelection.splice(idx, 1);
+          showToast(`Removed ${name}`);
+        } else {
           customTemplateDraftSelection.push(name);
+          showToast(`Selected ${name}`);
         }
-        openCreateTemplateModal(true);
+        renderPickerExerciseItems('template');
+        updatePickerFooter('template');
         return;
       }
 
@@ -2491,9 +2440,22 @@ create policy "Allow public profile sync"
         initWorkoutDraft(selectedDateStr || getLocalDateKey(new Date()));
       }
       activeDraft.exercises.push(createEmptyExerciseEntry(name));
-      closeModal();
+      pickerAddedThisOpen.add(name.toLowerCase());
       renderLoggerView(document.getElementById('appMain'));
+      renderPickerExerciseItems('draft');
+      updatePickerFooter('draft');
       showToast(`Added ${name}`);
+    }
+
+    async function saveNewTemplateFromPicker() {
+      const pickerNameInput = document.getElementById('pickerRoutineNameInput');
+      if (pickerNameInput && pickerNameInput.value.trim()) {
+        draftTemplateName = pickerNameInput.value.trim();
+      }
+      if (!draftTemplateName.trim()) {
+        draftTemplateName = `Custom Routine ${(appState.templates || []).length + 1}`;
+      }
+      await saveNewTemplate();
     }
 
     // =========================================================================
@@ -2558,7 +2520,6 @@ create policy "Allow public profile sync"
       const latestVal = history.length > 0 ? history[history.length - 1].primary : 0;
       const deltaVal = +(latestVal - firstVal).toFixed(1);
 
-      // Build clean SVG line chart
       let chartSvg = `<p class="text-xs text-mutedText text-center py-8">Log another session of ${escapeHtml(selectedOverloadExercise)} to plot your trend line.</p>`;
       if (history.length >= 1) {
         const w = 320, h = 130, padX = 20, padY = 20;
@@ -2593,7 +2554,6 @@ create policy "Allow public profile sync"
 
       container.innerHTML = `
         <div class="space-y-3.5">
-          <!-- Exercise Selector -->
           <div class="bg-surface border border-borderDark rounded-3xl p-4 space-y-2.5">
             <label class="text-[10px] font-extrabold uppercase tracking-wider text-mutedText block">Select Exercise / Machine</label>
             <select onchange="selectedOverloadExercise = this.value; renderCurrentView();" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-3 text-xs font-extrabold text-white focus:outline-none focus:border-accent">
@@ -2616,7 +2576,6 @@ create policy "Allow public profile sync"
             </div>
           </div>
 
-          <!-- Trend Chart -->
           <div class="bg-surface border border-borderDark rounded-3xl p-4">
             <div class="flex items-center justify-between mb-2">
               <h3 class="text-xs font-extrabold uppercase tracking-wider text-white">${cardio ? 'Duration Curve' : 'Top Weight Curve'}</h3>
@@ -2625,7 +2584,6 @@ create policy "Allow public profile sync"
             ${chartSvg}
           </div>
 
-          <!-- Session Breakdown -->
           <div class="space-y-2">
             <h3 class="text-[11px] font-extrabold uppercase tracking-wider text-mutedText px-1">Session History</h3>
             ${history.slice().reverse().map(item => `
@@ -2640,7 +2598,187 @@ create policy "Allow public profile sync"
     }
 
     // =========================================================================
-    // 14. ROUTINES / TEMPLATES VIEW & UNLIMITED ROUTINE CREATOR
+    // 14. BODY MEASUREMENTS VIEW
+    // =========================================================================
+    function renderMeasurementsView(container) {
+      const entries = (appState.measurements || []).slice().sort((a, b) => b.date.localeCompare(a.date));
+      const latest = entries[0] || null;
+      const previous = entries[1] || null;
+
+      const formatDelta = (currVal, prevVal, unit) => {
+        const c = parseFloat(currVal);
+        const p = parseFloat(prevVal);
+        if (isNaN(c) || isNaN(p)) return '';
+        const diff = +(c - p).toFixed(1);
+        if (diff === 0) return `<span class="text-[10px] text-mutedText">0 ${unit}</span>`;
+        return `<span class="text-[10px] font-bold text-accent">${diff > 0 ? '+' : ''}${diff} ${unit}</span>`;
+      };
+
+      const metricsConfig = [
+        { key: 'weight', label: 'Body Weight', unit: 'kg' },
+        { key: 'waist', label: 'Waist', unit: 'cm' },
+        { key: 'hips', label: 'Glutes / Hips', unit: 'cm' },
+        { key: 'chest', label: 'Chest', unit: 'cm' },
+        { key: 'arms', label: 'Arms', unit: 'cm' },
+        { key: 'thighs', label: 'Thighs', unit: 'cm' }
+      ];
+
+      const summaryCards = metricsConfig.map(m => {
+        const val = latest && latest[m.key] !== '' && latest[m.key] !== undefined ? latest[m.key] : '—';
+        const delta = latest && previous ? formatDelta(latest[m.key], previous[m.key], m.unit) : '';
+        return `
+          <div class="bg-surface border border-borderDark rounded-2xl p-3">
+            <span class="text-[10px] font-bold text-mutedText block">${m.label}</span>
+            <div class="flex items-baseline justify-between mt-1">
+              <span class="text-sm font-extrabold text-white">${val}${val !== '—' ? ` ${m.unit}` : ''}</span>
+              ${delta}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const historyHtml = entries.length === 0
+        ? `<div class="bg-surface border border-borderDark rounded-3xl p-6 text-center text-xs text-mutedText">No body measurements logged yet. Tap <span class="text-white font-bold">＋ Log Stats</span> to record your starting check-in.</div>`
+        : entries.map(item => {
+            const parts = [];
+            if (item.weight) parts.push(`${item.weight} kg`);
+            if (item.waist) parts.push(`Waist ${item.waist}cm`);
+            if (item.hips) parts.push(`Hips ${item.hips}cm`);
+            if (item.chest) parts.push(`Chest ${item.chest}cm`);
+            if (item.arms) parts.push(`Arms ${item.arms}cm`);
+            if (item.thighs) parts.push(`Thighs ${item.thighs}cm`);
+            if (item.bodyFat) parts.push(`${item.bodyFat}% BF`);
+
+            return `
+              <div class="bg-surface border border-borderDark rounded-2xl p-3.5 flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-accent shrink-0"></span>
+                    <span class="text-xs font-extrabold text-white">${escapeHtml(item.date)}</span>
+                  </div>
+                  <p class="text-[11px] text-mutedText mt-1 truncate">${parts.join(' • ') || 'Check-in recorded'}</p>
+                </div>
+                <button type="button" onclick="deleteMeasurementEntry('${escapeHtml(item.id)}')" class="text-xs font-bold text-mutedText hover:text-coralAccent px-2 py-1 shrink-0">Delete</button>
+              </div>
+            `;
+          }).join('');
+
+      container.innerHTML = `
+        <div class="space-y-3.5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-extrabold text-white">Body Measurements</h2>
+              <p class="text-[11px] text-mutedText">Track body weight &amp; tape progress over time</p>
+            </div>
+            <button type="button" onclick="openLogMeasurementModal()" class="px-3.5 py-2 rounded-2xl bg-accent text-obsidian text-xs font-extrabold shadow active:scale-95 transition">
+              ＋ Log Stats
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            ${summaryCards}
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-[11px] font-extrabold uppercase tracking-wider text-mutedText px-1">Check-In History</h3>
+            ${historyHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    function openLogMeasurementModal() {
+      const todayKey = getLocalDateKey(new Date());
+      const latest = (appState.measurements || []).slice().sort((a, b) => b.date.localeCompare(a.date))[0] || {};
+
+      openModal(`
+        <div class="space-y-3.5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-extrabold text-white">Log Body Measurements</h3>
+              <p class="text-[11px] text-mutedText">Fill in whichever stats you measured today</p>
+            </div>
+            <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-obsidian border border-borderDark text-mutedText hover:text-white flex items-center justify-center text-xs">✕</button>
+          </div>
+
+          <div>
+            <label class="text-[10px] font-extrabold uppercase tracking-wider text-mutedText block mb-1">Date</label>
+            <input id="measDate" type="date" value="${todayKey}" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-xs font-bold text-white focus:outline-none focus:border-accent" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Weight (kg)</label>
+              <input id="measWeight" type="number" step="0.1" inputmode="decimal" placeholder="${latest.weight || '62.5'}" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-base sm:text-xs text-white focus:outline-none focus:border-accent" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Body Fat (%)</label>
+              <input id="measBodyFat" type="number" step="0.1" inputmode="decimal" placeholder="${latest.bodyFat || '21.0'}" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-base sm:text-xs text-white focus:outline-none focus:border-accent" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Waist (cm)</label>
+              <input id="measWaist" type="number" step="0.1" inputmode="decimal" placeholder="${latest.waist || '66.0'}" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-base sm:text-xs text-white focus:outline-none focus:border-accent" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Glutes / Hips (cm)</label>
+              <input id="measHips" type="number" step="0.1" inputmode="decimal" placeholder="${latest.hips || '96.0'}" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-base sm:text-xs text-white focus:outline-none focus:border-accent" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Chest (cm)</label>
+              <input id="measChest" type="number" step="0.1" inputmode="decimal" placeholder="${latest.chest || '88.0'}" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-base sm:text-xs text-white focus:outline-none focus:border-accent" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Arms / Thighs (cm)</label>
+              <div class="grid grid-cols-2 gap-1.5">
+                <input id="measArms" type="number" step="0.1" inputmode="decimal" placeholder="Arms" class="w-full bg-obsidian border border-borderDark rounded-2xl px-2.5 py-2.5 text-base sm:text-xs text-white focus:outline-none focus:border-accent" />
+                <input id="measThighs" type="number" step="0.1" inputmode="decimal" placeholder="Thighs" class="w-full bg-obsidian border border-borderDark rounded-2xl px-2.5 py-2.5 text-base sm:text-xs text-white focus:outline-none focus:border-accent" />
+              </div>
+            </div>
+          </div>
+
+          <button type="button" onclick="saveMeasurementEntry()" class="w-full py-3.5 rounded-2xl bg-accent text-obsidian font-extrabold text-xs shadow-lg active:scale-[0.98] transition">
+            Save Measurements
+          </button>
+        </div>
+      `);
+    }
+
+    async function saveMeasurementEntry() {
+      const date = document.getElementById('measDate')?.value || getLocalDateKey(new Date());
+      const entry = {
+        id: `meas_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        date,
+        weight: (document.getElementById('measWeight')?.value || '').trim(),
+        bodyFat: (document.getElementById('measBodyFat')?.value || '').trim(),
+        waist: (document.getElementById('measWaist')?.value || '').trim(),
+        hips: (document.getElementById('measHips')?.value || '').trim(),
+        chest: (document.getElementById('measChest')?.value || '').trim(),
+        arms: (document.getElementById('measArms')?.value || '').trim(),
+        thighs: (document.getElementById('measThighs')?.value || '').trim()
+      };
+
+      if (!entry.weight && !entry.bodyFat && !entry.waist && !entry.hips && !entry.chest && !entry.arms && !entry.thighs) {
+        showToast('Enter at least one measurement', true);
+        return;
+      }
+
+      appState.measurements = appState.measurements || [];
+      appState.measurements.push(entry);
+      await saveState(true);
+      closeModal();
+      renderCurrentView();
+      showToast('Measurements saved!');
+    }
+
+    async function deleteMeasurementEntry(id) {
+      appState.measurements = (appState.measurements || []).filter(m => m.id !== id);
+      await saveState(true);
+      renderCurrentView();
+      showToast('Entry removed');
+    }
+
+    // =========================================================================
+    // 15. ROUTINES / TEMPLATES VIEW & UNLIMITED ROUTINE CREATOR
     // =========================================================================
     function renderTemplatesView(container) {
       const listHtml = (appState.templates || []).map((tpl, idx) => `
@@ -2719,10 +2857,10 @@ create policy "Allow public profile sync"
           <div class="space-y-2">
             <div class="flex items-center justify-between">
               <label class="text-[10px] font-extrabold uppercase tracking-wider text-mutedText">Selected Exercises (${customTemplateDraftSelection.length})</label>
-              <button type="button" onclick="openExercisePickerModal('template')" class="text-xs font-extrabold text-accent hover:underline">＋ Add Exercise</button>
+              <button type="button" onclick="openExercisePickerModal('template')" class="text-xs font-extrabold text-accent hover:underline">＋ Add Exercises</button>
             </div>
             <div class="flex flex-wrap gap-1.5 min-h-[38px] p-2.5 rounded-2xl bg-obsidian/60 border border-borderDark">
-              ${selectedChips || `<span class="text-xs text-mutedText">Tap "+ Add Exercise" to pick exercises...</span>`}
+              ${selectedChips || `<span class="text-xs text-mutedText">Tap "+ Add Exercises" to pick multiple exercises...</span>`}
             </div>
           </div>
 
@@ -2793,7 +2931,7 @@ create policy "Allow public profile sync"
     }
 
     // =========================================================================
-    // 15. DAY DETAIL MODAL, THEME PICKER & iOS / ANDROID INSTALL GUIDE
+    // 16. DAY DETAIL MODAL, THEME PICKER & iOS / ANDROID INSTALL GUIDE
     // =========================================================================
     function openDayDetailModal(dateStr) {
       selectedDateStr = dateStr;
@@ -2963,7 +3101,7 @@ create policy "Allow public profile sync"
     }
 
     // =========================================================================
-    // 16. INITIALIZATION BOOTSTRAP
+    // 17. INITIALIZATION BOOTSTRAP
     // =========================================================================
     window.addEventListener('DOMContentLoaded', async () => {
       await hydrateStateFromVault();
