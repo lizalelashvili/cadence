@@ -1,0 +1,2298 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>CADENCE — Workout & Progressive Overload Log</title>
+
+  <!-- PWA / Mobile Home Screen Shortcut Meta Tags -->
+  <meta name="theme-color" content="#0A0A0C" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="CADENCE" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="CADENCE" />
+
+  <!-- Dynamic SVG App Icons for Home Screen Shortcut (Updated via JS when theme changes) -->
+  <link id="appleTouchIcon" rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230A0A0C'/%3E%3Crect x='24' y='24' width='132' height='132' rx='28' fill='%23141418' stroke='%23232329' stroke-width='3'/%3E%3Cg transform='translate(44,44)'%3E%3Crect x='0' y='0' width='26' height='26' rx='6' fill='%23FF4D94'/%3E%3Crect x='33' y='0' width='26' height='26' rx='6' fill='%23FF4D94' fill-opacity='0.75'/%3E%3Crect x='66' y='0' width='26' height='26' rx='6' fill='%23232329'/%3E%3Crect x='0' y='33' width='26' height='26' rx='6' fill='%23232329'/%3E%3Crect x='33' y='33' width='26' height='26' rx='6' fill='%23FF4D94'/%3E%3Crect x='66' y='33' width='26' height='26' rx='6' fill='%23FF4D94'/%3E%3Crect x='0' y='66' width='26' height='26' rx='6' fill='%23FF4D94' fill-opacity='0.5'/%3E%3Crect x='33' y='66' width='26' height='26' rx='6' fill='%23232329'/%3E%3Crect x='66' y='66' width='26' height='26' rx='6' fill='%23FF4D94'/%3E%3C/g%3E%3C/svg%3E" />
+  <link id="faviconIcon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230A0A0C'/%3E%3Crect x='14' y='14' width='15' height='15' rx='4' fill='%23FF4D94'/%3E%3Crect x='35' y='14' width='15' height='15' rx='4' fill='%23232329'/%3E%3Crect x='14' y='35' width='15' height='15' rx='4' fill='%23232329'/%3E%3Crect x='35' y='35' width='15' height='15' rx='4' fill='%23FF4D94'/%3E%3C/svg%3E" />
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Inline Web App Manifest for Full-Screen Native App Mode (Android & iOS) -->
+  <link id="pwaManifest" rel="manifest" href="" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'sans-serif'],
+          },
+          colors: {
+            obsidian: '#0A0A0C',
+            surface: '#141418',
+            surfaceHover: '#1B1B20',
+            borderDark: '#232329',
+            accent: 'var(--accent)',
+            coralAccent: '#FF5E3A',
+            mutedText: '#8E8E93',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    :root {
+      --accent: #FF4D94;
+      --accent-rgb: 255, 77, 148;
+      --accent-soft: rgba(255, 77, 148, 0.16);
+      --accent-border: rgba(255, 77, 148, 0.35);
+      --accent-glow: rgba(255, 77, 148, 0.42);
+    }
+    * {
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+    html, body {
+      background-color: #0A0A0C;
+      color: #F5F5F7;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overscroll-behavior-y: none;
+      margin: 0;
+      padding: 0;
+    }
+    /* Custom subtle scrollbars */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0A0A0C;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #232329;
+      border-radius: 9999px;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Safe area spacing for iPhone notch & home indicator */
+    .pt-safe {
+      padding-top: max(1rem, env(safe-area-inset-top));
+    }
+    .pb-safe {
+      padding-bottom: max(5.5rem, calc(env(safe-area-inset-bottom) + 4.5rem));
+    }
+    .bottom-nav-safe {
+      padding-bottom: max(0.65rem, env(safe-area-inset-bottom));
+    }
+
+    /* Year Grid Cells */
+    .grid-cell {
+      width: 11px;
+      height: 11px;
+      border-radius: 3px;
+      transition: transform 0.12s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .grid-cell:hover, .grid-cell:active {
+      transform: scale(1.28);
+      z-index: 10;
+    }
+
+    /* Smooth bottom sheet animation */
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0.6; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .animate-slide-up {
+      animation: slideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+      50% { box-shadow: 0 0 14px 2px var(--accent-soft); }
+    }
+    .pr-glow {
+      animation: pulseGlow 2.4s infinite;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+  </style>
+</head>
+<body class="bg-obsidian text-[#F5F5F7] antialiased selection:bg-[var(--accent)] selection:text-obsidian">
+
+  <!-- App Shell -->
+  <div id="app" class="max-w-lg mx-auto min-h-screen flex flex-col relative">
+
+    <!-- Top Header -->
+    <header class="sticky top-0 z-30 bg-obsidian/90 backdrop-blur-xl border-b border-borderDark/70 pt-safe px-4 pb-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-surface border border-borderDark flex items-center justify-center">
+            <div class="grid grid-cols-2 gap-1">
+              <span class="w-2 h-2 rounded-[2px] bg-[var(--accent)] transition-colors"></span>
+              <span class="w-2 h-2 rounded-[2px] bg-borderDark"></span>
+              <span class="w-2 h-2 rounded-[2px] bg-borderDark"></span>
+              <span class="w-2 h-2 rounded-[2px] bg-[var(--accent)] transition-colors"></span>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-base font-extrabold tracking-tight text-white">CADENCE</h1>
+              <span id="headerMonthLabel" class="text-[11px] font-semibold text-mutedText uppercase tracking-wider"></span>
+            </div>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span id="streakBadge" class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border transition-colors" style="color: var(--accent); background-color: var(--accent-soft); border-color: var(--accent-border);">
+                🔥 0 Week Streak
+              </span>
+              <span id="totalDaysBadge" class="text-[11px] text-mutedText font-medium">
+                0 / 365 days
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5">
+          <!-- Quick Accent Theme Swatch Button -->
+          <button onclick="openThemePickerModal()" title="Change Theme Color" class="p-2.5 rounded-xl bg-surface border border-borderDark text-white hover:bg-surfaceHover active:scale-95 transition flex items-center justify-center" aria-label="Change Theme Color">
+            <span class="w-4 h-4 rounded-full block border border-white/30 shadow-sm" style="background-color: var(--accent);"></span>
+          </button>
+
+          <!-- Home Screen Shortcut Guide Button -->
+          <button onclick="openInstallModal()" title="Add to Home Screen" class="p-2.5 rounded-xl bg-surface border border-borderDark text-mutedText hover:text-white active:scale-95 transition" aria-label="Add to Home Screen">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+          </button>
+
+          <!-- Primary Quick Log Button -->
+          <button onclick="openLoggerForDate(getTodayStr())" class="px-3.5 py-2 rounded-xl bg-[var(--accent)] text-obsidian font-extrabold text-xs tracking-tight flex items-center gap-1 shadow-lg active:scale-95 transition">
+            <svg class="w-3.5 h-3.5 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Log
+          </button>
+        </div>
+      </div>
+
+      <!-- 7-Day Weekly Strip -->
+      <div class="mt-3.5">
+        <div id="weeklyStrip" class="grid grid-cols-7 gap-1.5">
+          <!-- Rendered dynamically by JS -->
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Viewport -->
+    <main id="mainContent" class="flex-1 px-4 pt-4 pb-safe space-y-4">
+      <!-- Views are injected/toggled dynamically -->
+    </main>
+
+    <!-- Bottom Tab Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 z-30 bg-obsidian/95 backdrop-blur-xl border-t border-borderDark bottom-nav-safe">
+      <div class="max-w-lg mx-auto grid grid-cols-4 px-2 pt-1.5">
+        <button onclick="switchTab('calendar')" data-tab="calendar" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl transition">
+          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="3" />
+            <path d="M16 2v4M8 2v4M3 10h18" />
+          </svg>
+          <span class="text-[10px] font-semibold">Year Grid</span>
+        </button>
+
+        <button onclick="switchTab('log')" data-tab="log" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl transition">
+          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
+          </svg>
+          <span class="text-[10px] font-semibold">Workout</span>
+        </button>
+
+        <button onclick="switchTab('progress')" data-tab="progress" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl transition">
+          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+          </svg>
+          <span class="text-[10px] font-semibold">Overload</span>
+        </button>
+
+        <button onclick="switchTab('settings')" data-tab="settings" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl transition">
+          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+          </svg>
+          <span class="text-[10px] font-semibold">Routines</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Bottom Sheet / Modal Container -->
+    <div id="modalOverlay" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onclick="closeModalOnBackdrop(event)">
+      <div id="modalSheet" class="w-full max-w-lg bg-surface border-t sm:border border-borderDark rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto p-5 animate-slide-up shadow-2xl">
+        <!-- Dynamic Modal Content -->
+      </div>
+    </div>
+
+    <!-- Custom Toast Notification -->
+    <div id="toastContainer" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none flex flex-col items-center gap-2 w-full max-w-sm px-4"></div>
+  </div>
+
+  <script>
+    /*************************************************************************
+     * CADENCE — WORKOUT & PROGRESSIVE OVERLOAD LOG
+     * Single-file Offline PWA with LocalStorage Persistence
+     *************************************************************************/
+
+    const STORAGE_KEY = 'cadence_pwa_data_v1';
+
+    // Curated Dark-Mode Accent Presets (Rose Pink Default)
+    const ACCENT_THEMES = {
+      pink: {
+        id: 'pink',
+        name: 'Rose Pink',
+        hex: '#FF4D94',
+        rgb: '255, 77, 148'
+      },
+      lime: {
+        id: 'lime',
+        name: 'Volt Lime',
+        hex: '#C8FF00',
+        rgb: '200, 255, 0'
+      },
+      coral: {
+        id: 'coral',
+        name: 'Electric Coral',
+        hex: '#FF5E5B',
+        rgb: '255, 94, 91'
+      },
+      lavender: {
+        id: 'lavender',
+        name: 'Cyber Lavender',
+        hex: '#B388FF',
+        rgb: '179, 136, 255'
+      },
+      cyan: {
+        id: 'cyan',
+        name: 'Ice Cyan',
+        hex: '#00E5FF',
+        rgb: '0, 229, 255'
+      }
+    };
+
+    // Default Pre-Loaded Exercises Categorized by Muscle Group
+    const DEFAULT_EXERCISES = [
+      // Glutes & Lower Body
+      { id: 'ex_hip_thrust', name: 'Barbell Hip Thrust', category: 'Glutes / Lower' },
+      { id: 'ex_rdl', name: 'Romanian Deadlift (RDL)', category: 'Glutes / Lower' },
+      { id: 'ex_bss', name: 'Bulgarian Split Squat', category: 'Glutes / Lower' },
+      { id: 'ex_cable_kickback', name: 'Cable Glute Kickback', category: 'Glutes / Lower' },
+      { id: 'ex_squat', name: 'Barbell Back Squat', category: 'Glutes / Lower' },
+      { id: 'ex_leg_press', name: '45° Leg Press', category: 'Glutes / Lower' },
+      { id: 'ex_leg_curl', name: 'Seated Hamstring Curl', category: 'Glutes / Lower' },
+      { id: 'ex_abductor', name: 'Hip Abduction Machine', category: 'Glutes / Lower' },
+
+      // Upper Body Push & Pull
+      { id: 'ex_lat_pulldown', name: 'Lat Pulldown (Wide Grip)', category: 'Upper Body' },
+      { id: 'ex_seated_row', name: 'Seated Cable Row', category: 'Upper Body' },
+      { id: 'ex_db_bench', name: 'Incline Dumbbell Press', category: 'Upper Body' },
+      { id: 'ex_ohp', name: 'Dumbbell Shoulder Press', category: 'Upper Body' },
+      { id: 'ex_lat_raise', name: 'Cable Lateral Raise', category: 'Upper Body' },
+      { id: 'ex_tricep_push', name: 'Rope Tricep Pushdown', category: 'Upper Body' },
+      { id: 'ex_bicep_curl', name: 'Incline Dumbbell Curl', category: 'Upper Body' },
+
+      // Core & Conditioning
+      { id: 'ex_cable_crunch', name: 'Cable Rope Crunch', category: 'Core & Cardio' },
+      { id: 'ex_hanging_raise', name: 'Hanging Leg Raise', category: 'Core & Cardio' },
+      { id: 'ex_incline_walk', name: 'Incline Treadmill Walk (12-3-30)', category: 'Core & Cardio' },
+    ];
+
+    // Default Reusable Templates
+    const DEFAULT_TEMPLATES = [
+      {
+        id: 'tpl_glutes',
+        name: 'Lower Body & Glutes',
+        tag: 'Glutes / Lower',
+        exerciseIds: ['ex_hip_thrust', 'ex_rdl', 'ex_bss', 'ex_cable_kickback', 'ex_abductor']
+      },
+      {
+        id: 'tpl_upper',
+        name: 'Upper Body Sculpt & Back',
+        tag: 'Upper Body',
+        exerciseIds: ['ex_lat_pulldown', 'ex_seated_row', 'ex_db_bench', 'ex_lat_raise', 'ex_tricep_push']
+      },
+      {
+        id: 'tpl_full',
+        name: 'Full Body Strength',
+        tag: 'Full Body',
+        exerciseIds: ['ex_squat', 'ex_rdl', 'ex_lat_pulldown', 'ex_ohp', 'ex_cable_crunch']
+      }
+    ];
+
+    // Global App State
+    let appState = {
+      unit: 'kg', // 'kg' or 'lbs'
+      accent: 'pink', // 'pink' (default), 'lime', 'coral', 'lavender', 'cyan'
+      calendarMode: 'grid', // 'grid' (365-day) or 'month'
+      selectedMonthOffset: 0, // for monthly calendar view
+      selectedDate: getTodayStr(),
+      activeTab: 'calendar',
+      selectedAnalyticsExerciseId: 'ex_hip_thrust',
+      exercises: [...DEFAULT_EXERCISES],
+      templates: [...DEFAULT_TEMPLATES],
+      workouts: {}, // keyed by YYYY-MM-DD
+      hasSampleData: false,
+      dismissedInstallBanner: false
+    };
+
+    // Active Logger Session State (in-memory while logging a workout)
+    let activeSession = {
+      date: getTodayStr(),
+      title: 'Strength Session',
+      notes: '',
+      isQuickCheckIn: false,
+      entries: [] // { exerciseId, sets: [ { weight, reps, rir, completed } ] }
+    };
+
+    /*************************************************************************
+     * DATE UTILITIES
+     *************************************************************************/
+    function getTodayStr() {
+      const now = new Date();
+      return formatDateLocal(now);
+    }
+
+    function formatDateLocal(dateObj) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(dateObj.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function parseDateLocal(dateStr) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+
+    function formatReadableDate(dateStr) {
+      const today = getTodayStr();
+      const d = parseDateLocal(dateStr);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      if (dateStr === today) return 'Today';
+      if (dateStr === formatDateLocal(yesterday)) return 'Yesterday';
+      return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    }
+
+    /*************************************************************************
+     * REALISTIC SAMPLE DATA GENERATOR (First-Load Experience)
+     *************************************************************************/
+    function generateSampleData() {
+      const workouts = {};
+      const today = new Date();
+
+      // Generate ~95 workouts over the past 240 days showing clear progressive overload
+      let hipThrustWeight = 60;
+      let rdlWeight = 45;
+      let bssWeight = 14;
+      let latWeight = 35;
+      let rowWeight = 32.5;
+      let pressWeight = 12;
+
+      for (let daysAgo = 235; daysAgo >= 0; daysAgo--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - daysAgo);
+        const dow = d.getDay(); // 0 Sun, 1 Mon ... 6 Sat
+        const dateStr = formatDateLocal(d);
+
+        // Train roughly Mon, Wed, Fri, Sat with occasional rest weeks
+        const skipRandom = ((daysAgo * 17) % 11 === 0);
+        if (skipRandom) continue;
+
+        if (dow === 1 || dow === 5) {
+          // Lower Body & Glutes Progressive Overload
+          if (daysAgo % 14 === 0) {
+            hipThrustWeight = Math.min(120, hipThrustWeight + 2.5);
+            rdlWeight = Math.min(90, rdlWeight + 2.5);
+            bssWeight = Math.min(30, bssWeight + 1);
+          }
+          workouts[dateStr] = {
+            date: dateStr,
+            title: 'Lower Body & Glutes',
+            notes: 'Controlled eccentric, 2s pause at top.',
+            isQuickCheckIn: false,
+            entries: [
+              {
+                exerciseId: 'ex_hip_thrust',
+                sets: [
+                  { weight: hipThrustWeight, reps: 10, rir: '2', completed: true },
+                  { weight: hipThrustWeight, reps: 10, rir: '1', completed: true },
+                  { weight: hipThrustWeight + 5, reps: 8, rir: '1', completed: true }
+                ]
+              },
+              {
+                exerciseId: 'ex_rdl',
+                sets: [
+                  { weight: rdlWeight, reps: 10, rir: '2', completed: true },
+                  { weight: rdlWeight, reps: 9, rir: '1', completed: true },
+                  { weight: rdlWeight, reps: 8, rir: '1', completed: true }
+                ]
+              },
+              {
+                exerciseId: 'ex_bss',
+                sets: [
+                  { weight: bssWeight, reps: 10, rir: '2', completed: true },
+                  { weight: bssWeight, reps: 10, rir: '1', completed: true }
+                ]
+              }
+            ]
+          };
+        } else if (dow === 3) {
+          // Upper Body Progressive Overload
+          if (daysAgo % 21 === 0) {
+            latWeight = Math.min(60, latWeight + 2.5);
+            rowWeight = Math.min(55, rowWeight + 2.5);
+            pressWeight = Math.min(22, pressWeight + 1);
+          }
+          workouts[dateStr] = {
+            date: dateStr,
+            title: 'Upper Body Sculpt & Back',
+            notes: 'Strong mind-muscle connection on lats.',
+            isQuickCheckIn: false,
+            entries: [
+              {
+                exerciseId: 'ex_lat_pulldown',
+                sets: [
+                  { weight: latWeight, reps: 12, rir: '2', completed: true },
+                  { weight: latWeight, reps: 10, rir: '1', completed: true },
+                  { weight: latWeight + 2.5, reps: 8, rir: '1', completed: true }
+                ]
+              },
+              {
+                exerciseId: 'ex_seated_row',
+                sets: [
+                  { weight: rowWeight, reps: 12, rir: '2', completed: true },
+                  { weight: rowWeight, reps: 10, rir: '1', completed: true }
+                ]
+              },
+              {
+                exerciseId: 'ex_db_bench',
+                sets: [
+                  { weight: pressWeight, reps: 10, rir: '2', completed: true },
+                  { weight: pressWeight, reps: 9, rir: '1', completed: true }
+                ]
+              }
+            ]
+          };
+        } else if (dow === 6 && daysAgo % 2 === 0) {
+          // Quick Check-in Active Day (Pilates / Cardio / Walk)
+          workouts[dateStr] = {
+            date: dateStr,
+            title: 'Pilates & 10k Steps Check-In',
+            notes: 'Active recovery & mobility.',
+            isQuickCheckIn: true,
+            entries: []
+          };
+        }
+      }
+
+      return workouts;
+    }
+
+    /*************************************************************************
+     * STORAGE PERSISTENCE
+     *************************************************************************/
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          appState = { ...appState, ...parsed };
+          if (!ACCENT_THEMES[appState.accent]) {
+            appState.accent = 'pink';
+          }
+          // Automatically clear legacy auto-seeded sample workouts so the user gets a clean slate
+          if (appState.hasSampleData) {
+            appState.workouts = {};
+            appState.hasSampleData = false;
+            saveState();
+          }
+        } else {
+          // First visit: start completely clean with 0 workouts so the user fills in their own data
+          appState.workouts = {};
+          appState.hasSampleData = false;
+          saveState();
+        }
+      } catch (e) {
+        console.error('Failed to load state:', e);
+      }
+      applyAccentTheme(appState.accent);
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {
+        showToast('Storage warning: Unable to save locally', 'error');
+      }
+    }
+
+    /*************************************************************************
+     * ACCENT COLOR THEME HELPERS & DYNAMIC PWA ICON GENERATOR
+     *************************************************************************/
+    function getThemeObj() {
+      return ACCENT_THEMES[appState.accent] || ACCENT_THEMES.pink;
+    }
+
+    function getAccentHex() {
+      return getThemeObj().hex;
+    }
+
+    function applyAccentTheme(themeKey) {
+      const theme = ACCENT_THEMES[themeKey] || ACCENT_THEMES.pink;
+      const root = document.documentElement;
+      root.style.setProperty('--accent', theme.hex);
+      root.style.setProperty('--accent-rgb', theme.rgb);
+      root.style.setProperty('--accent-soft', `rgba(${theme.rgb}, 0.16)`);
+      root.style.setProperty('--accent-border', `rgba(${theme.rgb}, 0.35)`);
+      root.style.setProperty('--accent-glow', `rgba(${theme.rgb}, 0.42)`);
+
+      // Dynamically update the home screen icon & favicon SVG to match chosen color
+      const encodedHex = encodeURIComponent(theme.hex);
+      const appleSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230A0A0C'/%3E%3Crect x='24' y='24' width='132' height='132' rx='28' fill='%23141418' stroke='%23232329' stroke-width='3'/%3E%3Cg transform='translate(44,44)'%3E%3Crect x='0' y='0' width='26' height='26' rx='6' fill='${encodedHex}'/%3E%3Crect x='33' y='0' width='26' height='26' rx='6' fill='${encodedHex}' fill-opacity='0.75'/%3E%3Crect x='66' y='0' width='26' height='26' rx='6' fill='%23232329'/%3E%3Crect x='0' y='33' width='26' height='26' rx='6' fill='%23232329'/%3E%3Crect x='33' y='33' width='26' height='26' rx='6' fill='${encodedHex}'/%3E%3Crect x='66' y='33' width='26' height='26' rx='6' fill='${encodedHex}'/%3E%3Crect x='0' y='66' width='26' height='26' rx='6' fill='${encodedHex}' fill-opacity='0.5'/%3E%3Crect x='33' y='66' width='26' height='26' rx='6' fill='%23232329'/%3E%3Crect x='66' y='66' width='26' height='26' rx='6' fill='${encodedHex}'/%3E%3C/g%3E%3C/svg%3E`;
+      const favSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230A0A0C'/%3E%3Crect x='14' y='14' width='15' height='15' rx='4' fill='${encodedHex}'/%3E%3Crect x='35' y='14' width='15' height='15' rx='4' fill='%23232329'/%3E%3Crect x='14' y='35' width='15' height='15' rx='4' fill='%23232329'/%3E%3Crect x='35' y='35' width='15' height='15' rx='4' fill='${encodedHex}'/%3E%3C/svg%3E`;
+
+      const appleEl = document.getElementById('appleTouchIcon');
+      const favEl = document.getElementById('faviconIcon');
+      if (appleEl) appleEl.setAttribute('href', appleSvg);
+      if (favEl) favEl.setAttribute('href', favSvg);
+
+      // Update inline Web App Manifest so Android/iOS opens in true standalone full-screen app mode
+      const manifestObj = {
+        name: 'CADENCE — Workout & Overload Log',
+        short_name: 'CADENCE',
+        start_url: './',
+        display: 'standalone',
+        orientation: 'portrait',
+        background_color: '#0A0A0C',
+        theme_color: '#0A0A0C',
+        icons: [
+          { src: appleSvg, sizes: '180x180', type: 'image/svg+xml', purpose: 'any maskable' },
+          { src: appleSvg, sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
+        ]
+      };
+      const manifestEl = document.getElementById('pwaManifest');
+      if (manifestEl) {
+        manifestEl.setAttribute('href', 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(manifestObj)));
+      }
+    }
+
+    function getIntensityStyle(level) {
+      const theme = getThemeObj();
+      if (level === 0) return 'background-color: #18181D; border: 1px solid #222228;';
+      if (level === 1) return `background-color: rgba(${theme.rgb}, 0.28);`;
+      if (level === 2) return `background-color: rgba(${theme.rgb}, 0.54);`;
+      if (level === 3) return `background-color: rgba(${theme.rgb}, 0.80);`;
+      return `background-color: ${theme.hex}; box-shadow: 0 0 6px rgba(${theme.rgb}, 0.45);`;
+    }
+
+    /*************************************************************************
+     * CORE ANALYTICS, STREAK & PROGRESSIVE OVERLOAD CALCULATIONS
+     *************************************************************************/
+    function calculateStats() {
+      const workoutDates = Object.keys(appState.workouts).sort();
+      const totalDays = workoutDates.length;
+
+      // Days trained in the last 365 days
+      const today = new Date();
+      const cutoff = new Date(today);
+      cutoff.setDate(today.getDate() - 364);
+      const cutoffStr = formatDateLocal(cutoff);
+      const todayStr = getTodayStr();
+
+      const daysLast365 = workoutDates.filter(d => d >= cutoffStr && d <= todayStr).length;
+
+      // Calculate consecutive active weeks streak (Mon-Sun weeks with >= 1 workout)
+      const activeMondays = new Set();
+      workoutDates.forEach(dateStr => {
+        const d = parseDateLocal(dateStr);
+        const mondayOffset = (d.getDay() + 6) % 7;
+        const mon = new Date(d);
+        mon.setDate(d.getDate() - mondayOffset);
+        activeMondays.add(formatDateLocal(mon));
+      });
+
+      const currentMondayOffset = (today.getDay() + 6) % 7;
+      const currentMonday = new Date(today);
+      currentMonday.setDate(today.getDate() - currentMondayOffset);
+
+      let weekStreak = 0;
+      const checkMonday = new Date(currentMonday);
+
+      // If current week has no workout yet, check starting from last week so streak doesn't prematurely reset mid-week
+      if (!activeMondays.has(formatDateLocal(checkMonday))) {
+        checkMonday.setDate(checkMonday.getDate() - 7);
+      }
+
+      while (activeMondays.has(formatDateLocal(checkMonday))) {
+        weekStreak++;
+        checkMonday.setDate(checkMonday.getDate() - 7);
+      }
+
+      return { totalDays, daysLast365, weekStreak };
+    }
+
+    function getWorkoutIntensity(workout) {
+      if (!workout) return 0;
+      if (workout.isQuickCheckIn) return 1;
+      const totalSets = (workout.entries || []).reduce((acc, e) => acc + (e.sets ? e.sets.length : 0), 0);
+      const prCount = countWorkoutPRs(workout);
+      if (prCount > 0 || totalSets >= 14) return 4;
+      if (totalSets >= 9) return 3;
+      if (totalSets >= 4) return 2;
+      return 1;
+    }
+
+    function calcE1RM(weight, reps) {
+      const w = parseFloat(weight);
+      const r = parseInt(reps, 10);
+      if (!w || w <= 0 || !r || r <= 0) return 0;
+      if (r === 1) return Math.round(w * 10) / 10;
+      // Epley Formula
+      return Math.round(w * (1 + r / 30) * 10) / 10;
+    }
+
+    function getExerciseName(exerciseId) {
+      const found = appState.exercises.find(e => e.id === exerciseId);
+      return found ? found.name : 'Custom Exercise';
+    }
+
+    function getExerciseBenchmarks(exerciseId, beforeDateStr) {
+      const priorDates = Object.keys(appState.workouts)
+        .filter(d => d < beforeDateStr)
+        .sort();
+
+      let lastSession = null;
+      let bestWeight = 0;
+      let bestWeightReps = 0;
+      let bestE1RM = 0;
+
+      priorDates.forEach(dateStr => {
+        const w = appState.workouts[dateStr];
+        if (!w || !w.entries) return;
+        const entry = w.entries.find(e => e.exerciseId === exerciseId);
+        if (entry && entry.sets && entry.sets.length > 0) {
+          const validSets = entry.sets.filter(s => parseFloat(s.weight) > 0 && parseInt(s.reps, 10) > 0);
+          if (validSets.length > 0) {
+            lastSession = { date: dateStr, sets: validSets };
+            validSets.forEach(s => {
+              const wt = parseFloat(s.weight);
+              const rp = parseInt(s.reps, 10);
+              const e1rm = calcE1RM(wt, rp);
+              if (wt > bestWeight || (wt === bestWeight && rp > bestWeightReps)) {
+                bestWeight = wt;
+                bestWeightReps = rp;
+              }
+              if (e1rm > bestE1RM) {
+                bestE1RM = e1rm;
+              }
+            });
+          }
+        }
+      });
+
+      return { lastSession, bestWeight, bestWeightReps, bestE1RM };
+    }
+
+    function evaluateSetOverload(exerciseId, weight, reps, sessionDateStr) {
+      const w = parseFloat(weight);
+      const r = parseInt(reps, 10);
+      if (!w || w <= 0 || !r || r <= 0) return null;
+
+      const bench = getExerciseBenchmarks(exerciseId, sessionDateStr);
+      if (!bench.lastSession) return null;
+
+      const currentE1RM = calcE1RM(w, r);
+
+      // All-Time Weight PR
+      if (w > bench.bestWeight) {
+        return { type: 'PR', label: 'WEIGHT PR 🏆' };
+      }
+      // All-Time Estimated 1RM PR
+      if (currentE1RM > bench.bestE1RM) {
+        return { type: 'PR', label: '1RM PR 🏆' };
+      }
+
+      // Compare against last session's top set for progressive overload
+      const lastSets = bench.lastSession.sets;
+      const lastTopWeight = Math.max(...lastSets.map(s => parseFloat(s.weight) || 0));
+      const lastMaxRepsAtWeight = Math.max(
+        0,
+        ...lastSets.filter(s => parseFloat(s.weight) >= w).map(s => parseInt(s.reps, 10) || 0)
+      );
+
+      if (w > lastTopWeight || (w === lastTopWeight && r > lastMaxRepsAtWeight)) {
+        return { type: 'OVERLOAD', label: '+OVERLOAD ↑' };
+      }
+
+      return null;
+    }
+
+    /*************************************************************************
+     * HEADER & 7-DAY WEEKLY STRIP RENDERING
+     *************************************************************************/
+    function renderHeaderAndStrip() {
+      const today = new Date();
+      const todayStr = getTodayStr();
+      document.getElementById('headerMonthLabel').textContent = 'TRAINING LOG';
+
+      const stats = calculateStats();
+      const accentHex = getAccentHex();
+      const streakBadge = document.getElementById('streakBadge');
+      streakBadge.style.color = accentHex;
+      streakBadge.style.borderColor = 'var(--accent-border)';
+      streakBadge.style.backgroundColor = 'var(--accent-soft)';
+      streakBadge.innerHTML = `🔥 ${stats.weekStreak} Week Streak`;
+      document.getElementById('totalDaysBadge').textContent = `${stats.daysLast365} / 365 days`;
+
+      // Render Mon–Sun of current week
+      const stripEl = document.getElementById('weeklyStrip');
+      const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+      const mondayOffset = (today.getDay() + 6) % 7;
+      const monday = new Date(today);
+      monday.setDate(today.getDate() - mondayOffset);
+
+      let html = '';
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        const dateStr = formatDateLocal(d);
+        const hasWorkout = !!appState.workouts[dateStr];
+        const isToday = dateStr === todayStr;
+        const isSelected = dateStr === appState.selectedDate;
+
+        let pillStyle = 'background-color: #141418; border: 1px solid #232329; color: #8E8E93;';
+        if (hasWorkout) {
+          pillStyle = `background-color: ${accentHex}; border: 1px solid ${accentHex}; color: #0A0A0C; font-weight: 800;`;
+        } else if (isToday) {
+          pillStyle = `background-color: #1B1B20; border: 1px solid ${accentHex}; color: #F5F5F7;`;
+        }
+
+        html += `
+          <button onclick="handleDayTap('${dateStr}')" class="flex flex-col items-center justify-center py-1.5 rounded-xl transition active:scale-95 ${isSelected ? 'ring-1 ring-white/40' : ''}" style="${pillStyle}">
+            <span class="text-[10px] uppercase tracking-wider opacity-80">${dayLabels[i]}</span>
+            <span class="text-xs font-bold mt-0.5">${d.getDate()}</span>
+            <span class="w-1 h-1 rounded-full mt-0.5 ${hasWorkout ? 'bg-obsidian' : (isToday ? 'bg-white' : 'bg-transparent')}"></span>
+          </button>
+        `;
+      }
+      stripEl.innerHTML = html;
+
+      // Update active nav tab styling
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        const isActive = btn.dataset.tab === appState.activeTab;
+        btn.style.color = isActive ? accentHex : '#8E8E93';
+      });
+    }
+
+    function handleDayTap(dateStr) {
+      appState.selectedDate = dateStr;
+      renderHeaderAndStrip();
+      if (appState.workouts[dateStr]) {
+        openDayDetailModal(dateStr);
+      } else {
+        openLoggerForDate(dateStr);
+      }
+    }
+
+    /*************************************************************************
+     * TAB NAVIGATION
+     *************************************************************************/
+    function switchTab(tabName) {
+      appState.activeTab = tabName;
+      if (tabName === 'log' && activeSession.entries.length === 0 && !appState.workouts[activeSession.date]) {
+        // Pre-populate session if empty
+        initSessionForDate(appState.selectedDate || getTodayStr());
+      }
+      renderHeaderAndStrip();
+      renderMainView();
+    }
+
+    function renderMainView() {
+      const container = document.getElementById('mainContent');
+      if (appState.activeTab === 'calendar') {
+        renderCalendarTab(container);
+      } else if (appState.activeTab === 'log') {
+        renderLoggerTab(container);
+      } else if (appState.activeTab === 'progress') {
+        renderProgressTab(container);
+      } else if (appState.activeTab === 'settings') {
+        renderSettingsTab(container);
+      }
+    }
+
+    /*************************************************************************
+     * TAB 1: GYM YEARS (365-DAY MATRIX + MONTHLY CALENDAR + RECENT FEED)
+     *************************************************************************/
+    function renderCalendarTab(container) {
+      const stats = calculateStats();
+      const accentHex = getAccentHex();
+      const todayStr = getTodayStr();
+      const todayWorkout = appState.workouts[todayStr];
+
+      // Dismissible Home Screen Shortcut Banner
+      const installBannerHtml = !appState.dismissedInstallBanner ? `
+        <div class="bg-surface border border-borderDark rounded-2xl p-3.5 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background-color: var(--accent-soft); color: ${accentHex};">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-white">Use CADENCE like a native app</p>
+              <p class="text-[11px] text-mutedText leading-snug">Tap Share → <span class="text-white font-medium">Add to Home Screen</span> for 1-tap access.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button onclick="openInstallModal()" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-borderDark text-white hover:bg-white/10">How</button>
+            <button onclick="dismissInstallBanner()" class="p-1.5 text-mutedText hover:text-white" aria-label="Dismiss">✕</button>
+          </div>
+        </div>
+      ` : '';
+
+      // CADENCE Year Grid Card
+      const calendarHtml = appState.calendarMode === 'grid'
+        ? build365GridHtml()
+        : buildMonthlyCalendarHtml();
+
+      // Recent Workouts List
+      const recentDates = Object.keys(appState.workouts).sort().reverse().slice(0, 6);
+      const recentHtml = recentDates.length > 0 ? recentDates.map(dateStr => {
+        const w = appState.workouts[dateStr];
+        const prCount = countWorkoutPRs(w);
+        const totalSets = (w.entries || []).reduce((acc, e) => acc + (e.sets ? e.sets.length : 0), 0);
+        return `
+          <button onclick="openDayDetailModal('${dateStr}')" class="w-full text-left bg-surface hover:bg-surfaceHover border border-borderDark rounded-2xl p-3.5 transition flex items-center justify-between gap-3 active:scale-[0.99]">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] font-semibold text-mutedText uppercase tracking-wider">${formatReadableDate(dateStr)}</span>
+                ${w.isQuickCheckIn ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-white">Quick Check-In</span>` : ''}
+                ${prCount > 0 ? `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full text-obsidian" style="background-color: ${accentHex};">${prCount} PR 🏆</span>` : ''}
+              </div>
+              <h4 class="text-sm font-bold text-white truncate mt-1">${escapeHtml(w.title || 'Workout Session')}</h4>
+              <p class="text-xs text-mutedText truncate mt-0.5">
+                ${w.isQuickCheckIn
+                  ? escapeHtml(w.notes || 'Active day logged')
+                  : `${w.entries.length} exercises · ${totalSets} sets`}
+              </p>
+            </div>
+            <div class="w-8 h-8 rounded-xl bg-obsidian border border-borderDark flex items-center justify-center shrink-0 text-mutedText">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            </div>
+          </button>
+        `;
+      }).join('') : `
+        <div class="bg-surface border border-borderDark rounded-2xl p-6 text-center">
+          <p class="text-sm font-semibold text-white">No workouts logged yet</p>
+          <p class="text-xs text-mutedText mt-1">Start your first session or tap Quick Check-In to light up your first square.</p>
+        </div>
+      `;
+
+      container.innerHTML = `
+        ${installBannerHtml}
+
+        <!-- YEAR GRID CARD -->
+        <section class="bg-surface border border-borderDark rounded-3xl p-4 shadow-xl">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-sm font-extrabold tracking-tight text-white uppercase">Year Grid</h2>
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-obsidian border border-borderDark" style="color: ${accentHex};">
+                  ${stats.daysLast365} / 365 Days
+                </span>
+              </div>
+              <p class="text-[11px] text-mutedText mt-0.5">Every square is a day you showed up</p>
+            </div>
+
+            <!-- Grid vs Month Toggle -->
+            <div class="flex bg-obsidian p-1 rounded-xl border border-borderDark">
+              <button onclick="setCalendarMode('grid')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition ${appState.calendarMode === 'grid' ? 'bg-surface text-white shadow' : 'text-mutedText'}">
+                365 Grid
+              </button>
+              <button onclick="setCalendarMode('month')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition ${appState.calendarMode === 'month' ? 'bg-surface text-white shadow' : 'text-mutedText'}">
+                Month
+              </button>
+            </div>
+          </div>
+
+          ${calendarHtml}
+
+          <!-- Quick Actions Footer inside Year Grid Card -->
+          <div class="mt-4 pt-3 border-t border-borderDark flex items-center gap-2">
+            <button onclick="openLoggerForDate('${todayStr}')" class="flex-1 py-2.5 px-3 rounded-xl font-extrabold text-xs text-obsidian flex items-center justify-center gap-1.5 active:scale-[0.98] transition" style="background-color: ${accentHex};">
+              <svg class="w-4 h-4 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              ${todayWorkout ? 'Edit Today’s Workout' : 'Log Today’s Workout'}
+            </button>
+            <button onclick="quickCheckInToday()" class="py-2.5 px-3 rounded-xl bg-obsidian hover:bg-white/5 border border-borderDark text-xs font-semibold text-white flex items-center gap-1.5 active:scale-[0.98] transition" title="Mark active day without detailed sets">
+              <span>✓</span>
+              <span>Quick Check-In</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- QUICK START ROUTINES -->
+        <section>
+          <div class="flex items-center justify-between mb-2 px-0.5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-mutedText">1-Tap Start Routine</h3>
+            <button onclick="switchTab('settings')" class="text-[11px] font-semibold" style="color: ${accentHex};">Manage →</button>
+          </div>
+          <div class="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
+            ${appState.templates.map(tpl => `
+              <button onclick="startFromTemplate('${tpl.id}')" class="shrink-0 bg-surface hover:bg-surfaceHover border border-borderDark rounded-2xl p-3.5 w-44 text-left transition active:scale-95">
+                <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-obsidian border border-borderDark" style="color: ${accentHex};">${escapeHtml(tpl.tag)}</span>
+                <p class="text-xs font-bold text-white mt-2 truncate">${escapeHtml(tpl.name)}</p>
+                <p class="text-[11px] text-mutedText mt-0.5">${tpl.exerciseIds.length} exercises</p>
+              </button>
+            `).join('')}
+          </div>
+        </section>
+
+        <!-- RECENT SESSIONS -->
+        <section class="space-y-2.5">
+          <div class="flex items-center justify-between px-0.5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-mutedText">Recent Activity</h3>
+            <span class="text-[11px] text-mutedText">${stats.totalDays} total sessions</span>
+          </div>
+          ${recentHtml}
+        </section>
+      `;
+
+      // Auto-scroll 365-day grid to the rightmost (most recent) weeks
+      if (appState.calendarMode === 'grid') {
+        requestAnimationFrame(() => {
+          const scrollBox = document.getElementById('gridScrollContainer');
+          if (scrollBox) scrollBox.scrollLeft = scrollBox.scrollWidth;
+        });
+      }
+    }
+
+    function build365GridHtml() {
+      const today = new Date();
+      // Align end of grid to Sunday of current week so columns are neat Mon–Sun weeks
+      const daysUntilSunday = (7 - today.getDay()) % 7;
+      const endSunday = new Date(today);
+      endSunday.setDate(today.getDate() + daysUntilSunday);
+
+      const numWeeks = 53;
+      const startMonday = new Date(endSunday);
+      startMonday.setDate(endSunday.getDate() - (numWeeks * 7 - 1));
+
+      const todayStr = getTodayStr();
+      let monthLabelsHtml = '';
+      let columnsHtml = '';
+      let lastMonth = -1;
+
+      for (let w = 0; w < numWeeks; w++) {
+        const weekStart = new Date(startMonday);
+        weekStart.setDate(startMonday.getDate() + w * 7);
+        const m = weekStart.getMonth();
+        const showMonth = m !== lastMonth;
+        if (showMonth) lastMonth = m;
+
+        monthLabelsHtml += `<div class="w-[11px] shrink-0 text-[9px] font-semibold text-mutedText leading-none">${showMonth ? weekStart.toLocaleDateString('en-US', { month: 'short' }) : ''}</div>`;
+
+        let cellsHtml = '';
+        for (let d = 0; d < 7; d++) {
+          const cellDate = new Date(weekStart);
+          cellDate.setDate(weekStart.getDate() + d);
+          const dateStr = formatDateLocal(cellDate);
+          const isFuture = dateStr > todayStr;
+          const workout = appState.workouts[dateStr];
+          const intensity = isFuture ? 0 : getWorkoutIntensity(workout);
+          const isToday = dateStr === todayStr;
+
+          cellsHtml += `
+            <button
+              onclick="handleGridSquareClick('${dateStr}', ${isFuture})"
+              title="${dateStr}${workout ? ' — ' + escapeHtml(workout.title) : ''}"
+              class="grid-cell block ${isFuture ? 'opacity-25 cursor-default' : 'cursor-pointer'} ${isToday ? 'ring-1 ring-white' : ''}"
+              style="${getIntensityStyle(intensity)}"
+            ></button>
+          `;
+        }
+        columnsHtml += `<div class="flex flex-col gap-[3px] shrink-0">${cellsHtml}</div>`;
+      }
+
+      return `
+        <div class="flex gap-2">
+          <!-- Day-of-week labels -->
+          <div class="flex flex-col justify-between pt-4 pb-0.5 text-[9px] font-semibold text-mutedText select-none shrink-0">
+            <span>M</span>
+            <span>W</span>
+            <span>F</span>
+            <span>S</span>
+          </div>
+
+          <!-- Horizontally scrollable 53-week matrix -->
+          <div id="gridScrollContainer" class="overflow-x-auto no-scrollbar flex-1 pb-1">
+            <div class="flex gap-[3px] mb-1.5 min-w-max">
+              ${monthLabelsHtml}
+            </div>
+            <div class="flex gap-[3px] min-w-max">
+              ${columnsHtml}
+            </div>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex items-center justify-between mt-2.5 text-[10px] text-mutedText">
+          <span>Tap any square to inspect or log</span>
+          <div class="flex items-center gap-1">
+            <span>Rest</span>
+            <span class="w-2.5 h-2.5 rounded-[2px] inline-block" style="${getIntensityStyle(0)}"></span>
+            <span class="w-2.5 h-2.5 rounded-[2px] inline-block" style="${getIntensityStyle(1)}"></span>
+            <span class="w-2.5 h-2.5 rounded-[2px] inline-block" style="${getIntensityStyle(2)}"></span>
+            <span class="w-2.5 h-2.5 rounded-[2px] inline-block" style="${getIntensityStyle(3)}"></span>
+            <span class="w-2.5 h-2.5 rounded-[2px] inline-block" style="${getIntensityStyle(4)}"></span>
+            <span>PR / High Vol</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function buildMonthlyCalendarHtml() {
+      const base = new Date();
+      base.setDate(1);
+      base.setMonth(base.getMonth() + appState.selectedMonthOffset);
+
+      const year = base.getFullYear();
+      const month = base.getMonth();
+      const monthTitle = base.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7; // Mon=0
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const todayStr = getTodayStr();
+      const accentHex = getAccentHex();
+
+      let cells = '';
+      for (let empty = 0; empty < firstDayIndex; empty++) {
+        cells += `<div></div>`;
+      }
+      for (let day = 1; day <= daysInMonth; day++) {
+        const d = new Date(year, month, day);
+        const dateStr = formatDateLocal(d);
+        const workout = appState.workouts[dateStr];
+        const isToday = dateStr === todayStr;
+        const isFuture = dateStr > todayStr;
+
+        let style = 'background-color: #0A0A0C; border: 1px solid #232329; color: #8E8E93;';
+        if (workout) {
+          style = `background-color: ${accentHex}; border: 1px solid ${accentHex}; color: #0A0A0C; font-weight: 800;`;
+        } else if (isToday) {
+          style = `background-color: #1B1B20; border: 1px solid ${accentHex}; color: #F5F5F7;`;
+        }
+
+        cells += `
+          <button
+            onclick="handleGridSquareClick('${dateStr}', ${isFuture})"
+            class="aspect-square rounded-xl flex flex-col items-center justify-center text-xs transition active:scale-90 ${isFuture ? 'opacity-30' : ''}"
+            style="${style}"
+          >
+            <span>${day}</span>
+          </button>
+        `;
+      }
+
+      return `
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <button onclick="changeMonthOffset(-1)" class="p-1.5 rounded-lg bg-obsidian border border-borderDark text-mutedText hover:text-white">‹</button>
+            <span class="text-xs font-bold text-white">${monthTitle}</span>
+            <button onclick="changeMonthOffset(1)" class="p-1.5 rounded-lg bg-obsidian border border-borderDark text-mutedText hover:text-white">›</button>
+          </div>
+          <div class="grid grid-cols-7 gap-1.5 text-center text-[10px] font-semibold text-mutedText mb-1.5">
+            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+          </div>
+          <div class="grid grid-cols-7 gap-1.5">
+            ${cells}
+          </div>
+        </div>
+      `;
+    }
+
+    function setCalendarMode(mode) {
+      appState.calendarMode = mode;
+      saveState();
+      renderMainView();
+    }
+
+    function changeMonthOffset(delta) {
+      appState.selectedMonthOffset += delta;
+      renderMainView();
+    }
+
+    function handleGridSquareClick(dateStr, isFuture) {
+      if (isFuture) {
+        showToast('Cannot log future dates yet');
+        return;
+      }
+      appState.selectedDate = dateStr;
+      renderHeaderAndStrip();
+      if (appState.workouts[dateStr]) {
+        openDayDetailModal(dateStr);
+      } else {
+        openLoggerForDate(dateStr);
+      }
+    }
+
+    function quickCheckInToday() {
+      const todayStr = getTodayStr();
+      if (appState.workouts[todayStr]) {
+        openDayDetailModal(todayStr);
+        return;
+      }
+      appState.workouts[todayStr] = {
+        date: todayStr,
+        title: 'Quick Workout Check-In',
+        notes: 'Logged active training day.',
+        isQuickCheckIn: true,
+        entries: []
+      };
+      saveState();
+      renderHeaderAndStrip();
+      renderMainView();
+      showToast('Workout day checked in! Square lit up.');
+    }
+
+    /*************************************************************************
+     * TAB 2: WORKOUT & PROGRESSIVE OVERLOAD LOGGER
+     *************************************************************************/
+    function initSessionForDate(dateStr) {
+      const existing = appState.workouts[dateStr];
+      if (existing) {
+        activeSession = JSON.parse(JSON.stringify(existing));
+      } else {
+        activeSession = {
+          date: dateStr,
+          title: 'Strength Training',
+          notes: '',
+          isQuickCheckIn: false,
+          entries: []
+        };
+      }
+    }
+
+    function openLoggerForDate(dateStr) {
+      appState.selectedDate = dateStr;
+      initSessionForDate(dateStr);
+      switchTab('log');
+    }
+
+    function startFromTemplate(templateId) {
+      const tpl = appState.templates.find(t => t.id === templateId);
+      if (!tpl) return;
+      const dateStr = getTodayStr();
+      activeSession = {
+        date: dateStr,
+        title: tpl.name,
+        notes: '',
+        isQuickCheckIn: false,
+        entries: tpl.exerciseIds.map(exId => {
+          const bench = getExerciseBenchmarks(exId, dateStr);
+          const defaultWeight = bench.lastSession && bench.lastSession.sets[0]
+            ? bench.lastSession.sets[0].weight
+            : '';
+          const defaultReps = bench.lastSession && bench.lastSession.sets[0]
+            ? bench.lastSession.sets[0].reps
+            : 10;
+          return {
+            exerciseId: exId,
+            sets: [
+              { weight: defaultWeight, reps: defaultReps, rir: '2', completed: false },
+              { weight: defaultWeight, reps: defaultReps, rir: '1', completed: false },
+              { weight: defaultWeight, reps: defaultReps, rir: '1', completed: false }
+            ]
+          };
+        })
+      };
+      appState.selectedDate = dateStr;
+      switchTab('log');
+      showToast(`Loaded "${tpl.name}"`);
+    }
+
+    function renderLoggerTab(container) {
+      const accentHex = getAccentHex();
+      const unit = appState.unit;
+
+      const entriesHtml = activeSession.entries.map((entry, exIdx) => {
+        const exName = getExerciseName(entry.exerciseId);
+        const bench = getExerciseBenchmarks(entry.exerciseId, activeSession.date);
+
+        let benchmarkLine = 'No previous history — set your baseline today!';
+        if (bench.lastSession) {
+          const lastSummary = bench.lastSession.sets.map(s => `${s.weight}${unit}×${s.reps}`).join(', ');
+          benchmarkLine = `Last: <span class="text-white font-semibold">${lastSummary}</span> · Best: <span style="color: ${accentHex};" class="font-bold">${bench.bestWeight}${unit}×${bench.bestWeightReps}</span>`;
+        }
+
+        const setsHtml = entry.sets.map((set, setIdx) => {
+          const overload = evaluateSetOverload(entry.exerciseId, set.weight, set.reps, activeSession.date);
+          const badgeHtml = overload
+            ? `<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-tight ${overload.type === 'PR' ? 'text-obsidian pr-glow' : 'bg-white/10 text-white'}" style="${overload.type === 'PR' ? `background-color: ${accentHex};` : ''}">${overload.label}</span>`
+            : '';
+
+          return `
+            <div class="grid grid-cols-12 gap-1.5 items-center py-1.5 ${set.completed ? 'opacity-95' : ''}">
+              <div class="col-span-1 text-center text-xs font-bold text-mutedText">${setIdx + 1}</div>
+              <div class="col-span-3">
+                <input
+                  type="number"
+                  step="0.5"
+                  inputmode="decimal"
+                  placeholder="${unit}"
+                  value="${set.weight}"
+                  onchange="updateSetField(${exIdx}, ${setIdx}, 'weight', this.value)"
+                  class="w-full bg-obsidian border border-borderDark focus:border-white rounded-xl py-2 px-2 text-center text-xs font-bold text-white outline-none"
+                />
+              </div>
+              <div class="col-span-3">
+                <input
+                  type="number"
+                  inputmode="numeric"
+                  placeholder="reps"
+                  value="${set.reps}"
+                  onchange="updateSetField(${exIdx}, ${setIdx}, 'reps', this.value)"
+                  class="w-full bg-obsidian border border-borderDark focus:border-white rounded-xl py-2 px-2 text-center text-xs font-bold text-white outline-none"
+                />
+              </div>
+              <div class="col-span-3 flex flex-col items-center justify-center">
+                ${badgeHtml || `<span class="text-[10px] text-mutedText">${set.weight && set.reps ? `1RM ~${calcE1RM(set.weight, set.reps)}` : '—'}</span>`}
+              </div>
+              <div class="col-span-2 flex items-center justify-end gap-1">
+                <button
+                  onclick="toggleSetComplete(${exIdx}, ${setIdx})"
+                  class="w-8 h-8 rounded-xl flex items-center justify-center border transition active:scale-90"
+                  style="${set.completed ? `background-color: ${accentHex}; border-color: ${accentHex}; color: #0A0A0C;` : 'background-color: #0A0A0C; border-color: #232329; color: #8E8E93;'}"
+                  title="Complete set"
+                >
+                  ✓
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="bg-surface border border-borderDark rounded-3xl p-4 space-y-2.5">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <h4 class="text-sm font-extrabold text-white">${escapeHtml(exName)}</h4>
+                <p class="text-[11px] text-mutedText mt-0.5">${benchmarkLine}</p>
+              </div>
+              <div class="flex items-center gap-1">
+                <button onclick="viewExerciseChart('${entry.exerciseId}')" class="p-1.5 rounded-lg bg-obsidian border border-borderDark text-mutedText hover:text-white text-[10px] font-bold" title="View Progressive Overload Chart">
+                  📈
+                </button>
+                <button onclick="removeExerciseFromSession(${exIdx})" class="p-1.5 rounded-lg bg-obsidian border border-borderDark text-mutedText hover:text-coralAccent text-xs" title="Remove Exercise">
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <!-- Column Headers -->
+            <div class="grid grid-cols-12 gap-1.5 text-[10px] font-bold uppercase tracking-wider text-mutedText pt-1 border-t border-borderDark/60">
+              <div class="col-span-1 text-center">Set</div>
+              <div class="col-span-3 text-center">${unit}</div>
+              <div class="col-span-3 text-center">Reps</div>
+              <div class="col-span-3 text-center">Overload</div>
+              <div class="col-span-2 text-right pr-1">Done</div>
+            </div>
+
+            <div class="divide-y divide-borderDark/40">
+              ${setsHtml}
+            </div>
+
+            <div class="flex items-center gap-2 pt-1">
+              <button onclick="addSetToExercise(${exIdx})" class="flex-1 py-2 rounded-xl bg-obsidian hover:bg-white/5 border border-borderDark text-xs font-semibold text-white transition">
+                + Add Set
+              </button>
+              ${entry.sets.length > 1 ? `
+                <button onclick="removeLastSet(${exIdx})" class="py-2 px-3 rounded-xl bg-obsidian hover:bg-white/5 border border-borderDark text-xs text-mutedText">
+                  - Set
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = `
+        <!-- Session Meta Card -->
+        <section class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex-1">
+              <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText">Workout Title</label>
+              <input
+                type="text"
+                value="${escapeHtml(activeSession.title)}"
+                onchange="activeSession.title = this.value"
+                placeholder="e.g., Lower Body & Glutes"
+                class="w-full bg-transparent text-base font-extrabold text-white border-b border-borderDark focus:border-white py-1 outline-none"
+              />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block">Date</label>
+              <input
+                type="date"
+                value="${activeSession.date}"
+                max="${getTodayStr()}"
+                onchange="changeSessionDate(this.value)"
+                class="bg-obsidian border border-borderDark rounded-xl px-2.5 py-1.5 text-xs font-semibold text-white outline-none mt-1"
+              />
+            </div>
+          </div>
+
+          <div>
+            <input
+              type="text"
+              value="${escapeHtml(activeSession.notes || '')}"
+              onchange="activeSession.notes = this.value"
+              placeholder="Session notes (energy level, pump, form cues...)"
+              class="w-full bg-obsidian border border-borderDark rounded-xl px-3 py-2 text-xs text-white placeholder-mutedText outline-none"
+            />
+          </div>
+        </section>
+
+        <!-- Exercise Cards -->
+        <section class="space-y-3">
+          ${entriesHtml || `
+            <div class="bg-surface border border-dashed border-borderDark rounded-3xl p-6 text-center space-y-2">
+              <p class="text-sm font-bold text-white">Build Your Session</p>
+              <p class="text-xs text-mutedText">Add exercises below to track sets, weights, and automatic progressive overload PRs.</p>
+            </div>
+          `}
+        </section>
+
+        <!-- Add Exercise & Save Buttons -->
+        <section class="space-y-2.5 pt-1">
+          <button onclick="openExercisePickerModal()" class="w-full py-3.5 rounded-2xl bg-surface hover:bg-surfaceHover border border-borderDark text-xs font-bold text-white flex items-center justify-center gap-2 transition active:scale-[0.99]">
+            <span class="text-base leading-none" style="color: ${accentHex};">+</span>
+            <span>Add Exercise</span>
+          </button>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <button onclick="saveQuickCheckInFromLogger()" class="py-3.5 rounded-2xl bg-obsidian border border-borderDark text-xs font-bold text-mutedText hover:text-white transition">
+              Quick Check-In Only
+            </button>
+            <button onclick="saveActiveWorkout()" class="py-3.5 rounded-2xl text-xs font-extrabold text-obsidian shadow-lg transition active:scale-[0.98]" style="background-color: ${accentHex};">
+              Save Workout ✓
+            </button>
+          </div>
+        </section>
+      `;
+    }
+
+    function changeSessionDate(newDate) {
+      if (!newDate) return;
+      activeSession.date = newDate;
+      appState.selectedDate = newDate;
+      renderHeaderAndStrip();
+      renderMainView();
+    }
+
+    function updateSetField(exIdx, setIdx, field, val) {
+      activeSession.entries[exIdx].sets[setIdx][field] = val;
+      renderMainView();
+    }
+
+    function toggleSetComplete(exIdx, setIdx) {
+      const s = activeSession.entries[exIdx].sets[setIdx];
+      s.completed = !s.completed;
+      if (s.completed) {
+        const overload = evaluateSetOverload(activeSession.entries[exIdx].exerciseId, s.weight, s.reps, activeSession.date);
+        if (overload) {
+          showToast(`${overload.label} on ${getExerciseName(activeSession.entries[exIdx].exerciseId)}!`);
+        }
+      }
+      renderMainView();
+    }
+
+    function addSetToExercise(exIdx) {
+      const sets = activeSession.entries[exIdx].sets;
+      const last = sets[sets.length - 1] || { weight: '', reps: 10, rir: '2' };
+      sets.push({ weight: last.weight, reps: last.reps, rir: last.rir, completed: false });
+      renderMainView();
+    }
+
+    function removeLastSet(exIdx) {
+      if (activeSession.entries[exIdx].sets.length > 1) {
+        activeSession.entries[exIdx].sets.pop();
+        renderMainView();
+      }
+    }
+
+    function removeExerciseFromSession(exIdx) {
+      activeSession.entries.splice(exIdx, 1);
+      renderMainView();
+    }
+
+    function saveQuickCheckInFromLogger() {
+      appState.workouts[activeSession.date] = {
+        date: activeSession.date,
+        title: activeSession.title || 'Active Day Check-In',
+        notes: activeSession.notes || 'Quick check-in logged.',
+        isQuickCheckIn: true,
+        entries: []
+      };
+      saveState();
+      renderHeaderAndStrip();
+      switchTab('calendar');
+      showToast('Active day marked on Year Grid!');
+    }
+
+    function saveActiveWorkout() {
+      if (activeSession.entries.length === 0) {
+        saveQuickCheckInFromLogger();
+        return;
+      }
+      // Filter out completely empty sets while keeping filled sets
+      const cleanedEntries = activeSession.entries.map(e => ({
+        exerciseId: e.exerciseId,
+        sets: e.sets.filter(s => (parseFloat(s.weight) > 0 || parseInt(s.reps) > 0))
+      })).filter(e => e.sets.length > 0);
+
+      if (cleanedEntries.length === 0) {
+        showToast('Enter weight or reps for at least 1 set first');
+        return;
+      }
+
+      appState.workouts[activeSession.date] = {
+        date: activeSession.date,
+        title: activeSession.title || 'Strength Workout',
+        notes: activeSession.notes || '',
+        isQuickCheckIn: false,
+        entries: cleanedEntries
+      };
+      saveState();
+      renderHeaderAndStrip();
+      switchTab('calendar');
+      showToast('Workout saved & calendar updated!');
+    }
+
+    function countWorkoutPRs(workout) {
+      if (!workout || workout.isQuickCheckIn || !workout.entries) return 0;
+      let prs = 0;
+      workout.entries.forEach(entry => {
+        let hitPrInExercise = false;
+        (entry.sets || []).forEach(s => {
+          const ev = evaluateSetOverload(entry.exerciseId, s.weight, s.reps, workout.date);
+          if (ev && ev.type === 'PR') hitPrInExercise = true;
+        });
+        if (hitPrInExercise) prs++;
+      });
+      return prs;
+    }
+
+    /*************************************************************************
+     * TAB 3: PROGRESSIVE OVERLOAD ANALYTICS & CHARTS
+     *************************************************************************/
+    function viewExerciseChart(exerciseId) {
+      appState.selectedAnalyticsExerciseId = exerciseId;
+      switchTab('progress');
+    }
+
+    function renderProgressTab(container) {
+      const accentHex = getAccentHex();
+      const unit = appState.unit;
+      const selectedId = appState.selectedAnalyticsExerciseId;
+      const historyPoints = getExerciseHistorySeries(selectedId);
+
+      const latest = historyPoints[historyPoints.length - 1];
+      const allTimeBestWeight = historyPoints.length ? Math.max(...historyPoints.map(p => p.topWeight)) : 0;
+      const allTimeBestE1RM = historyPoints.length ? Math.max(...historyPoints.map(p => p.bestE1RM)) : 0;
+      const firstWeight = historyPoints.length ? historyPoints[0].topWeight : 0;
+      const weightGain = latest ? Math.round((latest.topWeight - firstWeight) * 10) / 10 : 0;
+
+      const svgChartHtml = buildOverloadSvgChart(historyPoints, accentHex, unit);
+
+      const historyRowsHtml = [...historyPoints].reverse().map(pt => `
+        <div class="bg-obsidian border border-borderDark rounded-2xl p-3 flex items-center justify-between gap-2">
+          <div>
+            <p class="text-xs font-bold text-white">${formatReadableDate(pt.date)} <span class="text-[10px] text-mutedText font-normal">(${pt.date})</span></p>
+            <p class="text-[11px] text-mutedText mt-0.5">${pt.setsSummary}</p>
+          </div>
+          <div class="text-right shrink-0">
+            <span class="text-xs font-extrabold block" style="color: ${accentHex};">${pt.topWeight} ${unit}</span>
+            <span class="text-[10px] text-mutedText">Est 1RM: ${pt.bestE1RM} ${unit}</span>
+          </div>
+        </div>
+      `).join('');
+
+      container.innerHTML = `
+        <section class="bg-surface border border-borderDark rounded-3xl p-4 space-y-4">
+          <div>
+            <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1.5">Select Lift to Track Overload</label>
+            <select
+              onchange="appState.selectedAnalyticsExerciseId = this.value; renderMainView();"
+              class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-3 text-xs font-bold text-white outline-none"
+            >
+              ${appState.exercises.map(ex => `
+                <option value="${ex.id}" ${ex.id === selectedId ? 'selected' : ''}>
+                  ${escapeHtml(ex.name)} (${escapeHtml(ex.category)})
+                </option>
+              `).join('')}
+            </select>
+          </div>
+
+          <!-- KPI Summary Pills -->
+          <div class="grid grid-cols-3 gap-2">
+            <div class="bg-obsidian border border-borderDark rounded-2xl p-3">
+              <span class="text-[10px] text-mutedText uppercase font-semibold">All-Time Best</span>
+              <p class="text-sm font-extrabold text-white mt-0.5">${allTimeBestWeight} <span class="text-[10px] font-normal text-mutedText">${unit}</span></p>
+            </div>
+            <div class="bg-obsidian border border-borderDark rounded-2xl p-3">
+              <span class="text-[10px] text-mutedText uppercase font-semibold">Est. 1RM Peak</span>
+              <p class="text-sm font-extrabold mt-0.5" style="color: ${accentHex};">${allTimeBestE1RM} <span class="text-[10px] font-normal text-mutedText">${unit}</span></p>
+            </div>
+            <div class="bg-obsidian border border-borderDark rounded-2xl p-3">
+              <span class="text-[10px] text-mutedText uppercase font-semibold">Net Overload</span>
+              <p class="text-sm font-extrabold text-white mt-0.5">${weightGain >= 0 ? '+' : ''}${weightGain} <span class="text-[10px] font-normal text-mutedText">${unit}</span></p>
+            </div>
+          </div>
+
+          <!-- SVG Progressive Overload Trend Chart -->
+          <div class="bg-obsidian border border-borderDark rounded-2xl p-3.5">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[11px] font-bold text-white">Top Weight & Est. 1RM Progression</span>
+              <div class="flex items-center gap-3 text-[10px]">
+                <span class="flex items-center gap-1 text-white"><span class="w-2 h-2 rounded-full inline-block" style="background-color: ${accentHex};"></span>Top Weight</span>
+                <span class="flex items-center gap-1 text-mutedText"><span class="w-2 h-2 rounded-full inline-block bg-white/40"></span>Est. 1RM</span>
+              </div>
+            </div>
+            ${svgChartHtml}
+          </div>
+        </section>
+
+        <!-- Lift History Log -->
+        <section class="bg-surface border border-borderDark rounded-3xl p-4 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-white">Session History</h3>
+            <span class="text-[11px] text-mutedText">${historyPoints.length} sessions</span>
+          </div>
+          ${historyRowsHtml || `<p class="text-xs text-mutedText py-4 text-center">No logged sets for this exercise yet.</p>`}
+        </section>
+      `;
+    }
+
+    function getExerciseHistorySeries(exerciseId) {
+      const dates = Object.keys(appState.workouts).sort();
+      const series = [];
+
+      dates.forEach(dateStr => {
+        const w = appState.workouts[dateStr];
+        if (!w || !w.entries) return;
+        const entry = w.entries.find(e => e.exerciseId === exerciseId);
+        if (entry && entry.sets && entry.sets.length > 0) {
+          const validSets = entry.sets.filter(s => parseFloat(s.weight) > 0);
+          if (validSets.length > 0) {
+            const topWeight = Math.max(...validSets.map(s => parseFloat(s.weight) || 0));
+            const bestE1RM = Math.max(...validSets.map(s => calcE1RM(s.weight, s.reps)));
+            const totalVolume = validSets.reduce((acc, s) => acc + (parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0), 0);
+            series.push({
+              date: dateStr,
+              topWeight,
+              bestE1RM,
+              totalVolume,
+              setsSummary: validSets.map(s => `${s.weight}${appState.unit}×${s.reps}`).join(', ')
+            });
+          }
+        }
+      });
+
+      return series;
+    }
+
+    function buildOverloadSvgChart(points, accentHex, unit) {
+      if (points.length === 0) {
+        return `<div class="h-40 flex items-center justify-center text-xs text-mutedText">Log this exercise to visualize your progressive overload curve.</div>`;
+      }
+      if (points.length === 1) {
+        const p = points[0];
+        return `<div class="h-36 flex flex-col items-center justify-center text-center">
+          <p class="text-xs font-bold text-white">Baseline Logged: ${p.topWeight} ${unit} (Est 1RM: ${p.bestE1RM} ${unit})</p>
+          <p class="text-[11px] text-mutedText mt-1">Log a second session to plot your progression line.</p>
+        </div>`;
+      }
+
+      const width = 340;
+      const height = 150;
+      const padL = 32;
+      const padR = 14;
+      const padT = 16;
+      const padB = 24;
+      const plotW = width - padL - padR;
+      const plotH = height - padT - padB;
+
+      const allVals = points.flatMap(p => [p.topWeight, p.bestE1RM]);
+      const minVal = Math.floor(Math.min(...allVals) * 0.92);
+      const maxVal = Math.ceil(Math.max(...allVals) * 1.05);
+      const range = Math.max(1, maxVal - minVal);
+
+      const getX = idx => padL + (idx / (points.length - 1)) * plotW;
+      const getY = val => padT + plotH - ((val - minVal) / range) * plotH;
+
+      const weightCoords = points.map((p, i) => `${getX(i).toFixed(1)},${getY(p.topWeight).toFixed(1)}`);
+      const e1rmCoords = points.map((p, i) => `${getX(i).toFixed(1)},${getY(p.bestE1RM).toFixed(1)}`);
+
+      const areaPath = `M ${getX(0).toFixed(1)},${(padT + plotH).toFixed(1)} L ${weightCoords.join(' L ')} L ${getX(points.length - 1).toFixed(1)},${(padT + plotH).toFixed(1)} Z`;
+
+      const dotsHtml = points.map((p, i) => {
+        const cx = getX(i).toFixed(1);
+        const cy = getY(p.topWeight).toFixed(1);
+        return `<circle cx="${cx}" cy="${cy}" r="3.2" fill="#0A0A0C" stroke="${accentHex}" stroke-width="2" />`;
+      }).join('');
+
+      return `
+        <svg viewBox="0 0 ${width} ${height}" class="w-full h-40 overflow-visible">
+          <defs>
+            <linearGradient id="overloadGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="${accentHex}" stop-opacity="0.28" />
+              <stop offset="100%" stop-color="${accentHex}" stop-opacity="0.0" />
+            </linearGradient>
+          </defs>
+
+          <!-- Horizontal Grid Lines -->
+          <line x1="${padL}" y1="${padT}" x2="${width - padR}" y2="${padT}" stroke="#232329" stroke-dasharray="3 3" />
+          <line x1="${padL}" y1="${padT + plotH / 2}" x2="${width - padR}" y2="${padT + plotH / 2}" stroke="#232329" stroke-dasharray="3 3" />
+          <line x1="${padL}" y1="${padT + plotH}" x2="${width - padR}" y2="${padT + plotH}" stroke="#232329" />
+
+          <!-- Y Axis Labels -->
+          <text x="${padL - 5}" y="${padT + 3}" text-anchor="end" fill="#8E8E93" font-size="9">${maxVal}</text>
+          <text x="${padL - 5}" y="${padT + plotH / 2 + 3}" text-anchor="end" fill="#8E8E93" font-size="9">${Math.round((maxVal + minVal) / 2)}</text>
+          <text x="${padL - 5}" y="${padT + plotH}" text-anchor="end" fill="#8E8E93" font-size="9">${minVal}</text>
+
+          <!-- X Axis Start / End Dates -->
+          <text x="${padL}" y="${height - 5}" text-anchor="start" fill="#8E8E93" font-size="9">${points[0].date.slice(5)}</text>
+          <text x="${width - padR}" y="${height - 5}" text-anchor="end" fill="#8E8E93" font-size="9">${points[points.length - 1].date.slice(5)}</text>
+
+          <!-- Area & Lines -->
+          <path d="${areaPath}" fill="url(#overloadGrad)" />
+          <polyline fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.5" stroke-dasharray="3 3" points="${e1rmCoords.join(' ')}" />
+          <polyline fill="none" stroke="${accentHex}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" points="${weightCoords.join(' ')}" />
+          ${dotsHtml}
+        </svg>
+      `;
+    }
+
+    /*************************************************************************
+     * TAB 4: ROUTINES, PREFERENCES & BACKUP SETTINGS
+     *************************************************************************/
+    function renderSettingsTab(container) {
+      const accentHex = getAccentHex();
+      const currentTheme = getThemeObj();
+
+      const themeSwatchesHtml = Object.values(ACCENT_THEMES).map(t => {
+        const isSelected = appState.accent === t.id;
+        return `
+          <button
+            onclick="setAccent('${t.id}')"
+            class="flex flex-col items-center gap-1.5 p-2.5 rounded-2xl border transition active:scale-95 ${isSelected ? 'bg-obsidian border-white/40 shadow-md' : 'bg-obsidian/50 border-borderDark opacity-80 hover:opacity-100'}"
+          >
+            <span class="w-7 h-7 rounded-full block transition-transform ${isSelected ? 'scale-110 ring-2 ring-white ring-offset-2 ring-offset-obsidian' : ''}" style="background-color: ${t.hex};"></span>
+            <span class="text-[10px] font-bold ${isSelected ? 'text-white' : 'text-mutedText'}">${t.name.split(' ')[1] || t.name}</span>
+          </button>
+        `;
+      }).join('');
+
+      container.innerHTML = `
+        <!-- Theme / Accent Color Picker Card -->
+        <section class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-extrabold text-white">Theme & Accent Color</h2>
+              <p class="text-[11px] text-mutedText">Active: <span class="font-bold" style="color: ${accentHex};">${currentTheme.name}</span></p>
+            </div>
+            <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border" style="color: ${accentHex}; background-color: var(--accent-soft); border-color: var(--accent-border);">
+              Live Preview
+            </span>
+          </div>
+
+          <div class="grid grid-cols-5 gap-2 pt-1">
+            ${themeSwatchesHtml}
+          </div>
+        </section>
+
+        <!-- Saved Workout Routines -->
+        <section class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-extrabold text-white">Saved Routines</h2>
+              <p class="text-[11px] text-mutedText">1-tap templates pre-filled with your last weights</p>
+            </div>
+            <button onclick="openCreateTemplateModal()" class="px-3 py-1.5 rounded-xl text-xs font-extrabold text-obsidian" style="background-color: ${accentHex};">
+              + Routine
+            </button>
+          </div>
+
+          <div class="space-y-2">
+            ${appState.templates.map(tpl => `
+              <div class="bg-obsidian border border-borderDark rounded-2xl p-3 flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <h4 class="text-xs font-bold text-white truncate">${escapeHtml(tpl.name)}</h4>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-surface text-mutedText">${escapeHtml(tpl.tag)}</span>
+                  </div>
+                  <p class="text-[11px] text-mutedText truncate mt-0.5">
+                    ${tpl.exerciseIds.map(id => getExerciseName(id)).join(' · ')}
+                  </p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <button onclick="startFromTemplate('${tpl.id}')" class="px-2.5 py-1.5 rounded-xl text-[11px] font-extrabold text-obsidian" style="background-color: ${accentHex};">Start</button>
+                  <button onclick="deleteTemplate('${tpl.id}')" class="p-1.5 rounded-xl text-mutedText hover:text-coralAccent text-xs">✕</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </section>
+
+        <!-- Display & Unit Preferences -->
+        <section class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
+          <h2 class="text-sm font-extrabold text-white">App Preferences</h2>
+
+          <div class="flex items-center justify-between py-1">
+            <div>
+              <p class="text-xs font-bold text-white">Weight Unit</p>
+              <p class="text-[11px] text-mutedText">Used across all lifts & 1RM calculations</p>
+            </div>
+            <div class="flex bg-obsidian p-1 rounded-xl border border-borderDark">
+              <button onclick="setUnit('kg')" class="px-3 py-1 rounded-lg text-xs font-bold ${appState.unit === 'kg' ? 'bg-surface text-white' : 'text-mutedText'}">KG</button>
+              <button onclick="setUnit('lbs')" class="px-3 py-1 rounded-lg text-xs font-bold ${appState.unit === 'lbs' ? 'bg-surface text-white' : 'text-mutedText'}">LBS</button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between py-1 border-t border-borderDark/60 pt-3">
+            <div>
+              <p class="text-xs font-bold text-white">Phone Home Screen Shortcut</p>
+              <p class="text-[11px] text-mutedText">Install CADENCE as a full-screen mobile app</p>
+            </div>
+            <button onclick="openInstallModal()" class="px-3 py-1.5 rounded-xl bg-obsidian border border-borderDark text-xs font-bold text-white">
+              View Guide
+            </button>
+          </div>
+        </section>
+
+        <!-- Data Backup & Sample Data Management -->
+        <section class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
+          <div>
+            <h2 class="text-sm font-extrabold text-white">Offline Data & Backup</h2>
+            <p class="text-[11px] text-mutedText">All logs stay private on your phone. Export a JSON backup anytime.</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <button onclick="exportBackupJson()" class="py-2.5 px-3 rounded-xl bg-obsidian border border-borderDark text-xs font-bold text-white hover:bg-white/5">
+              ⬇ Export JSON
+            </button>
+            <label class="py-2.5 px-3 rounded-xl bg-obsidian border border-borderDark text-xs font-bold text-white hover:bg-white/5 text-center cursor-pointer">
+              ⬆ Import JSON
+              <input type="file" accept=".json" onchange="importBackupJson(event)" class="hidden" />
+            </label>
+          </div>
+
+          <div class="pt-2 border-t border-borderDark/60 flex items-center justify-between gap-2">
+            <button onclick="clearSampleOrAllData()" class="w-full py-2.5 px-3 rounded-xl bg-coralAccent/15 border border-coralAccent/30 text-coralAccent text-xs font-bold hover:bg-coralAccent/25 transition">
+              Reset All Workout Data
+            </button>
+          </div>
+        </section>
+      `;
+    }
+
+    function setUnit(unit) {
+      appState.unit = unit;
+      saveState();
+      renderMainView();
+      showToast(`Switched unit to ${unit.toUpperCase()}`);
+    }
+
+    function setAccent(accent) {
+      if (!ACCENT_THEMES[accent]) return;
+      appState.accent = accent;
+      applyAccentTheme(accent);
+      saveState();
+      renderHeaderAndStrip();
+      renderMainView();
+      showToast(`Theme switched to ${ACCENT_THEMES[accent].name}`);
+    }
+
+    function deleteTemplate(id) {
+      appState.templates = appState.templates.filter(t => t.id !== id);
+      saveState();
+      renderMainView();
+      showToast('Routine removed');
+    }
+
+    function clearSampleOrAllData() {
+      appState.workouts = {};
+      appState.hasSampleData = false;
+      saveState();
+      renderHeaderAndStrip();
+      switchTab('calendar');
+      showToast('All workout logs cleared. Ready for Day 1!');
+    }
+
+    function exportBackupJson() {
+      const dataStr = JSON.stringify(appState, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cadence-backup-${getTodayStr()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('JSON Backup downloaded');
+    }
+
+    function importBackupJson(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (imported && typeof imported.workouts === 'object') {
+            appState = { ...appState, ...imported, hasSampleData: false };
+            saveState();
+            renderHeaderAndStrip();
+            renderMainView();
+            showToast('Backup restored successfully!');
+          } else {
+            showToast('Invalid backup file format');
+          }
+        } catch (err) {
+          showToast('Could not parse JSON file');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    /*************************************************************************
+     * MODALS & BOTTOM SHEETS
+     *************************************************************************/
+    function openModal(innerHtml) {
+      const overlay = document.getElementById('modalOverlay');
+      const sheet = document.getElementById('modalSheet');
+      sheet.innerHTML = innerHtml;
+      overlay.classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.add('hidden');
+    }
+
+    function closeModalOnBackdrop(e) {
+      if (e.target.id === 'modalOverlay') closeModal();
+    }
+
+    // 1. Day Detail Bottom Sheet (when tapping a lit square on the 365-day grid)
+    function openDayDetailModal(dateStr) {
+      const w = appState.workouts[dateStr];
+      if (!w) return;
+      const accentHex = getAccentHex();
+      const unit = appState.unit;
+
+      const entriesHtml = w.isQuickCheckIn ? `
+        <div class="bg-obsidian border border-borderDark rounded-2xl p-4 text-center">
+          <span class="text-2xl">✅</span>
+          <p class="text-xs font-bold text-white mt-1">Quick Check-In Day</p>
+          <p class="text-[11px] text-mutedText mt-0.5">${escapeHtml(w.notes || 'Active recovery / conditioning logged')}</p>
+        </div>
+      ` : (w.entries || []).map(entry => {
+        const setsStr = (entry.sets || []).map((s, idx) => {
+          const ov = evaluateSetOverload(entry.exerciseId, s.weight, s.reps, dateStr);
+          return `
+            <div class="flex items-center justify-between text-xs py-1">
+              <span class="text-mutedText">Set ${idx + 1}</span>
+              <span class="font-bold text-white">${s.weight} ${unit} × ${s.reps} reps</span>
+              <span class="text-[10px] font-bold" style="color: ${ov ? accentHex : '#8E8E93'};">${ov ? ov.label : `1RM ~${calcE1RM(s.weight, s.reps)}`}</span>
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="bg-obsidian border border-borderDark rounded-2xl p-3.5">
+            <div class="flex items-center justify-between mb-1.5">
+              <h4 class="text-xs font-extrabold text-white">${escapeHtml(getExerciseName(entry.exerciseId))}</h4>
+              <button onclick="closeModal(); viewExerciseChart('${entry.exerciseId}')" class="text-[10px] font-bold" style="color: ${accentHex};">Chart →</button>
+            </div>
+            <div class="divide-y divide-borderDark/50">
+              ${setsStr}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      openModal(`
+        <div class="space-y-4">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider" style="color: ${accentHex};">${formatReadableDate(dateStr)} · ${dateStr}</span>
+              <h3 class="text-base font-extrabold text-white mt-0.5">${escapeHtml(w.title)}</h3>
+              ${w.notes ? `<p class="text-xs text-mutedText mt-1">${escapeHtml(w.notes)}</p>` : ''}
+            </div>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-obsidian text-mutedText hover:text-white">✕</button>
+          </div>
+
+          <div class="space-y-2.5 max-h-[50vh] overflow-y-auto pr-1">
+            ${entriesHtml}
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5 pt-2">
+            <button onclick="deleteWorkoutDate('${dateStr}')" class="py-3 rounded-2xl bg-coralAccent/15 border border-coralAccent/30 text-coralAccent text-xs font-bold">
+              Delete Log
+            </button>
+            <button onclick="closeModal(); openLoggerForDate('${dateStr}')" class="py-3 rounded-2xl text-xs font-extrabold text-obsidian" style="background-color: ${accentHex};">
+              Edit Workout
+            </button>
+          </div>
+        </div>
+      `);
+    }
+
+    function deleteWorkoutDate(dateStr) {
+      delete appState.workouts[dateStr];
+      saveState();
+      closeModal();
+      renderHeaderAndStrip();
+      renderMainView();
+      showToast('Workout removed');
+    }
+
+    // 2. Exercise Picker & Custom Exercise Modal
+    function openExercisePickerModal(filterCat = 'All', searchQuery = '') {
+      const accentHex = getAccentHex();
+      const categories = ['All', 'Glutes / Lower', 'Upper Body', 'Core & Cardio', 'Custom'];
+
+      const filtered = appState.exercises.filter(ex => {
+        const matchesCat = filterCat === 'All' || ex.category === filterCat;
+        const matchesQuery = ex.name.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCat && matchesQuery;
+      });
+
+      openModal(`
+        <div class="space-y-3.5">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-extrabold text-white">Add Exercise</h3>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-obsidian text-mutedText hover:text-white">✕</button>
+          </div>
+
+          <!-- Search Bar -->
+          <input
+            type="text"
+            id="exSearchInput"
+            value="${escapeHtml(searchQuery)}"
+            oninput="openExercisePickerModal('${filterCat}', this.value)"
+            placeholder="Search exercises (e.g. Hip Thrust, RDL, Lat...)"
+            class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-xs text-white placeholder-mutedText outline-none"
+          />
+
+          <!-- Category Pills -->
+          <div class="flex gap-1.5 overflow-x-auto no-scrollbar">
+            ${categories.map(cat => `
+              <button onclick="openExercisePickerModal('${cat}', document.getElementById('exSearchInput').value)" class="px-3 py-1.5 rounded-xl text-[11px] font-bold shrink-0 border transition ${filterCat === cat ? 'text-obsidian' : 'bg-obsidian border-borderDark text-mutedText'}" style="${filterCat === cat ? `background-color: ${accentHex}; border-color: ${accentHex};` : ''}">
+                ${cat}
+              </button>
+            `).join('')}
+          </div>
+
+          <!-- Exercise List -->
+          <div class="space-y-1.5 max-h-60 overflow-y-auto pr-1">
+            ${filtered.map(ex => {
+              const bench = getExerciseBenchmarks(ex.id, activeSession.date);
+              const sub = bench.bestWeight > 0 ? `Best: ${bench.bestWeight}${appState.unit} × ${bench.bestWeightReps}` : ex.category;
+              return `
+                <button onclick="addExerciseToSession('${ex.id}')" class="w-full text-left bg-obsidian hover:bg-white/5 border border-borderDark rounded-2xl p-3 flex items-center justify-between">
+                  <div>
+                    <p class="text-xs font-bold text-white">${escapeHtml(ex.name)}</p>
+                    <p class="text-[10px] text-mutedText mt-0.5">${sub}</p>
+                  </div>
+                  <span class="text-sm font-extrabold" style="color: ${accentHex};">+</span>
+                </button>
+              `;
+            }).join('') || `<p class="text-xs text-mutedText text-center py-4">No matching exercises found.</p>`}
+          </div>
+
+          <!-- Quick Create Custom Exercise -->
+          <div class="pt-3 border-t border-borderDark space-y-2">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText">Create Custom Exercise</label>
+            <div class="flex gap-2">
+              <input type="text" id="newCustomExName" placeholder="e.g., Smith Machine Squat" class="flex-1 bg-obsidian border border-borderDark rounded-xl px-3 py-2 text-xs text-white outline-none" />
+              <button onclick="createAndAddCustomExercise()" class="px-3.5 py-2 rounded-xl text-xs font-extrabold text-obsidian shrink-0" style="background-color: ${accentHex};">
+                + Create
+              </button>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    function addExerciseToSession(exerciseId) {
+      const bench = getExerciseBenchmarks(exerciseId, activeSession.date);
+      const prefillWeight = bench.lastSession && bench.lastSession.sets[0] ? bench.lastSession.sets[0].weight : '';
+      const prefillReps = bench.lastSession && bench.lastSession.sets[0] ? bench.lastSession.sets[0].reps : 10;
+
+      activeSession.entries.push({
+        exerciseId,
+        sets: [
+          { weight: prefillWeight, reps: prefillReps, rir: '2', completed: false },
+          { weight: prefillWeight, reps: prefillReps, rir: '1', completed: false },
+          { weight: prefillWeight, reps: prefillReps, rir: '1', completed: false }
+        ]
+      });
+      closeModal();
+      renderMainView();
+    }
+
+    function createAndAddCustomExercise() {
+      const input = document.getElementById('newCustomExName');
+      const name = (input ? input.value : '').trim();
+      if (!name) {
+        showToast('Enter an exercise name');
+        return;
+      }
+      const newId = 'ex_custom_' + Date.now();
+      appState.exercises.unshift({
+        id: newId,
+        name,
+        category: 'Custom'
+      });
+      saveState();
+      addExerciseToSession(newId);
+      showToast(`Added "${name}"`);
+    }
+
+    // 3. Create Reusable Routine Modal
+    function openCreateTemplateModal() {
+      const accentHex = getAccentHex();
+      openModal(`
+        <div class="space-y-3.5">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-extrabold text-white">New Workout Routine</h3>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-obsidian text-mutedText hover:text-white">✕</button>
+          </div>
+
+          <input type="text" id="tplNameInput" placeholder="Routine Name (e.g., Glute Focus Day)" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-xs font-bold text-white outline-none" />
+
+          <div class="space-y-1.5 max-h-60 overflow-y-auto pr-1">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-mutedText">Select Exercises:</p>
+            ${appState.exercises.map(ex => `
+              <label class="flex items-center justify-between bg-obsidian border border-borderDark rounded-xl p-2.5 cursor-pointer">
+                <span class="text-xs font-semibold text-white">${escapeHtml(ex.name)}</span>
+                <input type="checkbox" value="${ex.id}" class="tpl-ex-check accent-limeAccent w-4 h-4" />
+              </label>
+            `).join('')}
+          </div>
+
+          <button onclick="saveNewTemplate()" class="w-full py-3 rounded-2xl text-xs font-extrabold text-obsidian" style="background-color: ${accentHex};">
+            Save Routine
+          </button>
+        </div>
+      `);
+    }
+
+    function saveNewTemplate() {
+      const name = document.getElementById('tplNameInput').value.trim();
+      const checked = Array.from(document.querySelectorAll('.tpl-ex-check:checked')).map(cb => cb.value);
+      if (!name || checked.length === 0) {
+        showToast('Enter a name and select at least 1 exercise');
+        return;
+      }
+      appState.templates.unshift({
+        id: 'tpl_' + Date.now(),
+        name,
+        tag: 'Custom',
+        exerciseIds: checked
+      });
+      saveState();
+      closeModal();
+      renderMainView();
+      showToast('Routine saved!');
+    }
+
+    // 4. Phone Home Screen Shortcut Guide Modal
+    function openInstallModal() {
+      const accentHex = getAccentHex();
+      openModal(`
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-obsidian border border-borderDark flex items-center justify-center">
+                <span class="text-base">📱</span>
+              </div>
+              <div>
+                <h3 class="text-base font-extrabold text-white">Install CADENCE as a Full-Screen App</h3>
+                <p class="text-[11px] text-mutedText">Zero browser bars via GitHub Pages</p>
+              </div>
+            </div>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-obsidian text-mutedText hover:text-white">✕</button>
+          </div>
+
+          <div class="bg-obsidian border border-borderDark rounded-2xl p-3.5 space-y-2">
+            <p class="text-xs font-extrabold" style="color: ${accentHex};">Step 1: Host on GitHub Pages (Free)</p>
+            <ol class="text-xs text-mutedText space-y-1.5 list-decimal list-inside">
+              <li>Create a new public repository on <span class="text-white font-semibold">github.com</span> (e.g. <code class="text-white">cadence</code>).</li>
+              <li>Upload this single file named exactly <code class="text-white font-semibold">index.html</code>.</li>
+              <li>Go to <span class="text-white font-semibold">Settings → Pages</span>, select branch <span class="text-white font-semibold">main</span>, and click <span class="text-white font-semibold">Save</span>.</li>
+            </ol>
+          </div>
+
+          <div class="bg-obsidian border border-borderDark rounded-2xl p-3.5 space-y-2">
+            <p class="text-xs font-extrabold" style="color: ${accentHex};">Step 2: Add Your GitHub Link to Home Screen</p>
+            <ol class="text-xs text-mutedText space-y-1.5 list-decimal list-inside">
+              <li>Open your <code class="text-white">username.github.io/cadence</code> link in <span class="text-white font-semibold">Safari</span> (iPhone) or <span class="text-white font-semibold">Chrome</span> (Android).</li>
+              <li>Tap <span class="text-white font-semibold">Share → Add to Home Screen</span> (iOS) or <span class="text-white font-semibold">⋮ → Install App</span> (Android).</li>
+              <li>It will launch completely full-screen like a real native app!</li>
+            </ol>
+          </div>
+
+          <button onclick="closeModal()" class="w-full py-3 rounded-2xl text-xs font-extrabold text-obsidian" style="background-color: ${accentHex};">
+            Got It
+          </button>
+        </div>
+      `);
+    }
+
+    // 5. Quick Theme Picker Modal (Triggered from Header Color Swatch)
+    function openThemePickerModal() {
+      const accentHex = getAccentHex();
+      const swatches = Object.values(ACCENT_THEMES).map(t => {
+        const isSelected = appState.accent === t.id;
+        return `
+          <button
+            onclick="setAccent('${t.id}'); openThemePickerModal();"
+            class="w-full flex items-center justify-between p-3 rounded-2xl border transition active:scale-[0.98] ${isSelected ? 'bg-obsidian border-white/40' : 'bg-obsidian/60 border-borderDark hover:bg-obsidian'}"
+          >
+            <div class="flex items-center gap-3">
+              <span class="w-6 h-6 rounded-full block border border-white/20" style="background-color: ${t.hex}; box-shadow: 0 0 10px rgba(${t.rgb}, 0.4);"></span>
+              <span class="text-xs font-bold text-white">${t.name}</span>
+            </div>
+            ${isSelected ? `<span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full text-obsidian" style="background-color: ${t.hex};">Active</span>` : `<span class="text-[11px] text-mutedText">Select</span>`}
+          </button>
+        `;
+      }).join('');
+
+      openModal(`
+        <div class="space-y-3.5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-extrabold text-white">Choose Accent Color</h3>
+              <p class="text-[11px] text-mutedText">Updates your Year Grid, PR badges, charts & app icon</p>
+            </div>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-obsidian text-mutedText hover:text-white">✕</button>
+          </div>
+
+          <div class="space-y-2">
+            ${swatches}
+          </div>
+
+          <button onclick="closeModal()" class="w-full py-3 rounded-2xl text-xs font-extrabold text-obsidian" style="background-color: ${accentHex};">
+            Done
+          </button>
+        </div>
+      `);
+    }
+
+    function dismissInstallBanner() {
+      appState.dismissedInstallBanner = true;
+      saveState();
+      renderMainView();
+    }
+
+    /*************************************************************************
+     * TOAST & SECURITY HELPERS
+     *************************************************************************/
+    function showToast(message) {
+      const container = document.getElementById('toastContainer');
+      const accentHex = getAccentHex();
+      const toast = document.createElement('div');
+      toast.className = 'bg-surface border border-borderDark text-white text-xs font-bold px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 transition-all duration-200';
+      toast.innerHTML = `<span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${accentHex};"></span><span>${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-6px)';
+        setTimeout(() => toast.remove(), 220);
+      }, 2400);
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    /*************************************************************************
+     * INITIALIZATION & OFFLINE SERVICE WORKER REGISTRATION
+     *************************************************************************/
+    function registerInlineServiceWorker() {
+      if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+        const swCode = `
+          const CACHE_NAME = 'cadence-app-v1';
+          self.addEventListener('install', (e) => {
+            self.skipWaiting();
+          });
+          self.addEventListener('activate', (e) => {
+            e.waitUntil(self.clients.claim());
+          });
+          self.addEventListener('fetch', (e) => {
+            if (e.request.method !== 'GET') return;
+            e.respondWith(
+              fetch(e.request)
+                .then((res) => {
+                  const copy = res.clone();
+                  caches.open(CACHE_NAME).then((cache) => cache.put(e.request, copy));
+                  return res;
+                })
+                .catch(() => caches.match(e.request))
+            );
+          });
+        `;
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(swUrl).catch(() => {});
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      initSessionForDate(getTodayStr());
+      renderHeaderAndStrip();
+      renderMainView();
+      registerInlineServiceWorker();
+    });
+  </script>
+</body>
+</html>
