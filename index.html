@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>CADENCE — 365-Day Workout &amp; Progressive Overload Tracker</title>
+  <title>CADENCE — 365-Day Workout &amp; Nutrition Tracker</title>
 
   <!-- PWA & iOS Home Screen Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -259,16 +259,15 @@
     <main id="mainContent" class="flex-1 px-4 pt-4">
       <div id="view_grid" class="tab-pane space-y-5"></div>
       <div id="view_logger" class="tab-pane space-y-5 hidden"></div>
-      <div id="view_overload" class="tab-pane space-y-5 hidden"></div>
       <div id="view_calories" class="tab-pane space-y-5 hidden"></div>
       <div id="view_templates" class="tab-pane space-y-5 hidden"></div>
     </main>
 
   </div>
 
-  <!-- Bottom Tab Navigation -->
+  <!-- Bottom Tab Navigation (4 Clean Tabs — Overload merged into Workouts) -->
   <nav class="fixed bottom-0 inset-x-0 z-30 bg-obsidian/95 backdrop-blur-xl border-t border-borderDark pb-safe">
-    <div class="max-w-lg mx-auto grid grid-cols-5 h-16 px-1">
+    <div class="max-w-lg mx-auto grid grid-cols-4 h-16 px-2">
       <button type="button" onclick="switchTab('grid')" data-tab="grid" class="nav-btn flex flex-col items-center justify-center gap-1 text-white accent-text transition">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <rect x="3" y="4" width="18" height="18" rx="3"></rect>
@@ -281,14 +280,7 @@
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6.5 6.5h11M6.5 17.5h11M4 9v6M20 9v6M8 4v16M16 4v16"></path>
         </svg>
-        <span class="text-[10px] font-semibold tracking-tight">Workout</span>
-      </button>
-
-      <button type="button" onclick="switchTab('overload')" data-tab="overload" class="nav-btn flex flex-col items-center justify-center gap-1 text-mutedText transition">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 17l6-6 4 4 8-8M17 7h4v4"></path>
-        </svg>
-        <span class="text-[10px] font-semibold tracking-tight">Overload</span>
+        <span class="text-[10px] font-semibold tracking-tight">Workouts</span>
       </button>
 
       <button type="button" onclick="switchTab('calories')" data-tab="calories" class="nav-btn flex flex-col items-center justify-center gap-1 text-mutedText transition">
@@ -311,8 +303,8 @@
   <div id="fullScreenGridOverlay" class="fixed inset-0 z-40 hidden bg-obsidian flex flex-col">
     <div class="flex items-center justify-between px-4 py-3 border-b border-borderDark bg-obsidian/95 backdrop-blur-md">
       <div>
-        <h2 class="text-sm font-extrabold tracking-tight text-white">365-DAY YEAR GRID</h2>
-        <p id="fsGridSubtitle" class="text-[11px] text-mutedText">Every square is a day you showed up</p>
+        <h2 class="text-sm font-extrabold tracking-tight text-white">YEAR GRID</h2>
+        <p id="fsGridSubtitle" class="text-[11px] text-mutedText">January 1 – December 31</p>
       </div>
       <button type="button" onclick="closeFullScreenYearGrid()" class="px-3.5 py-1.5 rounded-full bg-surface border border-borderDark text-xs font-bold text-white hover:border-white/20">
         ✕ Close
@@ -360,7 +352,6 @@
     const dirtyTabs = {
       grid: true,
       logger: true,
-      overload: true,
       calories: true,
       templates: true
     };
@@ -529,6 +520,996 @@
       { id: 'swimming', name: 'Swimming Laps', muscle: 'Cardio', equipment: 'Bodyweight', isCardio: true },
       { id: 'boxing_bag', name: 'Heavy Bag Boxing / Kickboxing', muscle: 'Cardio', equipment: 'Bodyweight', isCardio: true }
     ];
+
+    /* ==========================================================================
+       EXERCISE FORM GUIDES, BIOMECHANICS ANIMATIONS & COMMON MISTAKES
+       ========================================================================== */
+    const SPECIFIC_FORM_GUIDES = {
+      barbell_squat: {
+        animType: 'squat',
+        cue: 'Brace core 360°, break at hips & knees together, track knees over 2nd–3rd toe.',
+        mistakes: [
+          'Knees caving inward (valgus collapse) out of the bottom hole.',
+          'Heels lifting off the floor due to shifting weight onto the toes.',
+          'Butt wink / lower-back rounding from losing ribcage-to-pelvis brace.',
+          'Cutting depth high instead of reaching at least parallel.'
+        ]
+      },
+      front_squat: {
+        animType: 'squat',
+        cue: 'Keep elbows high and parallel to the floor so the bar rests on front delts.',
+        mistakes: [
+          'Dropping elbows at the bottom, causing the torso and bar to pitch forward.',
+          'Gripping the bar tightly with wrists instead of resting it on the shoulders.',
+          'Allowing upper back (thoracic spine) to round under load.'
+        ]
+      },
+      goblet_squat: {
+        animType: 'squat',
+        cue: 'Hold dumbbell close to sternum, keep torso upright, sink between knees.',
+        mistakes: [
+          'Holding the dumbbell away from the chest, straining the lower back.',
+          'Rounding shoulders forward as legs fatigue.',
+          'Pushing knees past toes while lifting heels.'
+        ]
+      },
+      leg_press: {
+        animType: 'squat',
+        cue: 'Keep lower back & glutes glued to the pad; lower until knees reach ~90°.',
+        mistakes: [
+          'Lifting glutes and tailbone off the seat at the bottom (lumbar flexion risk).',
+          'Snapping / hyperextending knees locked straight at the top of each rep.',
+          'Placing feet too low and letting heels peel off the platform.'
+        ]
+      },
+      hack_squat: {
+        animType: 'squat',
+        cue: 'Press head, upper back, and pelvis flat against the pad; control the eccentric.',
+        mistakes: [
+          'Hips sliding forward off the back pad at maximum depth.',
+          'Bouncing rapidly out of the bottom without control.',
+          'Locking knees aggressively at the top.'
+        ]
+      },
+      bulgarian_split_squat: {
+        animType: 'squat',
+        cue: 'Glute focus: slight forward torso lean & longer step. Quad focus: more upright torso & deeper knee travel over front mid-foot.',
+        mistakes: [
+          'Standing on a tightrope (feet inline) instead of hip-width apart for balance.',
+          'Pushing primarily off the rear foot instead of driving through the front heel/mid-foot.',
+          'Front knee collapsing inward on the ascent.',
+          'Forgetting to adjust stance & torso angle for your goal (more upright/deeper knee bend for quads vs. slight hip hinge/lean for glutes).'
+        ]
+      },
+      leg_extension: {
+        animType: 'squat',
+        cue: 'Align knee joint with machine pivot axis; squeeze quads hard for 1s at the top.',
+        mistakes: [
+          'Swinging the weight up with momentum and letting the stack slam down.',
+          'Lifting hips off the seat to cheat heavy loads.',
+          'Pad positioned too high on the shins instead of just above the ankles.'
+        ]
+      },
+      seated_leg_curl: {
+        animType: 'squat',
+        cue: 'Lock lap pad snugly over thighs; drive heels smoothly under the seat.',
+        mistakes: [
+          'Lifting hips or arching lower back to force the final degrees of flexion.',
+          'Letting the weight stack snap back rapidly on the eccentric.',
+          'Pointing toes hard instead of keeping ankles neutral/dorsiflexed.'
+        ]
+      },
+      lying_leg_curl: {
+        animType: 'squat',
+        cue: 'Press pelvis gently into the bench throughout the entire curl.',
+        mistakes: [
+          'Popping the hips up off the pad as heels approach the glutes.',
+          'Using lower-back momentum to initiate the curl.',
+          'Cutting the bottom range of motion short before full extension.'
+        ]
+      },
+      hip_thrust: {
+        animType: 'thrust',
+        cue: 'Tuck chin to chest, ribs down, posterior pelvic tilt at top with 90° shins.',
+        mistakes: [
+          'Hyperextending the lower back at lockout instead of tucking the pelvis.',
+          'Flaring the head backward and looking at the ceiling.',
+          'Feet placed too close (quad-dominant) or too far (hamstring-dominant) from glutes.',
+          'Not reaching full hip lockout at the top.'
+        ]
+      },
+      smith_hip_thrust: {
+        animType: 'thrust',
+        cue: 'Anchor shoulder blades on bench edge, keep ribs pinned down at top lockout.',
+        mistakes: [
+          'Over-arching the lumbar spine at the top of the thrust.',
+          'Bench sliding backward because it is not braced against a rack or wall.',
+          'Rushing reps without a 1-second isometric squeeze at peak contraction.'
+        ]
+      },
+      cable_kickback: {
+        animType: 'thrust',
+        cue: 'Keep torso still at ~30° angle, brace abs, extend leg back & slightly outward.',
+        mistakes: [
+          'Swinging the lower back into hyperextension on every kick.',
+          'Using too much weight and turning the movement into a whole-body swing.',
+          'Bending and straightening the knee instead of extending from the hip.'
+        ]
+      },
+      hip_abduction: {
+        animType: 'thrust',
+        cue: 'Drive knees outward smoothly with glute medius; control the return.',
+        mistakes: [
+          'Bouncing the weight stack rapidly with momentum.',
+          'Slouching or twisting unevenly on the seat.',
+          'Releasing the eccentric too fast.'
+        ]
+      },
+      rdl: {
+        animType: 'hinge',
+        cue: 'Soft knee bend, push hips straight back until hamstrings reach max stretch, bar skims thighs.',
+        mistakes: [
+          'Squatting the weight down by bending the knees more as the bar descends.',
+          'Letting the barbell drift forward away from the legs (stresses lower back).',
+          'Rounding the lumbar spine trying to touch the floor past hamstring mobility.',
+          'Hyperextending the back backward at the top lockout.'
+        ]
+      },
+      db_rdl: {
+        animType: 'hinge',
+        cue: 'Keep dumbbells brushing outer thighs; stop lowering once hips stop moving back.',
+        mistakes: [
+          'Allowing dumbbells to swing forward in front of the knees.',
+          'Rounding upper and lower back to reach lower.',
+          'Looking straight up in the mirror and cranking the neck.'
+        ]
+      },
+      conventional_deadlift: {
+        animType: 'hinge',
+        cue: 'Bar over mid-foot, pull slack out of bar, brace lats ("armpits in pockets"), push floor away.',
+        mistakes: [
+          'Yanking the bar off the floor with rounded lower back before pulling slack.',
+          'Hips shooting up first, turning the pull into a stiff-leg back lift.',
+          'Starting with the barbell too far forward over the toes.',
+          'Leaning way back at the top instead of squeezing glutes to stand tall.'
+        ]
+      },
+      bench_press: {
+        animType: 'press',
+        cue: 'Retract & depress shoulder blades, slight upper-back arch, elbows at ~45°–60°.',
+        mistakes: [
+          'Flaring elbows out to 90° (T-shape), placing heavy stress on shoulder joints.',
+          'Bouncing the barbell off the sternum instead of pausing/controlling.',
+          'Lifting glutes off the bench when pressing heavy reps.',
+          'Losing upper-back tightness at lockout.'
+        ]
+      },
+      incline_db_press: {
+        animType: 'press',
+        cue: 'Set bench to 30°–45°, tuck elbows slightly (~45°), press in a slight arc.',
+        mistakes: [
+          'Setting bench incline too steep (60°+), turning it into a front-delt press.',
+          'Flaring elbows wide and letting wrists bend backward.',
+          'Clanking dumbbells together loudly and losing tension at the top.'
+        ]
+      },
+      lat_pulldown: {
+        animType: 'pull',
+        cue: 'Depress shoulders first, drive elbows down toward hips, pull bar to upper chest.',
+        mistakes: [
+          'Leaning way back (45°+) and swinging body weight to yank the bar down.',
+          'Shrugging shoulders up toward the ears at the bottom of the pull.',
+          'Pulling the bar behind the neck, straining the shoulder capsule.',
+          'Using forearms/biceps instead of leading with the elbows.'
+        ]
+      },
+      seated_cable_row: {
+        animType: 'pull',
+        cue: 'Sit tall with neutral spine, pull handle to lower ribs, squeeze shoulder blades together.',
+        mistakes: [
+          'Rocking torso excessively forward and backward like a rowing boat.',
+          'Rounding the shoulders forward at the bottom stretch.',
+          'Shrugging traps up toward the ears during the pull.'
+        ]
+      },
+      barbell_row: {
+        animType: 'pull',
+        cue: 'Hinge torso to ~45°, brace core, row bar into lower ribs/navel.',
+        mistakes: [
+          'Standing almost upright and using hip/leg heave to jerk the weight.',
+          'Rounding the lower back under fatigue.',
+          'Flaring elbows wide instead of pulling elbows back past the torso.'
+        ]
+      },
+      overhead_press: {
+        animType: 'press',
+        cue: 'Squeeze glutes & abs tight, stack wrists over elbows, press straight overhead.',
+        mistakes: [
+          'Over-arching the lower back (rib flare) to turn it into an incline press.',
+          'Pressing the bar forward around the face instead of moving chin slightly back.',
+          'Bending wrists backward under the bar.'
+        ]
+      },
+      db_lateral_raise: {
+        animType: 'press',
+        cue: 'Lead with elbows slightly in front of torso (scapular plane) to shoulder height.',
+        mistakes: [
+          'Swinging torso and hips to heave heavy dumbbells up.',
+          'Shrugging upper traps so shoulders rise toward the ears.',
+          'Raising weights way above shoulder height with momentum.'
+        ]
+      },
+      cable_face_pull: {
+        animType: 'pull',
+        cue: 'Pull rope toward forehead/eyes while externally rotating thumbs backward.',
+        mistakes: [
+          'Pulling down toward the chest with elbows low (turns into a row).',
+          'Using too much weight and leaning backward to counterbalance.',
+          'Letting hands stay in front of elbows instead of rotating externally.'
+        ]
+      },
+      barbell_bicep_curl: {
+        animType: 'pull',
+        cue: 'Pin elbows softly at your sides, curl up without swinging torso, lower slowly.',
+        mistakes: [
+          'Swinging the lower back and hips to throw the weight upward.',
+          'Driving elbows far forward so front delts take over the lift.',
+          'Dropping the bar rapidly on the lowering phase.'
+        ]
+      },
+      cable_tricep_pushdown: {
+        animType: 'press',
+        cue: 'Lock upper arms vertically at your ribs, extend elbows fully, spread rope at bottom.',
+        mistakes: [
+          'Flaring elbows outward and pushing down with chest/shoulder weight.',
+          'Letting hands drift all the way up to the chin and losing elbow lock.',
+          'Leaning over the stack to press with body weight.'
+        ]
+      },
+      hanging_leg_raise: {
+        animType: 'core',
+        cue: 'Curl pelvis upward toward ribs (posterior tilt) rather than just swinging legs.',
+        mistakes: [
+          'Swinging legs with momentum instead of controlled abdominal curling.',
+          'Only lifting legs to 90° with hip flexors without curling the pelvis.',
+          'Dropping legs fast and hyperextending the lower back.'
+        ]
+      },
+      cable_crunch: {
+        animType: 'core',
+        cue: 'Keep hips stationary, curl ribcage down toward pelvis ("round the upper back").',
+        mistakes: [
+          'Sitting hips back toward heels (hip hinge) instead of flexing the spine.',
+          'Pulling with arms and lats rather than crunching the abs.',
+          'Keeping the back completely flat while bowing forward.'
+        ]
+      },
+      stairmaster: {
+        animType: 'cardio',
+        cue: 'Stand tall with light fingertip balance on rails; take full, steady steps.',
+        mistakes: [
+          'Leaning heavily onto forearms/rails, cutting calorie burn by up to 30%.',
+          'Taking tiny, fast toe-taps instead of full heel-to-toe steps.',
+          'Hunching shoulders and looking straight down at feet.'
+        ]
+      },
+      incline_treadmill: {
+        animType: 'cardio',
+        cue: 'Walk upright with natural arm swing; avoid gripping the console.',
+        mistakes: [
+          'Holding onto the front bar and leaning backward (negates the incline angle).',
+          'Overstriding with locked knees on steep inclines.'
+        ]
+      }
+    };
+
+    const MUSCLE_FALLBACK_GUIDES = {
+      Legs: {
+        animType: 'squat',
+        cue: 'Control the lowering phase (2–3s), keep knees tracking over toes, drive evenly through mid-foot.',
+        mistakes: [
+          'Knees collapsing inward under fatigue.',
+          'Bouncing rapidly out of the bottom range of motion.',
+          'Locking joints aggressively at the top of each repetition.'
+        ]
+      },
+      Glutes: {
+        animType: 'thrust',
+        cue: 'Keep ribs pinned down, tuck pelvis at peak contraction, pause 1 second at the top.',
+        mistakes: [
+          'Hyperextending the lower back instead of squeezing glutes at lockout.',
+          'Using torso momentum rather than isolating hip extension.',
+          'Rushing the lowering phase without tension.'
+        ]
+      },
+      Posterior: {
+        animType: 'hinge',
+        cue: 'Maintain a braced, neutral spine; push hips backward until hamstrings reach full stretch.',
+        mistakes: [
+          'Rounding the lower back under load.',
+          'Letting the weight drift forward away from your center of gravity.',
+          'Over-arching backward at the top lockout.'
+        ]
+      },
+      Chest: {
+        animType: 'press',
+        cue: 'Retract shoulder blades into the bench, keep elbows at ~45°, press with full control.',
+        mistakes: [
+          'Flaring elbows out to 90° and straining the front shoulder capsule.',
+          'Bouncing weight off the chest or cutting depth short.',
+          'Losing shoulder-blade stability at lockout.'
+        ]
+      },
+      Back: {
+        animType: 'pull',
+        cue: 'Initiate every rep by depressing shoulders and driving elbows back/down toward hips.',
+        mistakes: [
+          'Using body swing and momentum to jerk heavy weights.',
+          'Shrugging traps toward ears instead of engaging lats and mid-back.',
+          'Pulling with biceps/wrists rather than leading with elbows.'
+        ]
+      },
+      Shoulders: {
+        animType: 'ohp',
+        cue: 'Keep core braced, traps relaxed down, and move through a smooth, controlled arc.',
+        mistakes: [
+          'Swinging the torso to heave weights upward.',
+          'Shrugging upper traps on lateral or rear-delt movements.',
+          'Over-arching lower back during overhead presses.'
+        ]
+      },
+      Arms: {
+        animType: 'curl',
+        cue: 'Anchor elbows in place, isolate the elbow hinge, and control the eccentric stretch.',
+        mistakes: [
+          'Swinging shoulders or lower back to lift heavier weight.',
+          'Cutting the bottom stretch short (partial reps).',
+          'Flaring elbows wide during tricep extensions.'
+        ]
+      },
+      Core: {
+        animType: 'core',
+        cue: 'Exhale forcefully as you curl ribs toward pelvis; avoid pulling on your neck or swinging.',
+        mistakes: [
+          'Using hip-flexor momentum instead of slow spinal flexion.',
+          'Arching the lower back off the floor/pad on the return.',
+          'Holding your breath throughout the set.'
+        ]
+      },
+      Cardio: {
+        animType: 'cardio',
+        cue: 'Maintain tall posture, rhythmic breathing, and light hands on machine rails.',
+        mistakes: [
+          'Leaning your bodyweight onto handrails (reduces intensity & posture).',
+          'Starting at an unsustainable sprint pace instead of steady cadence.'
+        ]
+      }
+    };
+
+    function resolveExerciseAnimType(ex, baseGuide) {
+      if (!ex) return baseGuide.animType || 'squat';
+      const id = (ex.id || '').toLowerCase();
+      const name = (ex.name || '').toLowerCase();
+
+      if (id.includes('bulgarian') || id.includes('split_squat') || id.includes('lunge') || id.includes('step_up') || name.includes('lunge') || name.includes('split squat')) {
+        return 'lunge';
+      }
+      if (id.includes('leg_extension') || name.includes('leg extension')) {
+        return 'leg_ext';
+      }
+      if (id.includes('leg_curl') || id.includes('hamstring_curl') || name.includes('leg curl')) {
+        return 'leg_curl';
+      }
+      if (id.includes('abduction') || id.includes('adduction') || name.includes('abduction') || name.includes('adduction')) {
+        return 'abduction';
+      }
+      if (id.includes('kickback') || name.includes('kickback')) {
+        return 'kickback';
+      }
+      if (id.includes('calf') || name.includes('calf')) {
+        return 'calf';
+      }
+      if (id.includes('lateral_raise') || id.includes('front_raise') || id.includes('rear_delt') || id.includes('reverse_pec') || name.includes('lateral raise') || name.includes('rear delt')) {
+        return 'lateral';
+      }
+      if (id.includes('fly') || id.includes('pec_deck') || name.includes('fly') || name.includes('pec deck')) {
+        return 'fly';
+      }
+      if (id.includes('incline') && (id.includes('press') || name.includes('press'))) {
+        return 'incline_press';
+      }
+      if (id.includes('overhead_press') || id.includes('shoulder_press') || id.includes('arnold') || id.includes('ohp') || name.includes('shoulder press') || name.includes('overhead press')) {
+        return 'ohp';
+      }
+      if (id.includes('row') || id.includes('face_pull') || name.includes('row') || name.includes('face pull')) {
+        return 'row';
+      }
+      if (id.includes('tricep') || id.includes('pushdown') || id.includes('skull_crusher') || name.includes('tricep') || name.includes('skull')) {
+        return 'tricep';
+      }
+      if (id.includes('curl') || name.includes('curl')) {
+        return 'curl';
+      }
+      return baseGuide.animType || 'squat';
+    }
+
+    function getExerciseFormGuide(ex) {
+      const base = (ex && SPECIFIC_FORM_GUIDES[ex.id])
+        ? SPECIFIC_FORM_GUIDES[ex.id]
+        : (MUSCLE_FALLBACK_GUIDES[ex?.muscle] || MUSCLE_FALLBACK_GUIDES.Legs);
+      return {
+        ...base,
+        animType: resolveExerciseAnimType(ex, base)
+      };
+    }
+
+    function renderExerciseFormSvg(animType) {
+      const uid = 'bio_' + Math.random().toString(36).slice(2, 9);
+      return `
+        <div class="w-32 h-28 rounded-xl bg-obsidian border border-borderDark/90 flex flex-col items-center justify-center shrink-0 overflow-hidden relative shadow-inner">
+          <canvas id="${uid}" data-bio-anim="${escapeHtml(animType)}" width="256" height="224" class="w-full h-full block"></canvas>
+        </div>
+      `;
+    }
+
+    /* ==========================================================================
+       60FPS ANATOMICAL BIOMECHANICS CANVAS ENGINE
+       ========================================================================== */
+    let bioAnimRafId = null;
+
+    function solveTwoBoneIK(ax, ay, bx, by, L1, L2, bendDir) {
+      const dx = bx - ax;
+      const dy = by - ay;
+      const maxReach = (L1 + L2) * 0.99;
+      const minReach = Math.abs(L1 - L2) + 1;
+      const dist = Math.min(maxReach, Math.max(minReach, Math.hypot(dx, dy)));
+      const baseAngle = Math.atan2(dy, dx);
+      const cosA = Math.min(1, Math.max(-1, (L1 * L1 + dist * dist - L2 * L2) / (2 * L1 * dist)));
+      const offsetAngle = Math.acos(cosA) * (bendDir >= 0 ? 1 : -1);
+      const jointAngle = baseAngle + offsetAngle;
+      return {
+        x: ax + Math.cos(jointAngle) * L1,
+        y: ay + Math.sin(jointAngle) * L1
+      };
+    }
+
+    function getCycleWave(tSec, periodSec = 2.8) {
+      const raw = (tSec % periodSec) / periodSec;
+      let p = 0;
+      let phase = 'CONTROL';
+      if (raw < 0.52) {
+        const u = raw / 0.52;
+        p = 0.5 - 0.5 * Math.cos(Math.PI * u);
+        phase = 'LOWER';
+      } else if (raw < 0.64) {
+        p = 1;
+        phase = 'HOLD';
+      } else {
+        const u = (raw - 0.64) / 0.36;
+        p = 0.5 + 0.5 * Math.cos(Math.PI * u);
+        phase = 'DRIVE';
+      }
+      return { p, phase, raw };
+    }
+
+    function drawTaperedLimb(ctx, x1, y1, x2, y2, r1, r2, color, glow = false) {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const len = Math.hypot(dx, dy);
+      if (len < 0.5) return;
+      const nx = -dy / len;
+      const ny = dx / len;
+
+      ctx.save();
+      if (glow) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 12;
+      }
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(x1 + nx * r1, y1 + ny * r1);
+      ctx.lineTo(x2 + nx * r2, y2 + ny * r2);
+      ctx.arc(x2, y2, r2, Math.atan2(ny, nx), Math.atan2(-ny, -nx), false);
+      ctx.lineTo(x1 - nx * r1, y1 - ny * r1);
+      ctx.arc(x1, y1, r1, Math.atan2(-ny, -nx), Math.atan2(ny, nx), false);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawJointNode(ctx, x, y, r, accentHex) {
+      ctx.save();
+      ctx.fillStyle = '#0A0A0C';
+      ctx.strokeStyle = accentHex;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawHead(ctx, x, y, r = 9.5) {
+      ctx.save();
+      ctx.fillStyle = '#F5F5F7';
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawBarbellPlate(ctx, x, y, radius, accentHex) {
+      ctx.save();
+      ctx.shadowColor = accentHex;
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = accentHex;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#0A0A0C';
+      ctx.beginPath();
+      ctx.arc(x, y, radius * 0.36, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(x, y, radius * 0.72, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawDumbbell(ctx, x, y, angleRad, accentHex) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angleRad);
+      ctx.fillStyle = '#A1A1AA';
+      ctx.fillRect(-13, -2.5, 26, 5);
+      ctx.shadowColor = accentHex;
+      ctx.shadowBlur = 8;
+      ctx.fillStyle = accentHex;
+      ctx.beginPath();
+      ctx.roundRect(-16, -7, 6, 14, 2);
+      ctx.roundRect(10, -7, 6, 14, 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function renderBioCanvasFrame(ctx, w, h, animType, tSec, accentHex) {
+      ctx.clearRect(0, 0, w, h);
+
+      // Architectural grid & floor plane
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+      ctx.lineWidth = 1;
+      for (let gx = 32; gx < w; gx += 32) {
+        ctx.beginPath(); ctx.moveTo(gx, 18); ctx.lineTo(gx, h - 22); ctx.stroke();
+      }
+      for (let gy = 36; gy < h - 22; gy += 32) {
+        ctx.beginPath(); ctx.moveTo(16, gy); ctx.lineTo(w - 16, gy); ctx.stroke();
+      }
+
+      const floorY = h - 24;
+      ctx.strokeStyle = '#2A2A34';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(20, floorY);
+      ctx.lineTo(w - 20, floorY);
+      ctx.stroke();
+
+      const { p, phase, raw } = getCycleWave(tSec, animType === 'cardio' ? 1.5 : 2.8);
+      const bodyLight = '#F5F5F7';
+      const bodyMid = '#9CA3AF';
+      const equipDark = '#272730';
+
+      if (animType === 'squat') {
+        // Side-profile facing RIGHT: knees bend forward (+X), hips sit back (-X)
+        const ankle = { x: 118, y: floorY - 6 };
+        drawTaperedLimb(ctx, ankle.x - 5, floorY - 3, ankle.x + 18, floorY - 3, 4, 3, bodyLight);
+
+        // Knee glides slightly forward (+X), hip drops down & back (-X, +Y)
+        const knee = { x: ankle.x + 6 + p * 18, y: ankle.y - 44 + p * 6 };
+        const hip = { x: 112 - p * 26, y: 112 + p * 42 };
+        // Torso leans forward slightly (+X) so barbell stays over mid-foot
+        const shoulder = { x: hip.x + 8 + p * 26, y: hip.y - 54 + p * 10 };
+        const elbow = { x: shoulder.x - 10, y: shoulder.y + 18 };
+
+        // Vertical bar-path reference line
+        ctx.save();
+        ctx.setLineDash([3, 3]);
+        ctx.strokeStyle = 'rgba(255,255,255,0.16)';
+        ctx.beginPath(); ctx.moveTo(120, 48); ctx.lineTo(120, floorY - 8); ctx.stroke();
+        ctx.restore();
+
+        drawTaperedLimb(ctx, ankle.x, ankle.y, knee.x, knee.y, 5.5, 7, bodyMid);
+        drawTaperedLimb(ctx, hip.x, hip.y, knee.x, knee.y, 9.5, 6.5, accentHex, true);
+        drawTaperedLimb(ctx, hip.x, hip.y, shoulder.x, shoulder.y, 9.5, 8.5, bodyLight);
+        drawHead(ctx, shoulder.x + 7, shoulder.y - 17, 9.5);
+        // Arm gripping barbell on upper traps
+        drawTaperedLimb(ctx, shoulder.x - 2, shoulder.y + 4, elbow.x, elbow.y, 4.5, 4, bodyMid);
+        drawTaperedLimb(ctx, elbow.x, elbow.y, shoulder.x - 5, shoulder.y - 4, 4, 3.5, bodyMid);
+        drawBarbellPlate(ctx, shoulder.x - 5, shoulder.y - 4, 13, accentHex);
+        drawJointNode(ctx, hip.x, hip.y, 4, accentHex);
+      } else if (animType === 'lunge') {
+        // Rear Bench on LEFT, facing RIGHT (supports both glute-leaning and quad-leaning split squat mechanics)
+        ctx.fillStyle = equipDark;
+        ctx.beginPath(); ctx.roundRect(34, floorY - 42, 36, 42, 6); ctx.fill();
+
+        const frontAnkle = { x: 174, y: floorY - 6 };
+        drawTaperedLimb(ctx, frontAnkle.x - 5, floorY - 3, frontAnkle.x + 18, floorY - 3, 4, 3, bodyLight);
+
+        // Front knee travels forward (+X) as hips descend, with controlled torso lean
+        const frontKnee = { x: frontAnkle.x + 6 + p * 14, y: frontAnkle.y - 44 + p * 5 };
+        const hip = { x: 128 - p * 6, y: 112 + p * 34 };
+        const rearFoot = { x: 64, y: floorY - 42 };
+        const rearKnee = solveTwoBoneIK(hip.x, hip.y, rearFoot.x, rearFoot.y, 44, 44, -1);
+        const shoulder = { x: hip.x + 8 + p * 16, y: hip.y - 54 + p * 6 };
+
+        // Rear leg (muted)
+        drawTaperedLimb(ctx, hip.x, hip.y, rearKnee.x, rearKnee.y, 7.5, 5.5, '#6B7280');
+        drawTaperedLimb(ctx, rearKnee.x, rearKnee.y, rearFoot.x, rearFoot.y, 5.5, 4.5, '#6B7280');
+        // Front working leg (highlighted)
+        drawTaperedLimb(ctx, frontAnkle.x, frontAnkle.y, frontKnee.x, frontKnee.y, 5.5, 7, bodyMid);
+        drawTaperedLimb(ctx, hip.x, hip.y, frontKnee.x, frontKnee.y, 9.5, 6.5, accentHex, true);
+        // Torso & hanging dumbbell
+        drawTaperedLimb(ctx, hip.x, hip.y, shoulder.x, shoulder.y, 9, 8.5, bodyLight);
+        drawHead(ctx, shoulder.x + 6, shoulder.y - 17, 9.5);
+        const hand = { x: shoulder.x + 2, y: shoulder.y + 44 };
+        drawTaperedLimb(ctx, shoulder.x, shoulder.y + 4, hand.x, hand.y, 5, 4, bodyMid);
+        drawDumbbell(ctx, hand.x, hand.y, 0, accentHex);
+        drawJointNode(ctx, hip.x, hip.y, 4, accentHex);
+        drawJointNode(ctx, frontKnee.x, frontKnee.y, 4, accentHex);
+      } else if (animType === 'leg_ext') {
+        // Seated facing RIGHT: p=0 is extended horizontal (0 rad), p=1 is bent down (PI/2 rad)
+        ctx.strokeStyle = equipDark;
+        ctx.lineWidth = 10;
+        ctx.beginPath(); ctx.moveTo(64, 58); ctx.lineTo(72, 134); ctx.lineTo(144, 134); ctx.stroke();
+
+        const hip = { x: 84, y: 124 };
+        const knee = { x: 142, y: 124 };
+        const shoulder = { x: 76, y: 72 };
+        const ang = p * 1.48; // 0 = straight horizontal extension, 1.48 rad = bent down
+        const ankle = { x: knee.x + Math.cos(ang) * 48, y: knee.y + Math.sin(ang) * 48 };
+
+        drawTaperedLimb(ctx, hip.x, hip.y, shoulder.x, shoulder.y, 9.5, 8.5, bodyLight);
+        drawHead(ctx, shoulder.x, shoulder.y - 18, 9.5);
+        drawTaperedLimb(ctx, hip.x, hip.y, knee.x, knee.y, 9.5, 7.5, accentHex, true);
+        drawTaperedLimb(ctx, knee.x, knee.y, ankle.x, ankle.y, 7, 5, bodyLight);
+        // Foot & roller pad
+        drawTaperedLimb(ctx, ankle.x, ankle.y, ankle.x + Math.sin(ang) * 14, ankle.y - Math.cos(ang) * 14, 4, 3, bodyLight);
+        ctx.fillStyle = accentHex;
+        ctx.beginPath(); ctx.arc(ankle.x + Math.cos(ang - 0.5) * 6, ankle.y + Math.sin(ang - 0.5) * 6, 6.5, 0, Math.PI * 2); ctx.fill();
+        drawJointNode(ctx, knee.x, knee.y, 4.5, accentHex);
+      } else if (animType === 'leg_curl') {
+        // Lying prone facing LEFT: p=0 is curled up toward glutes, p=1 is extended straight
+        ctx.fillStyle = equipDark;
+        ctx.beginPath(); ctx.roundRect(42, 128, 136, 12, 6); ctx.fill();
+        ctx.fillRect(62, 140, 8, floorY - 140);
+        ctx.fillRect(150, 140, 8, floorY - 140);
+
+        const shoulder = { x: 66, y: 114 };
+        const hip = { x: 114, y: 118 };
+        const knee = { x: 162, y: 120 };
+        const ang = -1.68 * (1 - p); // -1.68 rad = curled up, 0 = straight horizontal
+        const ankle = { x: knee.x + Math.cos(ang) * 46, y: knee.y + Math.sin(ang) * 46 };
+
+        drawHead(ctx, 46, 108, 9);
+        drawTaperedLimb(ctx, shoulder.x, shoulder.y, hip.x, hip.y, 8.5, 9, bodyLight);
+        drawTaperedLimb(ctx, hip.x, hip.y, knee.x, knee.y, 9, 7, accentHex, true);
+        drawTaperedLimb(ctx, knee.x, knee.y, ankle.x, ankle.y, 6.5, 5, bodyLight);
+        ctx.fillStyle = accentHex;
+        ctx.beginPath(); ctx.arc(ankle.x + 3, ankle.y - 5, 6.5, 0, Math.PI * 2); ctx.fill();
+        drawJointNode(ctx, knee.x, knee.y, 4.5, accentHex);
+      } else if (animType === 'hinge') {
+        // Romanian Deadlift: hips push backward (-X) while knees stay softly bent (~15 deg)
+        const ankle = { x: 124, y: floorY - 6 };
+        drawTaperedLimb(ctx, ankle.x - 5, floorY - 3, ankle.x + 18, floorY - 3, 4, 3, bodyLight);
+
+        const knee = { x: ankle.x + 5 + p * 4, y: ankle.y - 45 };
+        const hip = { x: 120 - p * 28, y: 110 + p * 8 };
+        const torsoAngle = -Math.PI / 2 + p * 1.32;
+        const shoulder = { x: hip.x + Math.cos(torsoAngle) * 56, y: hip.y + Math.sin(torsoAngle) * 56 };
+        // Barbell tracks vertically straight down close to shins/thighs
+        const bar = { x: shoulder.x + 2, y: shoulder.y + 52 };
+
+        drawTaperedLimb(ctx, ankle.x, ankle.y, knee.x, knee.y, 5.5, 7, bodyMid);
+        drawTaperedLimb(ctx, hip.x, hip.y, knee.x, knee.y, 9.5, 7, accentHex, true);
+        drawTaperedLimb(ctx, hip.x, hip.y, shoulder.x, shoulder.y, 9.5, 8.5, bodyLight);
+        drawHead(ctx, shoulder.x + Math.cos(torsoAngle) * 18, shoulder.y + Math.sin(torsoAngle) * 18, 9.5);
+        drawTaperedLimb(ctx, shoulder.x, shoulder.y + 3, bar.x, bar.y, 5, 4, bodyMid);
+        drawBarbellPlate(ctx, bar.x, bar.y, 13, accentHex);
+        drawJointNode(ctx, hip.x, hip.y, 4.5, accentHex);
+        drawJointNode(ctx, knee.x, knee.y, 3.5, accentHex);
+      } else if (animType === 'thrust') {
+        // Hip Thrust: upper back pivots on bench edge (shoulder fulcrum), shins vertical at lockout
+        ctx.fillStyle = equipDark;
+        ctx.beginPath(); ctx.roundRect(28, 114, 46, floorY - 114, 8); ctx.fill();
+
+        const ankle = { x: 184, y: floorY - 6 };
+        drawTaperedLimb(ctx, ankle.x - 5, floorY - 3, ankle.x + 18, floorY - 3, 4, 3, bodyLight);
+        const knee = { x: 184 - p * 4, y: 124 + p * 4 };
+        // Upper back pivots cleanly at bench edge
+        const pivot = { x: 74, y: 118 };
+        const hip = { x: 128 - p * 8, y: 120 + p * 40 };
+        const torsoAngle = Math.atan2(pivot.y - hip.y, pivot.x - hip.x);
+        const headPos = { x: pivot.x + Math.cos(torsoAngle) * 16, y: pivot.y + Math.sin(torsoAngle) * 16 - 6 };
+
+        drawTaperedLimb(ctx, ankle.x, ankle.y, knee.x, knee.y, 5.5, 7, bodyMid);
+        drawTaperedLimb(ctx, hip.x, hip.y, knee.x, knee.y, 9.5, 7, accentHex, true);
+        drawTaperedLimb(ctx, pivot.x, pivot.y, hip.x, hip.y, 8.5, 9.5, bodyLight);
+        drawHead(ctx, headPos.x, headPos.y, 9);
+        drawBarbellPlate(ctx, hip.x, hip.y - 10, 13, accentHex);
+        drawJointNode(ctx, hip.x, hip.y, 4.5, accentHex);
+        drawJointNode(ctx, knee.x, knee.y, 4, accentHex);
+      } else if (animType === 'abduction') {
+        ctx.fillStyle = equipDark;
+        ctx.beginPath(); ctx.roundRect(86, 126, 84, 14, 7); ctx.fill();
+        ctx.fillRect(122, 140, 12, floorY - 140);
+
+        drawHead(ctx, 128, 46, 10);
+        drawTaperedLimb(ctx, 128, 124, 128, 66, 12, 14, bodyLight);
+        const spread = 16 + (1 - p) * 38;
+        const lKnee = { x: 116 - spread, y: 126 };
+        const rKnee = { x: 140 + spread, y: 126 };
+        drawTaperedLimb(ctx, 118, 124, lKnee.x, lKnee.y, 8, 6.5, accentHex, true);
+        drawTaperedLimb(ctx, 138, 124, rKnee.x, rKnee.y, 8, 6.5, accentHex, true);
+        drawTaperedLimb(ctx, lKnee.x, lKnee.y, lKnee.x - 4, floorY - 6, 6, 4.5, bodyMid);
+        drawTaperedLimb(ctx, rKnee.x, rKnee.y, rKnee.x + 4, floorY - 6, 6, 4.5, bodyMid);
+        drawJointNode(ctx, lKnee.x, lKnee.y, 3.5, accentHex);
+        drawJointNode(ctx, rKnee.x, rKnee.y, 3.5, accentHex);
+      } else if (animType === 'kickback') {
+        const standAnkle = { x: 138, y: floorY - 6 };
+        drawTaperedLimb(ctx, standAnkle.x - 4, floorY - 3, standAnkle.x + 16, floorY - 3, 4, 3, bodyLight);
+        const hip = { x: 136, y: 108 };
+        const shoulder = { x: 164, y: 66 };
+        const kickAngle = (Math.PI / 2) + (1 - p) * 0.85;
+        const kickFoot = { x: hip.x + Math.cos(kickAngle) * 76, y: hip.y + Math.sin(kickAngle) * 76 };
+
+        drawTaperedLimb(ctx, standAnkle.x, standAnkle.y, hip.x, hip.y, 6, 8.5, bodyMid);
+        drawTaperedLimb(ctx, hip.x, hip.y, kickFoot.x, kickFoot.y, 9, 5, accentHex, true);
+        drawTaperedLimb(ctx, hip.x, hip.y, shoulder.x, shoulder.y, 9, 8, bodyLight);
+        drawHead(ctx, shoulder.x + 12, shoulder.y - 12, 9);
+        ctx.strokeStyle = '#52525B';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(32, floorY - 12); ctx.lineTo(kickFoot.x, kickFoot.y); ctx.stroke();
+        drawJointNode(ctx, hip.x, hip.y, 4, accentHex);
+      } else if (animType === 'calf') {
+        ctx.fillStyle = equipDark;
+        ctx.fillRect(102, floorY - 16, 48, 16);
+        const heelLift = (1 - p) * 18;
+        const toe = { x: 136, y: floorY - 18 };
+        const ankle = { x: 120, y: floorY - 20 - heelLift };
+        const knee = { x: 122, y: ankle.y - 44 };
+        const hip = { x: 120, y: knee.y - 44 };
+        const shoulder = { x: 122, y: hip.y - 48 };
+
+        drawTaperedLimb(ctx, ankle.x, ankle.y, toe.x, toe.y, 4.5, 3.5, bodyLight);
+        drawTaperedLimb(ctx, ankle.x, ankle.y, knee.x, knee.y, 5, 8, accentHex, true);
+        drawTaperedLimb(ctx, knee.x, knee.y, hip.x, hip.y, 7.5, 9, bodyMid);
+        drawTaperedLimb(ctx, hip.x, hip.y, shoulder.x, shoulder.y, 9, 8.5, bodyLight);
+        drawHead(ctx, shoulder.x + 2, shoulder.y - 17, 9);
+        drawJointNode(ctx, ankle.x, ankle.y, 3.5, accentHex);
+      } else if (animType === 'press' || animType === 'incline_press') {
+        const isIncline = animType === 'incline_press';
+        ctx.strokeStyle = equipDark;
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        if (isIncline) {
+          ctx.moveTo(52, 96); ctx.lineTo(118, 146); ctx.lineTo(164, 146);
+        } else {
+          ctx.moveTo(44, 146); ctx.lineTo(168, 146);
+        }
+        ctx.stroke();
+
+        const hip = { x: 122, y: 136 };
+        const shoulder = isIncline ? { x: 74, y: 102 } : { x: 72, y: 136 };
+        const headPos = isIncline ? { x: 58, y: 88 } : { x: 50, y: 132 };
+        drawHead(ctx, headPos.x, headPos.y, 9);
+        drawTaperedLimb(ctx, hip.x, hip.y, shoulder.x, shoulder.y, 9, 9.5, bodyLight);
+        drawTaperedLimb(ctx, hip.x, hip.y, 162, 138, 8, 6.5, bodyMid);
+        drawTaperedLimb(ctx, 162, 138, 168, floorY - 4, 6, 4.5, bodyMid);
+
+        const barPos = isIncline
+          ? { x: shoulder.x + 24 - p * 10, y: shoulder.y - 46 + p * 30 }
+          : { x: shoulder.x + 12, y: shoulder.y - 52 + p * 36 };
+        // Elbow tucks toward hip (+X/+Y), never flares backward toward head
+        const elbow = solveTwoBoneIK(shoulder.x, shoulder.y, barPos.x, barPos.y, 26, 26, 1);
+
+        drawTaperedLimb(ctx, shoulder.x, shoulder.y, elbow.x, elbow.y, 6, 5, accentHex, true);
+        drawTaperedLimb(ctx, elbow.x, elbow.y, barPos.x, barPos.y, 5, 4.5, bodyLight);
+        drawBarbellPlate(ctx, barPos.x, barPos.y, 12, accentHex);
+        drawJointNode(ctx, elbow.x, elbow.y, 3.5, accentHex);
+      } else if (animType === 'fly') {
+        ctx.fillStyle = equipDark;
+        ctx.beginPath(); ctx.roundRect(114, 72, 28, 88, 8); ctx.fill();
+        drawHead(ctx, 128, 54, 10);
+        drawTaperedLimb(ctx, 128, 148, 128, 78, 12, 15, bodyLight);
+
+        const openAng = (1 - p) * 0.22 + p * 1.15;
+        const lHand = { x: 108 - Math.sin(openAng) * 52, y: 88 + Math.cos(openAng) * 14 };
+        const rHand = { x: 148 + Math.sin(openAng) * 52, y: 88 + Math.cos(openAng) * 14 };
+        drawTaperedLimb(ctx, 112, 86, lHand.x, lHand.y, 6.5, 4.5, accentHex, true);
+        drawTaperedLimb(ctx, 144, 86, rHand.x, rHand.y, 6.5, 4.5, accentHex, true);
+        drawDumbbell(ctx, lHand.x, lHand.y, Math.PI / 2, accentHex);
+        drawDumbbell(ctx, rHand.x, rHand.y, Math.PI / 2, accentHex);
+      } else if (animType === 'ohp') {
+        // Side-profile facing RIGHT: elbow drops forward (+X) & down under the bar (bendDir = 1)
+        const hip = { x: 122, y: 122 };
+        const shoulder = { x: 122, y: 68 };
+        drawTaperedLimb(ctx, 122, floorY - 4, hip.x, hip.y, 6, 8.5, bodyMid);
+        drawTaperedLimb(ctx, hip.x, hip.y, shoulder.x, shoulder.y, 9, 9.5, bodyLight);
+        drawHead(ctx, 120, 48, 9.5);
+
+        const barY = 24 + p * 42;
+        const hand = { x: 128 + p * 6, y: barY };
+        const elbow = solveTwoBoneIK(shoulder.x, shoulder.y, hand.x, hand.y, 25, 25, 1);
+        drawTaperedLimb(ctx, shoulder.x, shoulder.y, elbow.x, elbow.y, 6, 5, accentHex, true);
+        drawTaperedLimb(ctx, elbow.x, elbow.y, hand.x, hand.y, 5, 4.5, bodyLight);
+        drawBarbellPlate(ctx, hand.x, hand.y, 12, accentHex);
+        drawJointNode(ctx, elbow.x, elbow.y, 3.5, accentHex);
+      } else if (animType === 'lateral') {
+        drawHead(ctx, 128, 44, 10);
+        drawTaperedLimb(ctx, 128, 126, 128, 66, 11, 14, bodyLight);
+        drawTaperedLimb(ctx, 120, 126, 116, floorY - 4, 6, 4.5, bodyMid);
+        drawTaperedLimb(ctx, 136, 126, 140, floorY - 4, 6, 4.5, bodyMid);
+
+        const raiseAng = (1 - p) * 1.42;
+        const lHand = { x: 110 - Math.sin(raiseAng) * 48, y: 70 + Math.cos(raiseAng) * 48 };
+        const rHand = { x: 146 + Math.sin(raiseAng) * 48, y: 70 + Math.cos(raiseAng) * 48 };
+        drawTaperedLimb(ctx, 112, 70, lHand.x, lHand.y, 6.5, 4.5, accentHex, true);
+        drawTaperedLimb(ctx, 144, 70, rHand.x, rHand.y, 6.5, 4.5, accentHex, true);
+        drawDumbbell(ctx, lHand.x, lHand.y, 0, accentHex);
+        drawDumbbell(ctx, rHand.x, rHand.y, 0, accentHex);
+      } else if (animType === 'pull') {
+        // Front-view Lat Pulldown: elbows pull DOWN & IN toward ribs (lElbow bendDir = -1, rElbow bendDir = 1)
+        ctx.fillStyle = equipDark;
+        ctx.beginPath(); ctx.roundRect(96, 146, 64, 12, 6); ctx.fill();
+        const barY = 26 + (1 - p) * 48;
+        ctx.strokeStyle = '#52525B';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(128, 8); ctx.lineTo(128, barY); ctx.stroke();
+
+        drawHead(ctx, 128, 62, 9.5);
+        drawTaperedLimb(ctx, 128, 144, 128, 82, 11, 14, bodyLight);
+        drawTaperedLimb(ctx, 118, 144, 96, floorY - 4, 6, 4.5, bodyMid);
+        drawTaperedLimb(ctx, 138, 144, 160, floorY - 4, 6, 4.5, bodyMid);
+
+        const lHand = { x: 82, y: barY };
+        const rHand = { x: 174, y: barY };
+        const lElbow = solveTwoBoneIK(112, 84, lHand.x, lHand.y, 26, 26, -1);
+        const rElbow = solveTwoBoneIK(144, 84, rHand.x, rHand.y, 26, 26, 1);
+
+        drawTaperedLimb(ctx, 112, 84, lElbow.x, lElbow.y, 6.5, 5, accentHex, true);
+        drawTaperedLimb(ctx, 144, 84, rElbow.x, rElbow.y, 6.5, 5, accentHex, true);
+        drawTaperedLimb(ctx, lElbow.x, lElbow.y, lHand.x, lHand.y, 5, 4, bodyLight);
+        drawTaperedLimb(ctx, rElbow.x, rElbow.y, rHand.x, rHand.y, 5, 4, bodyLight);
+        ctx.strokeStyle = accentHex;
+        ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.moveTo(74, barY); ctx.lineTo(182, barY); ctx.stroke();
+        drawJointNode(ctx, lElbow.x, lElbow.y, 3.5, accentHex);
+        drawJointNode(ctx, rElbow.x, rElbow.y, 3.5, accentHex);
+      } else if (animType === 'row') {
+        // Seated Cable Row facing RIGHT: elbow drives backward (-X) past torso (bendDir = 1)
+        const hip = { x: 96, y: 152 };
+        const shoulder = { x: 92, y: 96 };
+        drawTaperedLimb(ctx, hip.x, hip.y, 148, 152, 8, 6.5, bodyMid);
+        drawTaperedLimb(ctx, 148, 152, 186, 136, 6, 4.5, bodyMid);
+        drawTaperedLimb(ctx, hip.x, hip.y, shoulder.x, shoulder.y, 9.5, 9, bodyLight);
+        drawHead(ctx, 90, 76, 9.5);
+
+        const handX = 148 - (1 - p) * 44;
+        const hand = { x: handX, y: 118 };
+        ctx.strokeStyle = '#52525B';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(hand.x, hand.y); ctx.lineTo(228, 118); ctx.stroke();
+
+        const elbow = solveTwoBoneIK(shoulder.x, shoulder.y, hand.x, hand.y, 28, 28, 1);
+        drawTaperedLimb(ctx, shoulder.x, shoulder.y, elbow.x, elbow.y, 6.5, 5, accentHex, true);
+        drawTaperedLimb(ctx, elbow.x, elbow.y, hand.x, hand.y, 5, 4.5, bodyLight);
+        drawJointNode(ctx, elbow.x, elbow.y, 3.5, accentHex);
+      } else if (animType === 'curl') {
+        const hip = { x: 112, y: 126 };
+        const shoulder = { x: 112, y: 68 };
+        const elbow = { x: 114, y: 106 };
+        drawTaperedLimb(ctx, 112, floorY - 4, hip.x, hip.y, 6, 8.5, bodyMid);
+        drawTaperedLimb(ctx, hip.x, hip.y, shoulder.x, shoulder.y, 9, 9.5, bodyLight);
+        drawHead(ctx, 112, 48, 9.5);
+        drawTaperedLimb(ctx, shoulder.x, shoulder.y, elbow.x, elbow.y, 6.5, 5.5, bodyMid);
+
+        // Forearm curls upward from hanging (+1.45 rad) to flexed (-0.95 rad)
+        const curlAng = 1.45 - (1 - p) * 2.4;
+        const hand = { x: elbow.x + Math.cos(curlAng) * 34, y: elbow.y + Math.sin(curlAng) * 34 };
+        drawTaperedLimb(ctx, elbow.x, elbow.y, hand.x, hand.y, 5.5, 4.5, accentHex, true);
+        drawDumbbell(ctx, hand.x, hand.y, curlAng + Math.PI / 2, accentHex);
+        drawJointNode(ctx, elbow.x, elbow.y, 3.5, accentHex);
+      } else if (animType === 'tricep') {
+        ctx.strokeStyle = '#52525B';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(156, 12); ctx.lineTo(156, 112); ctx.stroke();
+
+        const hip = { x: 108, y: 126 };
+        const shoulder = { x: 110, y: 68 };
+        const elbow = { x: 114, y: 104 };
+        drawTaperedLimb(ctx, 108, floorY - 4, hip.x, hip.y, 6, 8.5, bodyMid);
+        drawTaperedLimb(ctx, hip.x, hip.y, shoulder.x, shoulder.y, 9, 9.5, bodyLight);
+        drawHead(ctx, 112, 48, 9.5);
+        drawTaperedLimb(ctx, shoulder.x, shoulder.y, elbow.x, elbow.y, 6.5, 5.5, bodyMid);
+
+        // Forearm presses down from horizontal (-0.1 rad) to vertical lock (+1.48 rad)
+        const extAng = -0.1 + (1 - p) * 1.58;
+        const hand = { x: elbow.x + Math.cos(extAng) * 34, y: elbow.y + Math.sin(extAng) * 34 };
+        drawTaperedLimb(ctx, elbow.x, elbow.y, hand.x, hand.y, 5.5, 4.5, accentHex, true);
+        ctx.fillStyle = accentHex;
+        ctx.beginPath(); ctx.arc(hand.x, hand.y, 6, 0, Math.PI * 2); ctx.fill();
+        drawJointNode(ctx, elbow.x, elbow.y, 3.5, accentHex);
+      } else if (animType === 'core') {
+        const hip = { x: 132, y: floorY - 8 };
+        const knee = { x: 172, y: floorY - 44 };
+        const foot = { x: 204, y: floorY - 6 };
+        drawTaperedLimb(ctx, hip.x, hip.y, knee.x, knee.y, 8.5, 6.5, bodyMid);
+        drawTaperedLimb(ctx, knee.x, knee.y, foot.x, foot.y, 6, 4.5, bodyMid);
+
+        const curlAng = -Math.PI + (1 - p) * 0.72;
+        const shoulder = { x: hip.x + Math.cos(curlAng) * 58, y: hip.y + Math.sin(curlAng) * 58 };
+        drawTaperedLimb(ctx, hip.x, hip.y, shoulder.x, shoulder.y, 9, 8.5, accentHex, true);
+        drawHead(ctx, shoulder.x + Math.cos(curlAng) * 18, shoulder.y + Math.sin(curlAng) * 18, 9);
+      } else {
+        // StairMaster / Cardio: knees bend forward (+X, bendDir = 1)
+        ctx.strokeStyle = equipDark;
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(46, floorY - 6); ctx.lineTo(94, floorY - 6);
+        ctx.lineTo(94, floorY - 34); ctx.lineTo(142, floorY - 34);
+        ctx.lineTo(142, floorY - 62); ctx.lineTo(192, floorY - 62);
+        ctx.stroke();
+
+        const stepWave = Math.sin(raw * Math.PI * 2);
+        const hip = { x: 124, y: 98 - Math.abs(stepWave) * 5 };
+        const shoulder = { x: 130, y: 48 - Math.abs(stepWave) * 5 };
+        drawTaperedLimb(ctx, hip.x, hip.y, shoulder.x, shoulder.y, 9, 8.5, bodyLight);
+        drawHead(ctx, shoulder.x + 3, shoulder.y - 17, 9);
+
+        const lFoot = { x: 86 + Math.max(0, stepWave) * 28, y: floorY - 12 - Math.max(0, stepWave) * 24 };
+        const rFoot = { x: 154 - Math.max(0, -stepWave) * 28, y: floorY - 40 - Math.max(0, -stepWave) * 22 };
+        const lKnee = solveTwoBoneIK(hip.x, hip.y, lFoot.x, lFoot.y, 34, 34, 1);
+        const rKnee = solveTwoBoneIK(hip.x, hip.y, rFoot.x, rFoot.y, 34, 34, 1);
+
+        drawTaperedLimb(ctx, hip.x, hip.y, lKnee.x, lKnee.y, 7.5, 5.5, bodyMid);
+        drawTaperedLimb(ctx, lKnee.x, lKnee.y, lFoot.x, lFoot.y, 5.5, 4, bodyMid);
+        drawTaperedLimb(ctx, hip.x, hip.y, rKnee.x, rKnee.y, 8, 6, accentHex, true);
+        drawTaperedLimb(ctx, rKnee.x, rKnee.y, rFoot.x, rFoot.y, 6, 4.5, accentHex);
+      }
+
+      // Live Tempo Phase Badge (Top-Left of Canvas)
+      ctx.save();
+      ctx.fillStyle = 'rgba(20, 20, 24, 0.85)';
+      ctx.beginPath(); ctx.roundRect(10, 10, 56, 18, 6); ctx.fill();
+      ctx.fillStyle = phase === 'DRIVE' ? accentHex : '#A1A1AA';
+      ctx.font = '800 9px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(animType === 'cardio' ? 'STEADY' : phase, 38, 22);
+      ctx.restore();
+    }
+
+    function startBioAnimationLoop() {
+      if (bioAnimRafId) return;
+      function tick(nowMs) {
+        const canvases = document.querySelectorAll('canvas[data-bio-anim]');
+        if (canvases.length > 0) {
+          const accentHex = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3B82F6';
+          const tSec = nowMs / 1000;
+          canvases.forEach(canvas => {
+            const animType = canvas.getAttribute('data-bio-anim') || 'squat';
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              renderBioCanvasFrame(ctx, canvas.width, canvas.height, animType, tSec, accentHex);
+            }
+          });
+        }
+        bioAnimRafId = requestAnimationFrame(tick);
+      }
+      bioAnimRafId = requestAnimationFrame(tick);
+    }
 
     const FOOD_DATABASE = [
       // LEAN & HIGH-PROTEIN FOODS
@@ -716,8 +1697,8 @@
     let aiMealLastResult = null;
     let isAiCalculating = false;
     let calendarMonthOffset = 0;
-    let selectedOverloadExerciseId = 'barbell_squat';
     let activeDraft = null;
+    let openFormGuideExIds = new Set();
     let pickerSelectedIds = [];
     let routineBuilderDraft = { name: '', tag: 'CUSTOM SPLIT', exerciseIds: [] };
 
@@ -1169,15 +2150,26 @@
     }
 
     /* ==========================================================================
-       5. STREAK & 365-DAY MATRIX CALCULATIONS
+       5. STREAK & CALENDAR YEAR MATRIX CALCULATIONS (JAN 1 – DEC 31)
        ========================================================================== */
-    function getCompletedDaysLast365() {
-      const today = parseLocalDate(getTodayStr());
-      const start = new Date(today);
-      start.setDate(today.getDate() - 364);
-      const startStr = toDateStr(start);
-      const todayStr = toDateStr(today);
-      return Object.keys(appState.workouts || {}).filter(d => d >= startStr && d <= todayStr).length;
+    function getCalendarYearBounds() {
+      const year = parseLocalDate(getTodayStr()).getFullYear();
+      const startDate = new Date(year, 0, 1);
+      const endDate = new Date(year, 11, 31);
+      const totalDays = Math.round((endDate - startDate) / (24 * 60 * 60 * 1000)) + 1;
+      return {
+        year,
+        startDate,
+        endDate,
+        startStr: toDateStr(startDate),
+        endStr: toDateStr(endDate),
+        totalDays
+      };
+    }
+
+    function getCompletedDaysCurrentYear() {
+      const { startStr, endStr } = getCalendarYearBounds();
+      return Object.keys(appState.workouts || {}).filter(d => d >= startStr && d <= endStr).length;
     }
 
     function getWeeklyStreakCount() {
@@ -1212,28 +2204,25 @@
 
     function buildYearMatrix() {
       if (cachedYearMatrix) return cachedYearMatrix;
-      const today = parseLocalDate(getTodayStr());
-      const startDate = new Date(today);
-      startDate.setDate(today.getDate() - 364);
+      const { startDate, endDate, startStr, endStr } = getCalendarYearBounds();
+      const todayStr = getTodayStr();
 
       const startDay = startDate.getDay();
       const padStart = startDay === 0 ? 6 : startDay - 1;
       const gridStart = new Date(startDate);
       gridStart.setDate(startDate.getDate() - padStart);
 
-      const cells = [];
-      const cur = new Date(gridStart);
-      const endBound = new Date(today);
+      const endBound = new Date(endDate);
       const endDay = endBound.getDay();
       const padEnd = endDay === 0 ? 0 : 7 - endDay;
-      endBound.setDate(today.getDate() + padEnd);
+      endBound.setDate(endDate.getDate() + padEnd);
 
-      const startStr = toDateStr(startDate);
-      const todayStr = toDateStr(today);
+      const cells = [];
+      const cur = new Date(gridStart);
 
       while (cur <= endBound) {
         const dStr = toDateStr(cur);
-        const inRange = dStr >= startStr && dStr <= todayStr;
+        const inRange = dStr >= startStr && dStr <= endStr;
         const workout = inRange ? (appState.workouts[dStr] || null) : null;
         cells.push({
           date: dStr,
@@ -1256,9 +2245,10 @@
       const yearCountEl = document.getElementById('headerYearCount');
       const streakBadgeEl = document.getElementById('streakBadge');
 
-      const completed365 = getCompletedDaysLast365();
+      const { totalDays } = getCalendarYearBounds();
+      const completedYear = getCompletedDaysCurrentYear();
       const weeklyStreak = getWeeklyStreakCount();
-      if (yearCountEl) yearCountEl.textContent = `${completed365}/365d`;
+      if (yearCountEl) yearCountEl.textContent = `${completedYear}/${totalDays}d`;
       if (streakBadgeEl) streakBadgeEl.textContent = `🔥 ${weeklyStreak}w Streak`;
 
       if (!strip) return;
@@ -1297,7 +2287,7 @@
     }
 
     /* ==========================================================================
-       7. VIEW 1: 365-DAY YEAR GRID & MONTHLY CALENDAR
+       7. VIEW 1: CALENDAR YEAR GRID (JAN 1 – DEC 31) & MONTHLY CALENDAR
        ========================================================================== */
     function renderGridSquaresHtml(isFullScreen = false) {
       const cells = buildYearMatrix();
@@ -1340,7 +2330,7 @@
 
       return `
         <div class="overflow-x-auto no-scrollbar pb-1" id="${isFullScreen ? 'fsGridScroller' : 'mainGridScroller'}">
-          <div class="inline-flex gap-1 min-w-full justify-end">
+          <div class="inline-flex gap-1 min-w-full justify-start">
             ${colsHtml}
           </div>
         </div>
@@ -1399,12 +2389,25 @@
       `;
     }
 
+    function scrollGridToCurrentMonth(scrollerId) {
+      const scroller = document.getElementById(scrollerId);
+      if (!scroller) return;
+      const monthIdx = parseLocalDate(getTodayStr()).getMonth();
+      const maxScroll = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+      if (monthIdx <= 1) {
+        scroller.scrollLeft = 0;
+      } else {
+        scroller.scrollLeft = Math.round((monthIdx / 11) * maxScroll);
+      }
+    }
+
     function renderGridView() {
       const container = document.getElementById('view_grid');
       if (!container) return;
 
-      const completed365 = getCompletedDaysLast365();
-      const pct = Math.round((completed365 / 365) * 100);
+      const { year, totalDays } = getCalendarYearBounds();
+      const completedYear = getCompletedDaysCurrentYear();
+      const pct = Math.round((completedYear / totalDays) * 100);
       const todayStr = getTodayStr();
       const todayLogged = Boolean(appState.workouts && appState.workouts[todayStr]);
 
@@ -1434,14 +2437,14 @@
           <div class="flex items-center justify-between gap-2">
             <div>
               <div class="flex items-center gap-2">
-                <h2 class="text-sm font-extrabold text-white">YEAR GRID</h2>
-                <span class="text-[11px] font-extrabold accent-text">${completed365} / 365 (${pct}%)</span>
+                <h2 class="text-sm font-extrabold text-white">${year} YEAR GRID</h2>
+                <span class="text-[11px] font-extrabold accent-text">${completedYear} / ${totalDays} (${pct}%)</span>
               </div>
-              <p class="text-[11px] text-mutedText">Tap any square to inspect or log a session</p>
+              <p class="text-[11px] text-mutedText">Jan 1 – Dec 31 · Tap any square to inspect or log</p>
             </div>
             <div class="flex items-center gap-1.5">
               <div class="grid grid-cols-2 bg-obsidian border border-borderDark p-0.5 rounded-xl">
-                <button type="button" onclick="gridMode = '365'; renderGridView();" class="px-2 py-1 rounded-lg text-[10px] font-extrabold transition ${gridMode === '365' ? 'accent-bg text-obsidian' : 'text-mutedText'}">365d</button>
+                <button type="button" onclick="gridMode = '365'; renderGridView();" class="px-2 py-1 rounded-lg text-[10px] font-extrabold transition ${gridMode === '365' ? 'accent-bg text-obsidian' : 'text-mutedText'}">Year</button>
                 <button type="button" onclick="gridMode = 'month'; renderGridView();" class="px-2 py-1 rounded-lg text-[10px] font-extrabold transition ${gridMode === 'month' ? 'accent-bg text-obsidian' : 'text-mutedText'}">Month</button>
               </div>
               <button type="button" onclick="openFullScreenYearGrid()" aria-label="Expand Year Grid" class="w-8 h-8 rounded-xl bg-obsidian border border-borderDark text-xs font-bold text-white flex items-center justify-center">
@@ -1474,10 +2477,7 @@
       `;
 
       dirtyTabs.grid = false;
-      requestAnimationFrame(() => {
-        const scroller = document.getElementById('mainGridScroller');
-        if (scroller) scroller.scrollLeft = scroller.scrollWidth;
-      });
+      requestAnimationFrame(() => scrollGridToCurrentMonth('mainGridScroller'));
     }
 
     function openFullScreenYearGrid() {
@@ -1485,8 +2485,9 @@
       const body = document.getElementById('fsGridBody');
       const sub = document.getElementById('fsGridSubtitle');
       if (!overlay || !body) return;
-      const completed = getCompletedDaysLast365();
-      if (sub) sub.textContent = `${completed} of 365 days completed (${Math.round((completed / 365) * 100)}%)`;
+      const { year, totalDays } = getCalendarYearBounds();
+      const completed = getCompletedDaysCurrentYear();
+      if (sub) sub.textContent = `Jan 1 – Dec 31, ${year} · ${completed} of ${totalDays} days (${Math.round((completed / totalDays) * 100)}%)`;
       body.innerHTML = `
         <div class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
           ${renderGridSquaresHtml(true)}
@@ -1497,10 +2498,7 @@
         </div>
       `;
       overlay.classList.remove('hidden');
-      requestAnimationFrame(() => {
-        const scroller = document.getElementById('fsGridScroller');
-        if (scroller) scroller.scrollLeft = scroller.scrollWidth;
-      });
+      requestAnimationFrame(() => scrollGridToCurrentMonth('fsGridScroller'));
     }
 
     function closeFullScreenYearGrid() {
@@ -1516,7 +2514,7 @@
           notes: '',
           exercises: []
         };
-        markTabsDirty('grid', 'overload');
+        markTabsDirty('grid');
         await saveState();
         renderWeekStrip();
         renderGridView();
@@ -1597,7 +2595,7 @@
         notes: '',
         exercises: []
       };
-      markTabsDirty('grid', 'overload');
+      markTabsDirty('grid');
       await saveState();
       closeModal();
       renderWeekStrip();
@@ -1608,7 +2606,7 @@
     async function deleteWorkoutForDate(dateStr) {
       delete appState.workouts[dateStr];
       if (activeDraft && activeDraft.date === dateStr) activeDraft = null;
-      markTabsDirty('grid', 'logger', 'overload');
+      markTabsDirty('grid', 'logger');
       await saveState();
       closeModal();
       renderWeekStrip();
@@ -1617,7 +2615,7 @@
     }
 
     /* ==========================================================================
-       9. VIEW 2: WORKOUT LOGGER & MULTI-SELECT EXERCISE PICKER
+       9. VIEW 2: WORKOUTS TAB (LOGGER + FORM ANIMATIONS & COMMON MISTAKES)
        ========================================================================== */
     function ensureDraftForDate(dateStr) {
       if (activeDraft && activeDraft.date === dateStr) return activeDraft;
@@ -1675,6 +2673,44 @@
       showToast(`Loaded "${tpl.name}"`);
     }
 
+    function toggleExerciseFormGuide(exId) {
+      if (openFormGuideExIds.has(exId)) {
+        openFormGuideExIds.delete(exId);
+      } else {
+        openFormGuideExIds.add(exId);
+      }
+      renderLoggerView();
+    }
+
+    function renderFormGuidePanelHtml(ex) {
+      const guide = getExerciseFormGuide(ex);
+      const mistakesList = (guide.mistakes || []).map(m => `
+        <li class="flex items-start gap-2 text-[11px] text-white/90 leading-snug">
+          <span class="text-coralAccent font-extrabold shrink-0">✕</span>
+          <span>${escapeHtml(m)}</span>
+        </li>
+      `).join('');
+
+      return `
+        <div class="bg-obsidian border border-borderDark rounded-2xl p-3 space-y-2.5">
+          <div class="flex items-center gap-3 bg-surface border border-borderDark rounded-xl p-2.5">
+            ${renderExerciseFormSvg(guide.animType)}
+            <div class="min-w-0 flex-1">
+              <span class="text-[9px] font-extrabold uppercase tracking-wider accent-text block">Proper Form Cue</span>
+              <p class="text-[11px] font-semibold text-white leading-snug mt-0.5">${escapeHtml(guide.cue)}</p>
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <span class="text-[9px] font-extrabold uppercase tracking-wider text-coralAccent block">Common Mistakes to Avoid</span>
+            <ul class="space-y-1">
+              ${mistakesList}
+            </ul>
+          </div>
+        </div>
+      `;
+    }
+
     function renderLoggerView() {
       const container = document.getElementById('view_logger');
       if (!container) return;
@@ -1689,18 +2725,20 @@
       const exercisesHtml = draft.exercises.length === 0
         ? `<div class="bg-surface border border-borderDark rounded-3xl p-6 text-center space-y-2.5">
              <p class="text-xs font-bold text-white">No exercises added yet</p>
-             <p class="text-[11px] text-mutedText">Tap <span class="text-white font-bold">+ Add Exercises</span> below or load one of your saved routines.</p>
+             <p class="text-[11px] text-mutedText">Tap <span class="text-white font-bold">+ Add Exercises</span> below or load one of your routines to log sets and view animated form cues &amp; common mistakes.</p>
            </div>`
         : draft.exercises.map((exEntry, exIdx) => {
             const ex = getExerciseById(exEntry.exerciseId);
             const cardio = isExerciseCardio(ex);
             const hist = getExerciseHistory(exEntry.exerciseId, draft.date);
             const lastSession = hist.length > 0 ? hist[hist.length - 1] : null;
+            const allTimeBest = hist.length > 0 ? Math.max(...hist.map(h => h.maxWeight)) : 0;
             const prevHint = lastSession
               ? (cardio
-                  ? `Last: ${lastSession.maxWeight} min`
-                  : `Last best: ${lastSession.maxWeight}kg × ${lastSession.maxReps}`)
+                  ? `Last: ${lastSession.maxWeight} min · Best: ${allTimeBest} min`
+                  : `Last: ${lastSession.maxWeight}kg × ${lastSession.maxReps} · PR: ${allTimeBest}kg`)
               : 'First time logging';
+            const isGuideOpen = openFormGuideExIds.has(ex.id);
 
             const setsRows = (exEntry.sets || []).map((s, setIdx) => {
               const ov = evaluateSetOverload(exEntry.exerciseId, s.weight, s.reps, draft.date);
@@ -1709,11 +2747,11 @@
                   <span class="col-span-2 text-[11px] font-extrabold text-mutedText text-center">Set ${setIdx + 1}</span>
                   <input type="number" step="any" inputmode="decimal" value="${escapeHtml(s.weight)}"
                     placeholder="${cardio ? 'Min' : 'kg'}"
-                    oninput="updateDraftSetField(${exIdx}, ${setIdx}, 'weight', this.value, this)"
+                    oninput="updateDraftSetField(${exIdx}, ${setIdx}, 'weight', this.value)"
                     class="col-span-4 bg-obsidian border border-borderDark rounded-xl px-2.5 py-2 text-base sm:text-xs font-extrabold text-white text-center focus:outline-none focus:border-white/35" />
                   <input type="${cardio ? 'text' : 'number'}" ${cardio ? '' : 'inputmode="numeric"'} value="${escapeHtml(s.reps)}"
                     placeholder="${cardio ? 'Lvl/Dist' : 'Reps'}"
-                    oninput="updateDraftSetField(${exIdx}, ${setIdx}, 'reps', this.value, this)"
+                    oninput="updateDraftSetField(${exIdx}, ${setIdx}, 'reps', this.value)"
                     class="col-span-4 bg-obsidian border border-borderDark rounded-xl px-2.5 py-2 text-base sm:text-xs font-extrabold text-white text-center focus:outline-none focus:border-white/35" />
                   <div class="col-span-2 flex items-center justify-end gap-1">
                     <span id="ovBadge_${exIdx}_${setIdx}" class="text-[9px] font-extrabold ${ov.status === 'pr' ? 'accent-text' : 'text-mutedText'}">${ov.badge}</span>
@@ -1726,13 +2764,23 @@
             return `
               <div class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
                 <div class="flex items-start justify-between gap-2">
-                  <div>
+                  <div class="min-w-0 flex-1">
                     <span class="text-[9px] font-extrabold uppercase tracking-wider accent-text">${escapeHtml(ex.muscle || 'Exercise')}</span>
                     <h3 class="text-sm font-extrabold text-white">${escapeHtml(ex.name)}</h3>
                     <p class="text-[10px] text-mutedText">${prevHint}</p>
                   </div>
-                  <button type="button" onclick="removeExerciseFromDraft(${exIdx})" class="text-xs text-mutedText hover:text-coralAccent px-2 py-1">Remove</button>
+                  <div class="flex items-center gap-1.5 shrink-0">
+                    <button type="button" onclick="toggleExerciseFormGuide('${ex.id}')"
+                      class="px-2.5 py-1 rounded-xl text-[10px] font-extrabold border transition ${
+                        isGuideOpen ? 'accent-bg text-obsidian accent-border' : 'bg-obsidian border-borderDark text-white hover:border-white/25'
+                      }">
+                      ${isGuideOpen ? 'Hide Form' : 'Form & Mistakes'}
+                    </button>
+                    <button type="button" onclick="removeExerciseFromDraft(${exIdx})" class="text-xs text-mutedText hover:text-coralAccent px-1.5 py-1">✕</button>
+                  </div>
                 </div>
+
+                ${isGuideOpen ? renderFormGuidePanelHtml(ex) : ''}
 
                 <div class="space-y-2">
                   ${setsRows}
@@ -1745,8 +2793,47 @@
             `;
           }).join('');
 
+      // Routine Form & Common Mistakes Reference for all routines
+      const routineGuidesHtml = (appState.templates || []).map(tpl => {
+        const itemsHtml = (tpl.exercises || []).map(exId => {
+          const ex = getExerciseById(exId);
+          const isOpen = openFormGuideExIds.has(`tpl_${ex.id}`);
+          return `
+            <div class="bg-obsidian border border-borderDark rounded-2xl p-3 space-y-2.5">
+              <button type="button" onclick="toggleExerciseFormGuide('tpl_${ex.id}')" class="w-full flex items-center justify-between gap-2 text-left">
+                <div class="min-w-0">
+                  <p class="text-xs font-extrabold text-white truncate">${escapeHtml(ex.name)}</p>
+                  <p class="text-[10px] text-mutedText">${escapeHtml(ex.muscle)} · ${escapeHtml(ex.equipment)}</p>
+                </div>
+                <span class="text-[10px] font-extrabold px-2.5 py-1 rounded-xl shrink-0 ${isOpen ? 'accent-bg text-obsidian' : 'bg-surface border border-borderDark accent-text'}">
+                  ${isOpen ? 'Hide' : '▶ Form & Mistakes'}
+                </span>
+              </button>
+              ${isOpen ? renderFormGuidePanelHtml(ex) : ''}
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="bg-surface border border-borderDark rounded-3xl p-4 space-y-2.5">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <span class="text-[9px] font-extrabold uppercase tracking-wider accent-text">${escapeHtml(tpl.tag || 'ROUTINE')}</span>
+                <h4 class="text-xs font-extrabold text-white">${escapeHtml(tpl.name)}</h4>
+              </div>
+              <button type="button" onclick="startWorkoutFromTemplate('${tpl.id}')" class="px-3 py-1.5 rounded-xl accent-bg text-obsidian text-[10px] font-extrabold">
+                ▶ Start
+              </button>
+            </div>
+            <div class="space-y-2">
+              ${itemsHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+
       container.innerHTML = `
-        <section class="space-y-3.5">
+        <section class="space-y-4">
           <div class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
             <div class="flex items-center justify-between gap-2">
               <input type="text" value="${escapeHtml(draft.title)}" oninput="activeDraft.title = this.value"
@@ -1775,6 +2862,16 @@
               ✓ Save Workout
             </button>
           </div>
+
+          ${routineGuidesHtml ? `
+            <div class="space-y-2.5 pt-2">
+              <div>
+                <h3 class="text-xs font-extrabold uppercase tracking-wider text-mutedText">Routine Form Animations &amp; Common Mistakes</h3>
+                <p class="text-[11px] text-mutedText">Tap any exercise in your routines to inspect animated form cues &amp; mistakes</p>
+              </div>
+              ${routineGuidesHtml}
+            </div>
+          ` : ''}
         </section>
       `;
       dirtyTabs.logger = false;
@@ -1826,11 +2923,7 @@
       };
 
       selectedDate = activeDraft.date;
-      if (cleanExercises.length > 0) {
-        selectedOverloadExerciseId = cleanExercises[0].exerciseId;
-      }
-
-      markTabsDirty('grid', 'logger', 'overload');
+      markTabsDirty('grid', 'logger');
       await saveState();
       renderWeekStrip();
       switchTab('grid');
@@ -2053,120 +3146,7 @@
     }
 
     /* ==========================================================================
-       11. VIEW 3: PROGRESSIVE OVERLOAD ANALYTICS
-       ========================================================================== */
-    function renderOverloadView() {
-      const container = document.getElementById('view_overload');
-      if (!container) return;
-
-      const all = getAllExercises();
-      const loggedIds = new Set();
-      Object.values(appState.workouts || {}).forEach(w => {
-        (w.exercises || []).forEach(e => loggedIds.add(e.exerciseId));
-      });
-
-      const optionsHtml = all.map(ex => {
-        const hasData = loggedIds.has(ex.id);
-        return `<option value="${ex.id}" ${ex.id === selectedOverloadExerciseId ? 'selected' : ''}>${escapeHtml(ex.name)}${hasData ? ' ★' : ''}</option>`;
-      }).join('');
-
-      const ex = getExerciseById(selectedOverloadExerciseId);
-      const cardio = isExerciseCardio(ex);
-      const history = getExerciseHistory(selectedOverloadExerciseId);
-
-      let statsHtml = '';
-      let barsHtml = '';
-
-      if (history.length === 0) {
-        statsHtml = `<div class="bg-obsidian border border-borderDark rounded-2xl p-4 text-center text-xs text-mutedText">No sessions recorded for <span class="text-white font-bold">${escapeHtml(ex.name)}</span> yet. Log a workout to track progressive overload!</div>`;
-      } else {
-        const bestMax = Math.max(...history.map(h => h.maxWeight));
-        const firstMax = history[0].maxWeight;
-        const latestMax = history[history.length - 1].maxWeight;
-        const delta = (latestMax - firstMax).toFixed(1);
-        const unit = cardio ? 'min' : 'kg';
-
-        statsHtml = `
-          <div class="grid grid-cols-3 gap-2">
-            <div class="bg-obsidian border border-borderDark rounded-2xl p-3">
-              <span class="text-[9px] font-bold uppercase text-mutedText block">All-Time PR</span>
-              <p class="text-sm font-extrabold text-white mt-0.5">${bestMax} ${unit}</p>
-            </div>
-            <div class="bg-obsidian border border-borderDark rounded-2xl p-3">
-              <span class="text-[9px] font-bold uppercase text-mutedText block">Latest Best</span>
-              <p class="text-sm font-extrabold text-white mt-0.5">${latestMax} ${unit}</p>
-            </div>
-            <div class="bg-obsidian border border-borderDark rounded-2xl p-3">
-              <span class="text-[9px] font-bold uppercase text-mutedText block">Net Gain</span>
-              <p class="text-sm font-extrabold accent-text mt-0.5">${parseFloat(delta) >= 0 ? '+' : ''}${delta} ${unit}</p>
-            </div>
-          </div>
-        `;
-
-        const recent = history.slice(-8);
-        const peak = Math.max(...recent.map(r => r.maxWeight || r.maxReps || 1), 1);
-        barsHtml = `
-          <div class="bg-obsidian border border-borderDark rounded-2xl p-3.5 space-y-2">
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-mutedText block">Session Progression</span>
-            <div class="grid gap-2 items-end h-28 pt-3" style="grid-template-columns: repeat(${recent.length}, minmax(0, 1fr));">
-              ${recent.map(r => {
-                const val = r.maxWeight || r.maxReps || 0;
-                const hPct = Math.max(14, Math.round((val / peak) * 100));
-                return `
-                  <div class="flex flex-col items-center gap-1 h-full justify-end">
-                    <span class="text-[9px] font-extrabold text-white">${val}</span>
-                    <div class="w-full rounded-t-lg accent-bg" style="height: ${hPct}%;"></div>
-                    <span class="text-[8px] text-mutedText">${r.date.slice(5)}</span>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </div>
-        `;
-      }
-
-      const historyRows = [...history].reverse().map(h => `
-        <div class="bg-surface border border-borderDark rounded-2xl p-3 flex items-center justify-between">
-          <div>
-            <p class="text-xs font-extrabold text-white">${formatHumanDate(h.date)}</p>
-            <p class="text-[11px] text-mutedText mt-0.5">
-              ${h.sets.map(s => cardio ? `${s.weight || 0}m${s.reps ? ` @ ${escapeHtml(s.reps)}` : ''}` : `${s.weight || 0}kg × ${s.reps || 0}`).join(' · ')}
-            </p>
-          </div>
-          <span class="text-xs font-extrabold accent-text">${h.maxWeight} ${cardio ? 'min' : 'kg'}</span>
-        </div>
-      `).join('');
-
-      container.innerHTML = `
-        <section class="space-y-4">
-          <div class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3.5">
-            <div>
-              <h2 class="text-sm font-extrabold text-white">PROGRESSIVE OVERLOAD</h2>
-              <p class="text-[11px] text-mutedText">Track strength PRs &amp; volume progression per lift</p>
-            </div>
-
-            <select onchange="selectedOverloadExerciseId = this.value; renderOverloadView();"
-              class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-xs font-extrabold text-white focus:outline-none">
-              ${optionsHtml}
-            </select>
-
-            ${statsHtml}
-            ${barsHtml}
-          </div>
-
-          ${history.length > 0 ? `
-            <div class="space-y-2">
-              <h3 class="text-xs font-extrabold uppercase tracking-wider text-mutedText">Lift History</h3>
-              ${historyRows}
-            </div>
-          ` : ''}
-        </section>
-      `;
-      dirtyTabs.overload = false;
-    }
-
-    /* ==========================================================================
-       12. VIEW 4: DEDICATED CALORIE COUNTER (BREAKFAST/LUNCH/DINNER/SNACKS + DB) & BMR/TDEE
+       11. VIEW 3: DEDICATED CALORIE COUNTER (BREAKFAST/LUNCH/DINNER/SNACKS + DB) & BMR/TDEE
        ========================================================================== */
     function calculateBmrAndTdee() {
       const bio = appState.bioStats || { age: 25, heightCm: 168, weightKg: 62, activityMultiplier: 1.55, goalMode: 'maintain' };
@@ -3102,7 +4082,7 @@
     }
 
     /* ==========================================================================
-       13. VIEW 5: MERGED ROUTINES & BODY MEASUREMENTS
+       12. VIEW 4: MERGED ROUTINES & BODY MEASUREMENTS
        ========================================================================== */
     function renderTemplatesView() {
       const container = document.getElementById('view_templates');
@@ -3333,7 +4313,7 @@
         exercises: [...routineBuilderDraft.exerciseIds]
       });
 
-      markTabsDirty('grid', 'templates');
+      markTabsDirty('grid', 'logger', 'templates');
       await saveState();
       closeModal();
       switchTab('templates');
@@ -3342,19 +4322,20 @@
 
     async function deleteTemplate(idx) {
       appState.templates.splice(idx, 1);
-      markTabsDirty('grid', 'templates');
+      markTabsDirty('grid', 'logger', 'templates');
       await saveState();
       renderTemplatesView();
       showToast('Routine deleted.');
     }
 
     /* ==========================================================================
-       14. CLEAN PROFILE MODAL (FIRST/LAST NAME, GENDER, PHOTO, WEEKLY GOAL, SYNC)
+       13. PROFILE MODAL (FIRST/LAST NAME, EMAIL/USERNAME CHANGE, GENDER, PHOTO, GOAL)
        ========================================================================== */
     function openAccountModal() {
       if (accountSession && accountSession.username) {
         const firstNameVal = getDisplayFirstName();
         const lastNameVal = appState.lastName || '';
+        const currentEmailUser = accountSession.username || '';
         const genderVal = appState.gender === 'male' ? 'male' : 'female';
         const currentGoal = appState.weeklyGoal || 3;
         const goalButtons = [1, 2, 3, 4, 5, 6, 7].map(n => `
@@ -3378,7 +4359,8 @@
               </label>
               <div class="min-w-0 flex-1">
                 <p class="text-sm font-extrabold text-white truncate">${escapeHtml(firstNameVal)}${lastNameVal ? ' ' + escapeHtml(lastNameVal) : ''}</p>
-                <p class="text-[11px] text-mutedText mt-0.5">${getCompletedDaysLast365()} workouts logged this year</p>
+                <p class="text-[11px] text-mutedText truncate">${escapeHtml(currentEmailUser)}</p>
+                <p class="text-[10px] accent-text font-bold mt-0.5">${getCompletedDaysCurrentYear()} workouts logged this year</p>
               </div>
             </div>
 
@@ -3386,13 +4368,19 @@
               <div class="grid grid-cols-2 gap-2">
                 <div>
                   <label class="text-[10px] font-bold uppercase text-mutedText block mb-1">First Name</label>
-                  <input id="profileFirstNameInput" type="text" value="${escapeHtml(firstNameVal)}" class="w-full bg-surface border border-borderDark rounded-xl px-3 py-2 text-xs font-bold text-white" />
+                  <input id="profileFirstNameInput" type="text" value="${escapeHtml(firstNameVal)}" class="w-full bg-surface border border-borderDark rounded-xl px-3 py-2 text-base sm:text-xs font-bold text-white" />
                 </div>
                 <div>
                   <label class="text-[10px] font-bold uppercase text-mutedText block mb-1">Surname (Opt)</label>
-                  <input id="profileLastNameInput" type="text" value="${escapeHtml(lastNameVal)}" placeholder="Optional" class="w-full bg-surface border border-borderDark rounded-xl px-3 py-2 text-xs font-bold text-white" />
+                  <input id="profileLastNameInput" type="text" value="${escapeHtml(lastNameVal)}" placeholder="Optional" class="w-full bg-surface border border-borderDark rounded-xl px-3 py-2 text-base sm:text-xs font-bold text-white" />
                 </div>
               </div>
+
+              <div>
+                <label class="text-[10px] font-bold uppercase text-mutedText block mb-1">Email / Account Username</label>
+                <input id="profileEmailInput" type="text" autocapitalize="none" spellcheck="false" value="${escapeHtml(currentEmailUser)}" placeholder="e.g. you@icloud.com" class="w-full bg-surface border border-borderDark rounded-xl px-3 py-2 text-base sm:text-xs font-bold text-white" />
+              </div>
+
               <div class="flex items-center justify-between gap-2 pt-1">
                 <div class="grid grid-cols-2 gap-1 bg-surface border border-borderDark p-0.5 rounded-xl">
                   <button type="button" onclick="updateGenderFromProfile('female')" class="px-3 py-1.5 rounded-lg text-[10px] font-extrabold transition ${genderVal === 'female' ? 'accent-bg text-obsidian' : 'text-mutedText'}">Female</button>
@@ -3447,13 +4435,40 @@
     async function saveProfileDetails() {
       const fn = (document.getElementById('profileFirstNameInput')?.value || '').trim();
       const ln = (document.getElementById('profileLastNameInput')?.value || '').trim();
+      const rawNewEmail = (document.getElementById('profileEmailInput')?.value || '').toLowerCase().trim().replace(/[^a-z0-9@._-]/g, '');
+
       if (fn) appState.firstName = fn;
       appState.lastName = ln;
+
+      if (accountSession && rawNewEmail && rawNewEmail !== accountSession.username) {
+        if (rawNewEmail.length < 3) {
+          showToast('Email / username must be at least 3 characters.');
+          return;
+        }
+        const oldUsername = accountSession.username;
+        accountSession.username = rawNewEmail;
+        accountSession.firstName = appState.firstName || fn;
+        accountSession.lastName = appState.lastName;
+        accountSession.displayName = appState.firstName || fn;
+        try {
+          localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify(accountSession));
+          localStorage.removeItem(`${ACCOUNT_VAULT_PREFIX}${oldUsername}`);
+          localStorage.removeItem(`${ACCOUNT_VAULT_PREFIX}${oldUsername}_backup`);
+        } catch (_) {}
+      } else if (accountSession) {
+        accountSession.firstName = appState.firstName || fn;
+        accountSession.lastName = appState.lastName;
+        accountSession.displayName = appState.firstName || fn;
+        try {
+          localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify(accountSession));
+        } catch (_) {}
+      }
+
       markTabsDirty('calories');
-      await saveState();
+      await saveState(true);
       updateAccountHeaderUI();
       openAccountModal();
-      showToast('Profile saved!');
+      showToast('Profile & email updated!');
     }
 
     async function setWeeklyGoal(days) {
@@ -3524,7 +4539,7 @@
     }
 
     /* ==========================================================================
-       15. MODAL & ZERO-LAG TAB SWITCHING CONTROLLERS
+       14. MODAL & ZERO-LAG TAB SWITCHING CONTROLLERS
        ========================================================================== */
     function openModal(title, bodyHtml) {
       const overlay = document.getElementById('modalOverlay');
@@ -3555,12 +4570,12 @@
     function renderCurrentTab() {
       if (currentTab === 'grid' && dirtyTabs.grid) renderGridView();
       else if (currentTab === 'logger' && dirtyTabs.logger) renderLoggerView();
-      else if (currentTab === 'overload' && dirtyTabs.overload) renderOverloadView();
       else if (currentTab === 'calories' && dirtyTabs.calories) renderCaloriesView();
       else if (currentTab === 'templates' && dirtyTabs.templates) renderTemplatesView();
     }
 
     function switchTab(tab) {
+      if (!['grid', 'logger', 'calories', 'templates'].includes(tab)) tab = 'grid';
       if (currentTab === tab && !dirtyTabs[tab]) return;
       currentTab = tab;
 
@@ -3579,7 +4594,7 @@
     }
 
     /* ==========================================================================
-       16. INITIALIZATION & 60-DAY AUTH GATE
+       15. INITIALIZATION & 60-DAY AUTH GATE
        ========================================================================== */
     window.addEventListener('DOMContentLoaded', async () => {
       const isSandboxed = window.location.protocol === 'about:' || window.location.href.startsWith('blob:');
@@ -3611,6 +4626,7 @@
       markTabsDirty();
       renderWeekStrip();
       renderCurrentTab();
+      startBioAnimationLoop();
 
       let lastKnownDay = getTodayStr();
       setInterval(() => {
