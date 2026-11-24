@@ -150,11 +150,11 @@
       </div>
     </div>
 
-    <!-- Active Session Quick Resume Banner (if already signed in) -->
+    <!-- Active Session Quick Resume Banner -->
     <div id="existingSessionBanner" style="display: none;" class="bg-surface border border-borderDark rounded-2xl p-3.5 items-center justify-between gap-3">
       <div class="min-w-0">
         <p class="text-[10px] font-extrabold uppercase tracking-wider text-mutedText">Active Profile</p>
-        <p id="existingSessionUser" class="text-xs font-extrabold text-white truncate">@user</p>
+        <p id="existingSessionUser" class="text-xs font-extrabold text-white truncate">Athlete</p>
       </div>
       <button id="resumeBtn" type="button" onclick="goToMainApp()" class="px-3.5 py-2 rounded-xl text-xs font-extrabold text-obsidian shrink-0 transition active:scale-95" style="background-color: #3B82F6;">
         Open App →
@@ -174,9 +174,35 @@
       </div>
 
       <form onsubmit="event.preventDefault(); submitLoginForm();" class="space-y-3.5">
+        <!-- Sign-Up Only: Name, Optional Surname & Gender -->
+        <div id="signUpProfileFields" class="hidden space-y-3">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">First Name</label>
+              <input id="loginFirstName" type="text" autocomplete="given-name" placeholder="e.g. Lizza" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-3 text-base sm:text-sm text-white focus:outline-none focus:border-white/40" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Surname <span class="opacity-60">(Opt)</span></label>
+              <input id="loginLastName" type="text" autocomplete="family-name" placeholder="Optional" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-3 text-base sm:text-sm text-white focus:outline-none focus:border-white/40" />
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Gender <span class="opacity-60">(For BMR &amp; Calories)</span></label>
+            <div class="grid grid-cols-2 gap-2">
+              <button id="genderFemaleBtn" type="button" onclick="selectSignupGender('female')" class="py-2.5 rounded-2xl text-xs font-extrabold border border-borderDark text-obsidian transition" style="background-color: #3B82F6;">
+                Female
+              </button>
+              <button id="genderMaleBtn" type="button" onclick="selectSignupGender('male')" class="py-2.5 rounded-2xl text-xs font-extrabold bg-obsidian border border-borderDark text-mutedText hover:text-white transition">
+                Male
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div>
-          <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Username</label>
-          <input id="loginUsername" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. alexlifts" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-3 text-base sm:text-sm text-white focus:outline-none focus:border-white/40" />
+          <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Email or Username</label>
+          <input id="loginUsername" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. lizza@icloud.com" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-3 text-base sm:text-sm text-white focus:outline-none focus:border-white/40" />
         </div>
 
         <div>
@@ -238,8 +264,27 @@
     };
 
     let currentMode = 'signin';
+    let selectedSignupGender = 'female';
     let activeAccentHex = '#3B82F6';
     let supabaseClient = null;
+
+    function selectSignupGender(gender) {
+      selectedSignupGender = gender === 'male' ? 'male' : 'female';
+      const fBtn = document.getElementById('genderFemaleBtn');
+      const mBtn = document.getElementById('genderMaleBtn');
+      if (!fBtn || !mBtn) return;
+      if (selectedSignupGender === 'female') {
+        fBtn.style.backgroundColor = activeAccentHex;
+        fBtn.className = 'py-2.5 rounded-2xl text-xs font-extrabold border border-borderDark text-obsidian transition';
+        mBtn.style.backgroundColor = '#0A0A0C';
+        mBtn.className = 'py-2.5 rounded-2xl text-xs font-extrabold bg-obsidian border border-borderDark text-mutedText hover:text-white transition';
+      } else {
+        mBtn.style.backgroundColor = activeAccentHex;
+        mBtn.className = 'py-2.5 rounded-2xl text-xs font-extrabold border border-borderDark text-obsidian transition';
+        fBtn.style.backgroundColor = '#0A0A0C';
+        fBtn.className = 'py-2.5 rounded-2xl text-xs font-extrabold bg-obsidian border border-borderDark text-mutedText hover:text-white transition';
+      }
+    }
 
     function getSupabaseConfig() {
       try {
@@ -307,9 +352,7 @@
           const banner = document.getElementById('existingSessionBanner');
           const userLabel = document.getElementById('existingSessionUser');
           if (banner && userLabel) {
-            userLabel.textContent = existingSession.username.includes('@')
-              ? existingSession.username
-              : `@${existingSession.username}`;
+            userLabel.textContent = existingSession.firstName || existingSession.displayName || existingSession.username;
             banner.style.display = 'flex';
           }
         } else {
@@ -323,6 +366,7 @@
         const el = document.getElementById(id);
         if (el) el.style.backgroundColor = activeAccentHex;
       });
+      selectSignupGender(selectedSignupGender);
       const guest = document.getElementById('guestLink');
       if (guest) guest.style.color = activeAccentHex;
     }
@@ -334,6 +378,7 @@
       currentMode = mode;
       const btnIn = document.getElementById('tabSignIn');
       const btnUp = document.getElementById('tabSignUp');
+      const signUpFields = document.getElementById('signUpProfileFields');
       const submitBtn = document.getElementById('submitBtn');
       const passInput = document.getElementById('loginPassword');
       const err = document.getElementById('loginError');
@@ -344,6 +389,7 @@
         btnIn.className = 'py-2 rounded-xl text-xs font-extrabold text-obsidian transition';
         btnUp.style.backgroundColor = 'transparent';
         btnUp.className = 'py-2 rounded-xl text-xs font-extrabold text-mutedText hover:text-white transition';
+        if (signUpFields) signUpFields.classList.add('hidden');
         submitBtn.textContent = 'Sign In & Open Tracker';
         if (passInput) passInput.setAttribute('autocomplete', 'current-password');
       } else {
@@ -351,6 +397,7 @@
         btnUp.className = 'py-2 rounded-xl text-xs font-extrabold text-obsidian transition';
         btnIn.style.backgroundColor = 'transparent';
         btnIn.className = 'py-2 rounded-xl text-xs font-extrabold text-mutedText hover:text-white transition';
+        if (signUpFields) signUpFields.classList.remove('hidden');
         submitBtn.textContent = 'Create Account & Start';
         if (passInput) passInput.setAttribute('autocomplete', 'new-password');
       }
@@ -422,14 +469,21 @@
     }
 
     async function submitLoginForm() {
+      const rawFirst = (document.getElementById('loginFirstName')?.value || '').trim();
+      const rawLast = (document.getElementById('loginLastName')?.value || '').trim();
       const rawUser = document.getElementById('loginUsername')?.value || '';
       const rawPass = document.getElementById('loginPassword')?.value || '';
       const err = document.getElementById('loginError');
       const submitBtn = document.getElementById('submitBtn');
       const username = rawUser.toLowerCase().trim().replace(/[^a-z0-9@._-]/g, '');
 
+      if (currentMode === 'signup' && rawFirst.length < 1) {
+        err.textContent = 'Please enter your first name.';
+        err.classList.remove('hidden');
+        return;
+      }
       if (username.length < 3) {
-        err.textContent = 'Username must be at least 3 characters.';
+        err.textContent = 'Email or username must be at least 3 characters.';
         err.classList.remove('hidden');
         return;
       }
@@ -456,7 +510,6 @@
           existingVault = await readUserFromIDB(userKey);
         }
 
-        // Check Supabase cloud vault if connected
         if (supabaseClient) {
           try {
             const { data } = await supabaseClient
@@ -491,7 +544,16 @@
           return;
         }
 
-        // If creating a new account and Supabase is connected, seed profile row right away
+        const resolvedFirstName = currentMode === 'signup'
+          ? rawFirst
+          : (existingVault?.firstName || existingVault?._displayName || username.split('@')[0]);
+        const resolvedLastName = currentMode === 'signup'
+          ? rawLast
+          : (existingVault?.lastName || '');
+        const resolvedGender = currentMode === 'signup'
+          ? selectedSignupGender
+          : (existingVault?.gender || 'female');
+
         if (currentMode === 'signup' && supabaseClient) {
           try {
             await supabaseClient.from('cadence_profiles').upsert({
@@ -499,10 +561,13 @@
               pass_hash: passHash,
               state_json: {
                 accent: 'blue',
+                firstName: resolvedFirstName,
+                lastName: resolvedLastName,
+                gender: resolvedGender,
                 workouts: {},
                 customExercises: [],
                 _passHash: passHash,
-                _displayName: rawUser.trim(),
+                _displayName: resolvedFirstName,
                 _updatedAt: Date.now()
               },
               updated_at: new Date().toISOString()
@@ -513,7 +578,10 @@
         localStorage.removeItem(GUEST_MODE_KEY);
         localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify({
           username,
-          displayName: rawUser.trim(),
+          firstName: resolvedFirstName,
+          lastName: resolvedLastName,
+          gender: resolvedGender,
+          displayName: resolvedFirstName,
           passHash,
           expiresAt: Date.now() + SIXTY_DAYS_MS,
           pendingMode: currentMode
