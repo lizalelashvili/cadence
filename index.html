@@ -2076,7 +2076,7 @@
         barsHtml = `
           <div class="bg-obsidian border border-borderDark rounded-2xl p-3.5 space-y-2">
             <span class="text-[10px] font-extrabold uppercase tracking-wider text-mutedText block">Session Progression</span>
-            <div class="grid grid-cols-${recent.length} gap-2 items-end h-28 pt-3">
+            <div class="grid gap-2 items-end h-28 pt-3" style="grid-template-columns: repeat(${recent.length}, minmax(0, 1fr));">
               ${recent.map(r => {
                 const val = r.maxWeight || r.maxReps || 0;
                 const hPct = Math.max(14, Math.round((val / peak) * 100));
@@ -2174,7 +2174,7 @@
               <p class="text-[10px] text-mutedText">${item.calories} kcal · ${item.protein}g protein · ${escapeHtml(item.category)}</p>
             </button>
             <div class="flex items-center gap-1.5 shrink-0">
-              <button type="button" onclick="toggleFavoriteFoodItem(${JSON.stringify(item.name).replace(/"/g, '&quot;')}, ${item.calories}, ${item.protein})"
+              <button type="button" onclick="toggleFavoriteByDbId('${item.id}')"
                 aria-label="Favorite"
                 class="w-7 h-7 rounded-lg bg-surface border border-borderDark flex items-center justify-center text-xs ${isFav ? 'accent-text' : 'text-mutedText hover:text-white'}">
                 ${isFav ? '★' : '☆'}
@@ -2224,7 +2224,7 @@
           ${r.note ? `<p class="text-[10px] text-mutedText italic">${escapeHtml(r.note)}</p>` : ''}
 
           <div class="grid grid-cols-2 gap-2 pt-0.5">
-            <button type="button" onclick="toggleFavoriteFoodItem(${JSON.stringify(r.dish_name || 'AI Meal').replace(/"/g, '&quot;')}, ${Math.round(r.total_calories || 0)}, ${Math.round(r.protein_g || 0)})"
+            <button type="button" onclick="toggleFavoriteFromAiResult()"
               class="py-2 rounded-xl bg-obsidian border border-borderDark text-[11px] font-extrabold text-white hover:border-white/25">
               ${isFav ? '★ Saved in Favorites' : '☆ Save to Favorites'}
             </button>
@@ -2316,7 +2316,7 @@
                 <p class="text-[10px] text-mutedText">${dayShort} · ${mealObj ? mealObj.label : 'Meal'} · ${item.calories} kcal${item.protein ? ` · ${item.protein}g protein` : ''}</p>
               </div>
               <div class="flex items-center gap-1.5 shrink-0">
-                <button type="button" onclick="toggleFavoriteFoodItem(${JSON.stringify(item.name).replace(/"/g, '&quot;')}, ${item.calories}, ${item.protein})"
+                <button type="button" onclick="toggleFavoriteFromHistoryIdx(${idx})"
                   aria-label="Favorite"
                   class="w-7 h-7 rounded-lg bg-surface border border-borderDark flex items-center justify-center text-xs ${isFav ? 'accent-text' : 'text-mutedText hover:text-white'}">
                   ${isFav ? '★' : '☆'}
@@ -2421,7 +2421,7 @@
                     <p class="text-[10px] text-mutedText">${Math.round(f.calories)} kcal${f.protein ? ` · ${Math.round(f.protein)}g protein` : ''}</p>
                   </div>
                   <div class="flex items-center gap-1 shrink-0">
-                    <button type="button" onclick="toggleFavoriteFoodItem(${JSON.stringify(f.name).replace(/"/g, '&quot;')}, ${Math.round(f.calories || 0)}, ${Math.round(f.protein || 0)})"
+                    <button type="button" onclick="toggleFavoriteFromDayLogIdx(${f._idx})"
                       aria-label="Favorite"
                       class="text-xs px-1.5 py-1 ${isFav ? 'accent-text' : 'text-mutedText hover:text-white'}">
                       ${isFav ? '★' : '☆'}
@@ -2540,17 +2540,21 @@
                 <h3 class="text-xs font-extrabold uppercase tracking-wider text-white">Food &amp; Calorie Database</h3>
                 <p class="text-[10px] text-mutedText">Tap + Log to add straight to <span class="text-white font-bold">${MEAL_SECTIONS.find(m => m.id === selectedMealType)?.label}</span></p>
               </div>
+              <span class="text-[10px] font-bold text-mutedText">${FOOD_DATABASE.length} items</span>
             </div>
+
             <input type="text" value="${escapeHtml(foodDbSearchQuery)}"
               oninput="foodDbSearchQuery = this.value; document.getElementById('foodDbResultsList').innerHTML = getFilteredFoodDbHtml();"
-              placeholder="Search foods (e.g. chicken, eggs, rice, oats, khachapuri)..."
-              class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-base sm:text-xs font-semibold text-white focus:outline-none focus:border-white/30" />
-            <div id="foodDbResultsList" class="space-y-1.5 max-h-56 overflow-y-auto pr-0.5">
+              placeholder="Search chicken, rice, eggs, yogurt, khachapuri..."
+              class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-base sm:text-xs font-bold text-white focus:outline-none focus:border-white/30" />
+
+            <div id="foodDbResultsList" class="space-y-1.5 max-h-60 overflow-y-auto pr-0.5">
               ${getFilteredFoodDbHtml()}
             </div>
           </div>
 
           <div class="space-y-2.5">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-mutedText">Daily Meals</h3>
             ${mealSectionsHtml}
           </div>
 
@@ -2558,9 +2562,9 @@
             <div class="flex items-center justify-between">
               <div>
                 <h2 class="text-sm font-extrabold text-white">BMR &amp; TDEE CALCULATOR</h2>
-                <p class="text-[11px] text-mutedText">Mifflin-St Jeor formula calibrated by gender</p>
+                <p class="text-[11px] text-mutedText">Mifflin-St Jeor equation calibrated by gender</p>
               </div>
-              <div class="grid grid-cols-2 gap-1 bg-obsidian border border-borderDark p-0.5 rounded-xl">
+              <div class="grid grid-cols-2 bg-obsidian border border-borderDark p-0.5 rounded-xl">
                 <button type="button" onclick="updateGenderAndBio('female')" class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition ${gender === 'female' ? 'accent-bg text-obsidian' : 'text-mutedText'}">Female</button>
                 <button type="button" onclick="updateGenderAndBio('male')" class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition ${gender === 'male' ? 'accent-bg text-obsidian' : 'text-mutedText'}">Male</button>
               </div>
@@ -2570,59 +2574,144 @@
               <div>
                 <label class="text-[10px] font-bold uppercase text-mutedText block mb-1">Age (yrs)</label>
                 <input id="bioAgeInput" type="number" inputmode="numeric" value="${bio.age}" onchange="recalcBioStats()"
-                  class="w-full bg-obsidian border border-borderDark rounded-xl px-2.5 py-2 text-base sm:text-xs font-bold text-white text-center" />
+                  class="w-full bg-obsidian border border-borderDark rounded-xl px-2.5 py-2 text-base sm:text-xs font-extrabold text-white text-center" />
               </div>
               <div>
                 <label class="text-[10px] font-bold uppercase text-mutedText block mb-1">Height (cm)</label>
-                <input id="bioHeightInput" type="number" step="any" inputmode="decimal" value="${bio.heightCm}" onchange="recalcBioStats()"
-                  class="w-full bg-obsidian border border-borderDark rounded-xl px-2.5 py-2 text-base sm:text-xs font-bold text-white text-center" />
+                <input id="bioHeightInput" type="number" inputmode="decimal" value="${bio.heightCm}" onchange="recalcBioStats()"
+                  class="w-full bg-obsidian border border-borderDark rounded-xl px-2.5 py-2 text-base sm:text-xs font-extrabold text-white text-center" />
               </div>
               <div>
                 <label class="text-[10px] font-bold uppercase text-mutedText block mb-1">Weight (kg)</label>
                 <input id="bioWeightInput" type="number" step="any" inputmode="decimal" value="${bio.weightKg}" onchange="recalcBioStats()"
-                  class="w-full bg-obsidian border border-borderDark rounded-xl px-2.5 py-2 text-base sm:text-xs font-bold text-white text-center" />
+                  class="w-full bg-obsidian border border-borderDark rounded-xl px-2.5 py-2 text-base sm:text-xs font-extrabold text-white text-center" />
               </div>
             </div>
 
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="text-[10px] font-bold uppercase text-mutedText block mb-1">Activity Level</label>
-                <select id="bioActivityInput" onchange="recalcBioStats()" class="w-full bg-obsidian border border-borderDark rounded-xl px-2.5 py-2 text-xs font-bold text-white focus:outline-none">
-                  <option value="1.2" ${Number(bio.activityMultiplier) === 1.2 ? 'selected' : ''}>Sedentary (1.2x)</option>
-                  <option value="1.375" ${Number(bio.activityMultiplier) === 1.375 ? 'selected' : ''}>Lightly Active (1.375x)</option>
-                  <option value="1.55" ${Number(bio.activityMultiplier) === 1.55 ? 'selected' : ''}>Moderate 3–5d/wk (1.55x)</option>
-                  <option value="1.725" ${Number(bio.activityMultiplier) === 1.725 ? 'selected' : ''}>Very Active 6–7d/wk (1.725x)</option>
-                  <option value="1.9" ${Number(bio.activityMultiplier) === 1.9 ? 'selected' : ''}>Athlete / 2x Day (1.9x)</option>
+                <select id="bioActivityInput" onchange="recalcBioStats()" class="w-full bg-obsidian border border-borderDark rounded-xl px-2.5 py-2 text-xs font-bold text-white">
+                  <option value="1.2" ${Number(bio.activityMultiplier) === 1.2 ? 'selected' : ''}>Sedentary (1.2×)</option>
+                  <option value="1.375" ${Number(bio.activityMultiplier) === 1.375 ? 'selected' : ''}>Light 1–3d/wk (1.38×)</option>
+                  <option value="1.55" ${Number(bio.activityMultiplier) === 1.55 ? 'selected' : ''}>Moderate 3–5d/wk (1.55×)</option>
+                  <option value="1.725" ${Number(bio.activityMultiplier) === 1.725 ? 'selected' : ''}>Active 6–7d/wk (1.73×)</option>
+                  <option value="1.9" ${Number(bio.activityMultiplier) === 1.9 ? 'selected' : ''}>Athlete 2×/day (1.9×)</option>
                 </select>
               </div>
               <div>
-                <label class="text-[10px] font-bold uppercase text-mutedText block mb-1">Calorie Goal</label>
-                <select id="bioGoalInput" onchange="recalcBioStats()" class="w-full bg-obsidian border border-borderDark rounded-xl px-2.5 py-2 text-xs font-bold text-white focus:outline-none">
+                <label class="text-[10px] font-bold uppercase text-mutedText block mb-1">Goal</label>
+                <select id="bioGoalInput" onchange="recalcBioStats()" class="w-full bg-obsidian border border-borderDark rounded-xl px-2.5 py-2 text-xs font-bold text-white">
                   <option value="cut" ${bio.goalMode === 'cut' ? 'selected' : ''}>Fat Loss (-400 kcal)</option>
-                  <option value="maintain" ${bio.goalMode === 'maintain' ? 'selected' : ''}>Maintenance (TDEE)</option>
-                  <option value="bulk" ${bio.goalMode === 'bulk' ? 'selected' : ''}>Lean Muscle (+300 kcal)</option>
+                  <option value="maintain" ${bio.goalMode === 'maintain' ? 'selected' : ''}>Maintain (TDEE)</option>
+                  <option value="bulk" ${bio.goalMode === 'bulk' ? 'selected' : ''}>Lean Gain (+300 kcal)</option>
                 </select>
               </div>
             </div>
 
             <div class="grid grid-cols-3 gap-2 pt-1">
-              <div class="bg-obsidian border border-borderDark rounded-2xl p-2.5 text-center">
-                <span class="text-[9px] font-bold uppercase text-mutedText block">BMR (${gender === 'male' ? 'Male' : 'Female'})</span>
-                <p class="text-sm font-extrabold text-white mt-0.5">${bmr} <span class="text-[10px] text-mutedText">kcal</span></p>
+              <div class="bg-obsidian border border-borderDark rounded-2xl p-3 text-center">
+                <span class="text-[9px] font-bold uppercase text-mutedText block">BMR (Resting)</span>
+                <p class="text-sm font-extrabold text-white mt-0.5">${bmr} kcal</p>
               </div>
-              <div class="bg-obsidian border border-borderDark rounded-2xl p-2.5 text-center">
-                <span class="text-[9px] font-bold uppercase text-mutedText block">TDEE (Maint.)</span>
-                <p class="text-sm font-extrabold text-white mt-0.5">${tdee} <span class="text-[10px] text-mutedText">kcal</span></p>
+              <div class="bg-obsidian border border-borderDark rounded-2xl p-3 text-center">
+                <span class="text-[9px] font-bold uppercase text-mutedText block">TDEE (Daily)</span>
+                <p class="text-sm font-extrabold text-white mt-0.5">${tdee} kcal</p>
               </div>
-              <div class="bg-obsidian border accent-border rounded-2xl p-2.5 text-center">
+              <div class="bg-obsidian border accent-border rounded-2xl p-3 text-center">
                 <span class="text-[9px] font-bold uppercase accent-text block">Daily Target</span>
-                <p class="text-sm font-extrabold accent-text mt-0.5">${targetCalories} <span class="text-[10px]">kcal</span></p>
+                <p class="text-sm font-extrabold accent-text mt-0.5">${targetCalories} kcal</p>
               </div>
             </div>
           </div>
         </section>
       `;
       dirtyTabs.calories = false;
+    }
+
+    function estimateMealLocallyFallback(mealDescription) {
+      const text = mealDescription.toLowerCase();
+      const ingredients = [];
+
+      const rules = [
+        { regex: /(?:(\d+(?:\.\d+)?)\s*(?:g|grams?))?\s*chicken\s*(?:breast|fillet)?/i, name: 'Chicken Breast', baseG: 150, kcal100: 165, p100: 31, c100: 0, f100: 3.6 },
+        { regex: /(?:(\d+(?:\.\d+)?)\s*(?:g|grams?))?\s*(?:beef|steak)/i, name: 'Beef', baseG: 150, kcal100: 210, p100: 26, c100: 0, f100: 11 },
+        { regex: /(?:(\d+(?:\.\d+)?)\s*(?:g|grams?))?\s*salmon/i, name: 'Salmon', baseG: 150, kcal100: 208, p100: 20, c100: 0, f100: 13 },
+        { regex: /(?:(\d+)\s*)?eggs?/i, name: 'Whole Eggs', isUnit: true, unitG: 50, baseUnits: 2, kcalUnit: 72, pUnit: 6.3, cUnit: 0.4, fUnit: 5 },
+        { regex: /(?:(\d+(?:\.\d+)?)\s*(?:tbsp|tablespoons?|g|grams?))?\s*(?:brown\s+|white\s+)?rice/i, name: 'Cooked Rice', isTbspCapable: true, baseG: 150, kcal100: 125, p100: 2.7, c100: 27, f100: 0.4 },
+        { regex: /(?:(\d+(?:\.\d+)?)\s*(?:g|grams?))?\s*(?:oats|oatmeal)/i, name: 'Oats', baseG: 60, kcal100: 380, p100: 13, c100: 66, f100: 7 },
+        { regex: /(?:(\d+(?:\.\d+)?)\s*(?:g|grams?))?\s*(?:pasta|spaghetti)/i, name: 'Cooked Pasta', baseG: 180, kcal100: 158, p100: 5.8, c100: 31, f100: 0.9 },
+        { regex: /(?:(\d+(?:\.\d+)?)\s*(?:g|grams?))?\s*potato(?:es)?/i, name: 'Potato', baseG: 180, kcal100: 87, p100: 2, c100: 20, f100: 0.1 },
+        { regex: /(?:(\d+)\s*(?:slices?)?)?\s*bread|toast/i, name: 'Bread Slice', isUnit: true, unitG: 35, baseUnits: 1, kcalUnit: 100, pUnit: 3.5, cUnit: 19, fUnit: 1 },
+        { regex: /(?:(\d+(?:\.\d+)?)\s*(?:g|grams?))?\s*cheese|sulguni/i, name: 'Cheese', baseG: 40, kcal100: 290, p100: 21, c100: 2, f100: 22 },
+        { regex: /(?:(\d+)\s*)?bananas?/i, name: 'Banana', isUnit: true, unitG: 118, baseUnits: 1, kcalUnit: 105, pUnit: 1.3, cUnit: 27, fUnit: 0.4 },
+        { regex: /(?:(\d+(?:\.\d+)?)\s*(?:tbsp|tablespoons?|tsp|teaspoons?))?\s*(?:olive\s+|vegetable\s+|cooking\s+)?(?:oil|fried|butter)/i, name: 'Cooking Oil / Butter', isOil: true, baseG: 8, kcal100: 884, p100: 0, c100: 0, f100: 100 }
+      ];
+
+      let totalKcal = 0, totalP = 0, totalC = 0, totalF = 0;
+
+      for (const r of rules) {
+        const match = text.match(r.regex);
+        if (!match) continue;
+        const qty = match[1] ? parseFloat(match[1]) : null;
+        let grams = r.baseG || 100;
+        let kcal = 0, p = 0, c = 0, f = 0;
+
+        if (r.isUnit) {
+          const units = qty || r.baseUnits || 1;
+          grams = units * r.unitG;
+          kcal = units * r.kcalUnit;
+          p = units * r.pUnit;
+          c = units * r.cUnit;
+          f = units * r.fUnit;
+        } else {
+          if (r.isTbspCapable && qty && /tbsp|tablespoon/i.test(match[0])) {
+            grams = qty * 20;
+          } else if (r.isOil && qty) {
+            grams = /tsp|teaspoon/i.test(match[0]) ? qty * 4.5 : qty * 13.5;
+          } else if (qty) {
+            grams = qty;
+          }
+          const factor = grams / 100;
+          kcal = r.kcal100 * factor;
+          p = r.p100 * factor;
+          c = r.c100 * factor;
+          f = r.f100 * factor;
+        }
+
+        ingredients.push({
+          name: r.name,
+          estimated_grams: Math.round(grams),
+          calories: Math.round(kcal),
+          protein_g: Math.round(p * 10) / 10
+        });
+        totalKcal += kcal;
+        totalP += p;
+        totalC += c;
+        totalF += f;
+      }
+
+      if (ingredients.length === 0) {
+        return {
+          dish_name: mealDescription.slice(0, 48),
+          total_calories: 350,
+          protein_g: 18,
+          carbs_g: 38,
+          fat_g: 12,
+          note: 'Estimated standard mixed portion.',
+          ingredients: [{ name: mealDescription.slice(0, 40), estimated_grams: 250, calories: 350, protein_g: 18 }]
+        };
+      }
+
+      return {
+        dish_name: ingredients.map(i => i.name).join(' + '),
+        total_calories: Math.round(totalKcal),
+        protein_g: Math.round(totalP),
+        carbs_g: Math.round(totalC),
+        fat_g: Math.round(totalF),
+        note: 'Calculated from ingredient weights & cooking preparation.',
+        ingredients
+      };
     }
 
     async function callGeminiTextCalorieCalculator(mealDescription) {
@@ -2664,7 +2753,7 @@
         }
       };
 
-      const delays = [1000, 2000, 4000];
+      const delays = [800, 1600];
       for (let attempt = 0; attempt <= delays.length; attempt++) {
         try {
           const response = await fetch(apiUrl, {
@@ -2688,7 +2777,7 @@
             await new Promise(r => setTimeout(r, delays[attempt]));
             continue;
           }
-          throw err;
+          return estimateMealLocallyFallback(mealDescription);
         }
       }
     }
@@ -2776,28 +2865,33 @@
       }
     }
 
-    async function quickLogFavoriteFood(favIdx) {
-      const item = (appState.favoriteFoods || [])[favIdx];
-      if (!item) return;
-      if (!appState.calorieLogs) appState.calorieLogs = {};
-      if (!Array.isArray(appState.calorieLogs[selectedCalorieDate])) {
-        appState.calorieLogs[selectedCalorieDate] = [];
-      }
-      appState.calorieLogs[selectedCalorieDate].push({
-        name: item.name,
-        calories: item.calories,
-        protein: item.protein,
-        meal: selectedMealType
-      });
-      await saveState();
-      renderCaloriesView();
-      const mealLabel = MEAL_SECTIONS.find(m => m.id === selectedMealType)?.label || 'Meal';
-      showToast(`Added ${item.name} to ${mealLabel}`);
+    function toggleFavoriteByDbId(foodId) {
+      const item = FOOD_DATABASE.find(f => f.id === foodId);
+      if (item) toggleFavoriteFoodItem(item.name, item.calories, item.protein);
     }
 
-    async function quickLogHistoryMeal(histIdx) {
-      const weeklyHistory = getCurrentWeekMealHistory();
-      const item = weeklyHistory[histIdx];
+    function toggleFavoriteFromAiResult() {
+      if (!aiMealLastResult) return;
+      toggleFavoriteFoodItem(
+        aiMealLastResult.dish_name || 'AI Meal',
+        aiMealLastResult.total_calories || 0,
+        aiMealLastResult.protein_g || 0
+      );
+    }
+
+    function toggleFavoriteFromHistoryIdx(idx) {
+      const item = getCurrentWeekMealHistory()[idx];
+      if (item) toggleFavoriteFoodItem(item.name, item.calories, item.protein);
+    }
+
+    function toggleFavoriteFromDayLogIdx(idx) {
+      const dayFoods = (appState.calorieLogs && appState.calorieLogs[selectedCalorieDate]) || [];
+      const item = dayFoods[idx];
+      if (item) toggleFavoriteFoodItem(item.name, item.calories, item.protein);
+    }
+
+    async function quickLogFavoriteFood(favIdx) {
+      const item = (appState.favoriteFoods || [])[favIdx];
       if (!item) return;
       if (!appState.calorieLogs) appState.calorieLogs = {};
       if (!Array.isArray(appState.calorieLogs[selectedCalorieDate])) {
