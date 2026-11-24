@@ -10,8 +10,86 @@
   <meta name="apple-mobile-web-app-title" content="CADENCE" />
   <meta name="theme-color" content="#0A0A0C" />
 
-  <link id="appleTouchIcon" rel="apple-touch-icon" sizes="512x512" />
+  <link id="appleTouchIcon" rel="apple-touch-icon" sizes="180x180" />
+  <link id="appleTouchIcon512" rel="apple-touch-icon" sizes="512x512" />
   <link id="faviconIcon" rel="icon" type="image/png" />
+  <link id="appManifest" rel="manifest" />
+  <script>
+    (function generateImmediateLoginIcons() {
+      try {
+        const THEME_MAP = {
+          blue: '#3B82F6',
+          pink: '#FF4D94',
+          lime: '#C6FF00',
+          coral: '#FF5E3A',
+          violet: '#A855F7',
+          cyan: '#22D3EE'
+        };
+        let hex = THEME_MAP.blue;
+        try {
+          const saved = JSON.parse(localStorage.getItem('cadence_workout_tracker_v1') || 'null');
+          if (saved && saved.accent && THEME_MAP[saved.accent]) hex = THEME_MAP[saved.accent];
+        } catch (_) {}
+
+        function buildIconDataUrl(size) {
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#0A0A0C';
+          ctx.fillRect(0, 0, size, size);
+
+          const pad = Math.round(size * 0.21);
+          const gap = Math.round(size * 0.08);
+          const sq = Math.round((size - pad * 2 - gap) / 2);
+          const r = Math.round(sq * 0.24);
+
+          function drawSq(x, y, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + sq - r, y);
+            ctx.quadraticCurveTo(x + sq, y, x + sq, y + r);
+            ctx.lineTo(x + sq, y + sq - r);
+            ctx.quadraticCurveTo(x + sq, y + sq, x + sq - r, y + sq);
+            ctx.lineTo(x + r, y + sq);
+            ctx.quadraticCurveTo(x, y + sq, x, y + sq - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+            ctx.fill();
+          }
+
+          drawSq(pad, pad, hex);
+          drawSq(pad + sq + gap, pad, '#27272E');
+          drawSq(pad, pad + sq + gap, '#27272E');
+          drawSq(pad + sq + gap, pad + sq + gap, hex);
+          return canvas.toDataURL('image/png');
+        }
+
+        const icon180 = buildIconDataUrl(180);
+        const icon512 = buildIconDataUrl(512);
+        document.getElementById('appleTouchIcon').href = icon180;
+        document.getElementById('appleTouchIcon512').href = icon512;
+        document.getElementById('faviconIcon').href = icon180;
+
+        const manifestObj = {
+          name: 'CADENCE — 365-Day Workout Tracker',
+          short_name: 'CADENCE',
+          start_url: './index.html',
+          display: 'standalone',
+          background_color: '#0A0A0C',
+          theme_color: '#0A0A0C',
+          icons: [
+            { src: icon180, sizes: '180x180', type: 'image/png' },
+            { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+          ]
+        };
+        const blob = new Blob([JSON.stringify(manifestObj)], { type: 'application/manifest+json' });
+        document.getElementById('appManifest').href = URL.createObjectURL(blob);
+      } catch (_) {}
+    })();
+  </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -60,10 +138,10 @@
     <div class="flex flex-col items-center text-center space-y-3">
       <div class="w-14 h-14 rounded-2xl bg-surface border border-borderDark flex items-center justify-center shadow-2xl">
         <div class="grid grid-cols-2 gap-1.5">
-          <span id="brandSq1" class="w-3.5 h-3.5 rounded-[4px]" style="background-color: #FF4D94;"></span>
+          <span id="brandSq1" class="w-3.5 h-3.5 rounded-[4px]" style="background-color: #3B82F6;"></span>
           <span class="w-3.5 h-3.5 rounded-[4px] bg-borderDark"></span>
           <span class="w-3.5 h-3.5 rounded-[4px] bg-borderDark"></span>
-          <span id="brandSq2" class="w-3.5 h-3.5 rounded-[4px]" style="background-color: #FF4D94;"></span>
+          <span id="brandSq2" class="w-3.5 h-3.5 rounded-[4px]" style="background-color: #3B82F6;"></span>
         </div>
       </div>
       <div>
@@ -73,12 +151,12 @@
     </div>
 
     <!-- Active Session Quick Resume Banner (if already signed in) -->
-    <div id="existingSessionBanner" class="hidden bg-surface border border-borderDark rounded-2xl p-3.5 flex items-center justify-between gap-3">
+    <div id="existingSessionBanner" style="display: none;" class="bg-surface border border-borderDark rounded-2xl p-3.5 items-center justify-between gap-3">
       <div class="min-w-0">
         <p class="text-[10px] font-extrabold uppercase tracking-wider text-mutedText">Active Profile</p>
         <p id="existingSessionUser" class="text-xs font-extrabold text-white truncate">@user</p>
       </div>
-      <button id="resumeBtn" type="button" onclick="goToMainApp()" class="px-3.5 py-2 rounded-xl text-xs font-extrabold text-obsidian shrink-0 transition active:scale-95" style="background-color: #FF4D94;">
+      <button id="resumeBtn" type="button" onclick="goToMainApp()" class="px-3.5 py-2 rounded-xl text-xs font-extrabold text-obsidian shrink-0 transition active:scale-95" style="background-color: #3B82F6;">
         Open App →
       </button>
     </div>
@@ -87,7 +165,7 @@
     <section class="bg-surface border border-borderDark rounded-3xl p-5 shadow-2xl space-y-4">
       <!-- Mode Switcher -->
       <div class="grid grid-cols-2 gap-1.5 bg-obsidian border border-borderDark p-1 rounded-2xl">
-        <button id="tabSignIn" type="button" onclick="switchAuthMode('signin')" class="py-2 rounded-xl text-xs font-extrabold text-obsidian transition" style="background-color: #FF4D94;">
+        <button id="tabSignIn" type="button" onclick="switchAuthMode('signin')" class="py-2 rounded-xl text-xs font-extrabold text-obsidian transition" style="background-color: #3B82F6;">
           Sign In
         </button>
         <button id="tabSignUp" type="button" onclick="switchAuthMode('signup')" class="py-2 rounded-xl text-xs font-extrabold text-mutedText hover:text-white transition">
@@ -108,7 +186,7 @@
 
         <div id="loginError" class="hidden text-xs font-semibold text-coralAccent bg-coralAccent/10 border border-coralAccent/30 rounded-xl px-3 py-2"></div>
 
-        <button id="submitBtn" type="submit" class="w-full py-3.5 rounded-2xl text-xs font-extrabold text-obsidian shadow-lg active:scale-[0.98] transition" style="background-color: #FF4D94;">
+        <button id="submitBtn" type="submit" class="w-full py-3.5 rounded-2xl text-xs font-extrabold text-obsidian shadow-lg active:scale-[0.98] transition" style="background-color: #3B82F6;">
           Sign In &amp; Open Tracker
         </button>
       </form>
@@ -133,14 +211,13 @@
 
       <div class="pt-2 border-t border-borderDark flex items-center justify-between text-[11px]">
         <span class="text-mutedText">Train without an account?</span>
-        <a id="guestLink" href="./index.html" onclick="enterAsGuest(event)" class="font-bold hover:underline" style="color: #FF4D94;">Continue as Guest →</a>
+        <a id="guestLink" href="./index.html" onclick="enterAsGuest(event)" class="font-bold hover:underline" style="color: #3B82F6;">Continue as Guest →</a>
       </div>
     </section>
   </main>
 
   <script>
-    // Optional: Paste your Supabase Project URL & Anon Key here so all devices connect automatically
-    const DEFAULT_SUPABASE_URL = 'https://mltxjcmaogktsrztmjgo.supabase.co/rest/v1/';
+    const DEFAULT_SUPABASE_URL = 'https://mltxjcmaogktsrztmjgo.supabase.co';
     const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sdHhqY21hb2drdHNyenRtamdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1MTk0NjUsImV4cCI6MjExMTA5NTQ2NX0.ydMzpen6oScu07nIZEuAIKJVAXaIinAshn07MjY169Y';
     const SUPABASE_CONFIG_KEY = 'cadence_supabase_config_v1';
 
@@ -152,6 +229,7 @@
     const IDB_NAME = 'CadenceVaultDB';
     const IDB_STORE = 'stateStore';
     const THEME_HEX = {
+      blue: '#3B82F6',
       pink: '#FF4D94',
       lime: '#C6FF00',
       coral: '#FF5E3A',
@@ -160,16 +238,18 @@
     };
 
     let currentMode = 'signin';
-    let activeAccentHex = '#FF4D94';
+    let activeAccentHex = '#3B82F6';
     let supabaseClient = null;
 
     function getSupabaseConfig() {
       try {
         const saved = JSON.parse(localStorage.getItem(SUPABASE_CONFIG_KEY) || 'null');
-        if (saved && saved.url && saved.anonKey) return saved;
+        if (saved && saved.url && saved.anonKey) {
+          return { url: saved.url.trim().replace(/\/rest\/v1\/?$/, ''), anonKey: saved.anonKey.trim() };
+        }
       } catch (_) {}
       if (DEFAULT_SUPABASE_URL && DEFAULT_SUPABASE_ANON_KEY) {
-        return { url: DEFAULT_SUPABASE_URL, anonKey: DEFAULT_SUPABASE_ANON_KEY };
+        return { url: DEFAULT_SUPABASE_URL.trim().replace(/\/rest\/v1\/?$/, ''), anonKey: DEFAULT_SUPABASE_ANON_KEY.trim() };
       }
       return null;
     }
@@ -224,14 +304,13 @@
             existingSession.expiresAt = Date.now() + SIXTY_DAYS_MS;
             localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify(existingSession));
           }
-          if (window.location.protocol !== 'about:' && !window.location.href.startsWith('blob:')) {
-            window.location.replace('./index.html');
-          }
           const banner = document.getElementById('existingSessionBanner');
           const userLabel = document.getElementById('existingSessionUser');
           if (banner && userLabel) {
-            userLabel.textContent = `@${existingSession.username}`;
-            banner.classList.remove('hidden');
+            userLabel.textContent = existingSession.username.includes('@')
+              ? existingSession.username
+              : `@${existingSession.username}`;
+            banner.style.display = 'flex';
           }
         } else {
           localStorage.removeItem(ACCOUNT_SESSION_KEY);
@@ -346,7 +425,8 @@
       const rawUser = document.getElementById('loginUsername')?.value || '';
       const rawPass = document.getElementById('loginPassword')?.value || '';
       const err = document.getElementById('loginError');
-      const username = rawUser.toLowerCase().trim().replace(/[^a-z0-9._-]/g, '');
+      const submitBtn = document.getElementById('submitBtn');
+      const username = rawUser.toLowerCase().trim().replace(/[^a-z0-9@._-]/g, '');
 
       if (username.length < 3) {
         err.textContent = 'Username must be at least 3 characters.';
@@ -359,55 +439,95 @@
         return;
       }
 
-      const passHash = await hashPassword(rawPass, username);
-      const userKey = `${ACCOUNT_VAULT_PREFIX}${username}`;
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Connecting...';
+      }
 
-      let existingVault = null;
       try {
-        existingVault = JSON.parse(localStorage.getItem(userKey) || localStorage.getItem(`${userKey}_backup`) || 'null');
-      } catch (_) {}
-      if (!existingVault) {
-        existingVault = await readUserFromIDB(userKey);
-      }
+        const passHash = await hashPassword(rawPass, username);
+        const userKey = `${ACCOUNT_VAULT_PREFIX}${username}`;
 
-      // Check Supabase cloud vault if connected
-      if (supabaseClient) {
+        let existingVault = null;
         try {
-          const { data } = await supabaseClient
-            .from('cadence_profiles')
-            .select('username, pass_hash, state_json')
-            .eq('username', username)
-            .maybeSingle();
-          if (data && data.state_json) {
-            existingVault = data.state_json;
-            if (data.pass_hash) existingVault._passHash = data.pass_hash;
-          }
+          existingVault = JSON.parse(localStorage.getItem(userKey) || localStorage.getItem(`${userKey}_backup`) || 'null');
         } catch (_) {}
-      }
+        if (!existingVault) {
+          existingVault = await readUserFromIDB(userKey);
+        }
 
-      if (currentMode === 'signup' && existingVault && existingVault._passHash) {
-        err.textContent = 'Username already exists — switch to Sign In.';
+        // Check Supabase cloud vault if connected
+        if (supabaseClient) {
+          try {
+            const { data } = await supabaseClient
+              .from('cadence_profiles')
+              .select('username, pass_hash, state_json')
+              .eq('username', username)
+              .maybeSingle();
+            if (data && data.state_json) {
+              existingVault = data.state_json;
+              if (data.pass_hash) existingVault._passHash = data.pass_hash;
+            }
+          } catch (_) {}
+        }
+
+        if (currentMode === 'signup' && existingVault && existingVault._passHash) {
+          err.textContent = 'Account already exists — switch to Sign In.';
+          err.classList.remove('hidden');
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Account & Start';
+          }
+          return;
+        }
+
+        if (currentMode === 'signin' && existingVault && existingVault._passHash && existingVault._passHash !== passHash) {
+          err.textContent = `Incorrect password for ${username}.`;
+          err.classList.remove('hidden');
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Sign In & Open Tracker';
+          }
+          return;
+        }
+
+        // If creating a new account and Supabase is connected, seed profile row right away
+        if (currentMode === 'signup' && supabaseClient) {
+          try {
+            await supabaseClient.from('cadence_profiles').upsert({
+              username,
+              pass_hash: passHash,
+              state_json: {
+                accent: 'blue',
+                workouts: {},
+                customExercises: [],
+                _passHash: passHash,
+                _displayName: rawUser.trim(),
+                _updatedAt: Date.now()
+              },
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'username' });
+          } catch (_) {}
+        }
+
+        localStorage.removeItem(GUEST_MODE_KEY);
+        localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify({
+          username,
+          displayName: rawUser.trim(),
+          passHash,
+          expiresAt: Date.now() + SIXTY_DAYS_MS,
+          pendingMode: currentMode
+        }));
+
+        goToMainApp();
+      } catch (e) {
+        err.textContent = 'Could not complete sign in. Please try again.';
         err.classList.remove('hidden');
-        return;
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = currentMode === 'signup' ? 'Create Account & Start' : 'Sign In & Open Tracker';
+        }
       }
-
-      if (currentMode === 'signin' && existingVault && existingVault._passHash && existingVault._passHash !== passHash) {
-        err.textContent = `Incorrect password for @${username}.`;
-        err.classList.remove('hidden');
-        return;
-      }
-
-      localStorage.removeItem(GUEST_MODE_KEY);
-      localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify({
-        username,
-        displayName: rawUser.trim(),
-        passHash,
-        expiresAt: Date.now() + SIXTY_DAYS_MS,
-        pendingVerification: true,
-        pendingMode: currentMode
-      }));
-
-      goToMainApp();
     }
   </script>
 </body>
