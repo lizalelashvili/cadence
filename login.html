@@ -3,16 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#0A0A0C" />
+  <title>CADENCE — Sign In</title>
+
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>CADENCE — Sign In</title>
+  <meta name="apple-mobile-web-app-title" content="CADENCE" />
+  <meta name="theme-color" content="#0A0A0C" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
+
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -26,127 +28,148 @@
             surface: '#141418',
             surfaceHover: '#1B1B20',
             borderDark: '#232329',
+            coralAccent: '#FF5E3A',
             mutedText: '#8E8E93',
           },
         },
       },
     };
   </script>
+
+  <style>
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    html, body {
+      background-color: #0A0A0C;
+      color: #F5F5F7;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100dvh;
+    }
+  </style>
 </head>
-<body class="bg-obsidian text-white font-sans min-h-screen flex flex-col items-center justify-center px-5 py-8 selection:bg-pink-500 selection:text-black">
+<body class="bg-obsidian text-white antialiased flex items-center justify-center p-4 min-h-[100dvh]">
 
   <main class="w-full max-w-sm space-y-6">
     <!-- Brand Header -->
-    <div class="flex flex-col items-center text-center space-y-3">
-      <div class="w-16 h-16 rounded-3xl bg-surface border border-borderDark flex items-center justify-center shadow-xl">
-        <div class="grid grid-cols-2 gap-1.5 w-8 h-8">
-          <span class="rounded-[4px] accent-dot" style="background-color: #FF4D94;"></span>
-          <span class="rounded-[4px] bg-[#26262E]"></span>
-          <span class="rounded-[4px] bg-[#26262E]"></span>
-          <span class="rounded-[4px] accent-dot" style="background-color: #FF4D94;"></span>
+    <div class="flex flex-col items-center text-center space-y-2.5">
+      <div class="w-14 h-14 rounded-2xl bg-surface border border-borderDark flex items-center justify-center shadow-2xl">
+        <div class="grid grid-cols-2 gap-1.5">
+          <span id="logoSq1" class="w-3.5 h-3.5 rounded-[4px]" style="background-color: #FF4D94;"></span>
+          <span class="w-3.5 h-3.5 rounded-[4px] bg-borderDark"></span>
+          <span class="w-3.5 h-3.5 rounded-[4px] bg-borderDark"></span>
+          <span id="logoSq2" class="w-3.5 h-3.5 rounded-[4px]" style="background-color: #FF4D94;"></span>
         </div>
       </div>
       <div>
-        <h1 class="text-2xl font-black tracking-tight text-white">CADENCE</h1>
-        <p class="text-xs text-mutedText mt-0.5">Training Log & Progressive Overload Tracker</p>
+        <h1 class="text-2xl font-extrabold tracking-tight text-white">CADENCE</h1>
+        <p class="text-xs text-mutedText mt-0.5">Sign in to sync your Year Grid &amp; progressive overloads</p>
       </div>
     </div>
 
     <!-- Auth Card -->
-    <section class="bg-surface border border-borderDark rounded-3xl p-5 space-y-4 shadow-2xl">
-      <!-- Mode Switcher -->
+    <section class="bg-surface border border-borderDark rounded-3xl p-5 shadow-2xl space-y-4">
       <div class="grid grid-cols-2 gap-1.5 bg-obsidian border border-borderDark p-1 rounded-2xl">
-        <button id="tabSignIn" type="button" onclick="setMode('signin')" class="py-2 rounded-xl text-xs font-extrabold transition text-obsidian" style="background-color: #FF4D94;">
+        <button id="tabSignin" onclick="switchAuthMode('signin')" class="py-2 rounded-xl text-xs font-extrabold transition text-obsidian" style="background-color: #FF4D94;">
           Sign In
         </button>
-        <button id="tabSignUp" type="button" onclick="setMode('signup')" class="py-2 rounded-xl text-xs font-extrabold transition text-mutedText hover:text-white">
+        <button id="tabSignup" onclick="switchAuthMode('signup')" class="py-2 rounded-xl text-xs font-extrabold transition text-mutedText hover:text-white">
           Create Account
         </button>
       </div>
 
-      <form id="authForm" onsubmit="handleSubmit(event)" class="space-y-3.5">
+      <form onsubmit="event.preventDefault(); submitLoginForm();" class="space-y-3">
         <div>
-          <label for="username" class="text-[11px] font-bold text-mutedText uppercase tracking-wider block mb-1.5">Username</label>
-          <input id="username" type="text" required minlength="3" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. alexlifts" class="w-full bg-obsidian border border-borderDark rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#FF4D94]" />
+          <label class="text-[11px] font-bold text-mutedText uppercase tracking-wider block mb-1">Username</label>
+          <input id="usernameInput" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. alexlifts" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-3 text-sm text-white focus:outline-none" />
         </div>
 
         <div>
-          <label for="password" class="text-[11px] font-bold text-mutedText uppercase tracking-wider block mb-1.5">Password</label>
-          <input id="password" type="password" required minlength="4" autocomplete="current-password" placeholder="••••••••" class="w-full bg-obsidian border border-borderDark rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#FF4D94]" />
+          <label class="text-[11px] font-bold text-mutedText uppercase tracking-wider block mb-1">Password</label>
+          <input id="passwordInput" type="password" autocomplete="current-password" placeholder="••••••••" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-3 text-sm text-white focus:outline-none" />
         </div>
 
-        <p id="errorBox" class="hidden text-xs font-semibold text-[#FF5E3A] bg-[#FF5E3A]/10 border border-[#FF5E3A]/30 rounded-xl px-3 py-2"></p>
+        <div id="errorBox" class="hidden text-xs font-semibold text-coralAccent bg-coralAccent/10 border border-coralAccent/30 rounded-xl px-3 py-2"></div>
 
         <button id="submitBtn" type="submit" class="w-full py-3.5 rounded-2xl text-xs font-extrabold text-obsidian transition active:scale-[0.98]" style="background-color: #FF4D94;">
-          Sign In to Tracker
+          Sign In &amp; Open Tracker
         </button>
       </form>
 
-      <div class="pt-1 border-t border-borderDark flex items-center justify-between text-[11px]">
-        <span class="text-mutedText">Want to train without an account?</span>
-        <a id="guestLink" href="./index.html" class="font-bold hover:underline" style="color: #FF4D94;">Continue as Guest →</a>
+      <div class="pt-2 border-t border-borderDark flex items-center justify-between text-[11px]">
+        <span class="text-mutedText">Train without an account?</span>
+        <a id="guestLink" href="./index.html" onclick="if(window.location.protocol==='about:'||window.location.href.startsWith('blob:')){event.preventDefault();goToMainApp();}" class="font-bold hover:underline" style="color: #FF4D94;">Continue as Guest →</a>
       </div>
     </section>
   </main>
 
   <script>
     const ACCOUNT_SESSION_KEY = 'cadence_account_session_v1';
-    const STORAGE_KEY = 'cadence_workout_tracker_v2';
-    const ACCENT_HEX_MAP = {
+    const STORAGE_KEY = 'cadence_workout_tracker_v1';
+    const THEME_HEX = {
       pink: '#FF4D94',
-      lime: '#C6F432',
+      lime: '#C6FF00',
       coral: '#FF5E3A',
-      lavender: '#B388FF',
-      cyan: '#38BDF8'
+      violet: '#A855F7',
+      cyan: '#22D3EE'
     };
-    let activeAccentHex = '#FF4D94';
+
     let currentMode = 'signin';
+    let activeAccentHex = '#FF4D94';
 
-    // Sync accent color if the user previously picked one in index.html
     try {
-      const savedApp = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-      if (savedApp && savedApp.accent && ACCENT_HEX_MAP[savedApp.accent]) {
-        activeAccentHex = ACCENT_HEX_MAP[savedApp.accent];
-        document.querySelectorAll('.accent-dot').forEach(el => el.style.backgroundColor = activeAccentHex);
-        const guestLink = document.getElementById('guestLink');
-        if (guestLink) guestLink.style.color = activeAccentHex;
-        setMode('signin');
+      const savedState = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      if (savedState && savedState.accent && THEME_HEX[savedState.accent]) {
+        activeAccentHex = THEME_HEX[savedState.accent];
       }
     } catch (_) {}
 
-    // Redirect immediately if already signed in
-    try {
-      const existing = JSON.parse(localStorage.getItem(ACCOUNT_SESSION_KEY) || 'null');
-      if (existing && existing.username) {
-        window.location.replace('./index.html');
-      }
-    } catch (_) {}
+    function applyPageAccent() {
+      ['logoSq1', 'logoSq2', 'submitBtn'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.backgroundColor = activeAccentHex;
+      });
+      const guest = document.getElementById('guestLink');
+      if (guest) guest.style.color = activeAccentHex;
+    }
+    applyPageAccent();
 
-    function setMode(mode) {
+    function goToMainApp() {
+      if (window.location.protocol === 'about:' || window.location.href.startsWith('blob:')) {
+        const errBox = document.getElementById('errorBox');
+        if (errBox) {
+          errBox.style.color = activeAccentHex;
+          errBox.style.borderColor = activeAccentHex;
+          errBox.style.backgroundColor = 'rgba(255, 77, 148, 0.1)';
+          errBox.textContent = 'Signed in! Click the index.html tab at the top of the code editor to open the main workout tracker.';
+          errBox.classList.remove('hidden');
+        }
+        return;
+      }
+      window.location.href = './index.html';
+    }
+
+    function switchAuthMode(mode) {
       currentMode = mode;
-      const tabSignIn = document.getElementById('tabSignIn');
-      const tabSignUp = document.getElementById('tabSignUp');
-      const submitBtn = document.getElementById('submitBtn');
-      const passInput = document.getElementById('password');
-      const errBox = document.getElementById('errorBox');
-      if (errBox) errBox.classList.add('hidden');
+      const isSignup = mode === 'signup';
+      const tabIn = document.getElementById('tabSignin');
+      const tabUp = document.getElementById('tabSignup');
+      const btn = document.getElementById('submitBtn');
+      const err = document.getElementById('errorBox');
+      err.classList.add('hidden');
 
-      if (mode === 'signin') {
-        tabSignIn.style.backgroundColor = activeAccentHex;
-        tabSignIn.className = 'py-2 rounded-xl text-xs font-extrabold transition text-obsidian';
-        tabSignUp.style.backgroundColor = 'transparent';
-        tabSignUp.className = 'py-2 rounded-xl text-xs font-extrabold transition text-mutedText hover:text-white';
-        submitBtn.style.backgroundColor = activeAccentHex;
-        submitBtn.textContent = 'Sign In to Tracker';
-        passInput.autocomplete = 'current-password';
+      if (isSignup) {
+        tabUp.style.backgroundColor = activeAccentHex;
+        tabUp.className = 'py-2 rounded-xl text-xs font-extrabold transition text-obsidian';
+        tabIn.style.backgroundColor = 'transparent';
+        tabIn.className = 'py-2 rounded-xl text-xs font-extrabold transition text-mutedText hover:text-white';
+        btn.textContent = 'Create Account & Open Tracker';
       } else {
-        tabSignUp.style.backgroundColor = activeAccentHex;
-        tabSignUp.className = 'py-2 rounded-xl text-xs font-extrabold transition text-obsidian';
-        tabSignIn.style.backgroundColor = 'transparent';
-        tabSignIn.className = 'py-2 rounded-xl text-xs font-extrabold transition text-mutedText hover:text-white';
-        submitBtn.style.backgroundColor = activeAccentHex;
-        submitBtn.textContent = 'Create Account & Open App';
-        passInput.autocomplete = 'new-password';
+        tabIn.style.backgroundColor = activeAccentHex;
+        tabIn.className = 'py-2 rounded-xl text-xs font-extrabold transition text-obsidian';
+        tabUp.style.backgroundColor = 'transparent';
+        tabUp.className = 'py-2 rounded-xl text-xs font-extrabold transition text-mutedText hover:text-white';
+        btn.textContent = 'Sign In & Open Tracker';
       }
     }
 
@@ -157,7 +180,6 @@
         const hashBuffer = await crypto.subtle.digest('SHA-256', data);
         return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
       }
-      // Fallback deterministic hash for non-HTTPS local file previews
       let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
       for (let i = 0; i < raw.length; i++) {
         const ch = raw.charCodeAt(i);
@@ -169,13 +191,10 @@
       return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
     }
 
-    async function handleSubmit(e) {
-      e.preventDefault();
+    async function submitLoginForm() {
+      const rawUser = document.getElementById('usernameInput').value || '';
+      const rawPass = document.getElementById('passwordInput').value || '';
       const errBox = document.getElementById('errorBox');
-      errBox.classList.add('hidden');
-
-      const rawUser = document.getElementById('username').value || '';
-      const rawPass = document.getElementById('password').value || '';
       const username = rawUser.toLowerCase().trim().replace(/[^a-z0-9._-]/g, '');
 
       if (username.length < 3) {
@@ -189,7 +208,9 @@
         return;
       }
 
+      errBox.classList.add('hidden');
       const passHash = await hashPassword(rawPass, username);
+
       localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify({
         username,
         displayName: rawUser.trim(),
@@ -198,7 +219,7 @@
         pendingMode: currentMode
       }));
 
-      window.location.href = './index.html';
+      goToMainApp();
     }
   </script>
 </body>
