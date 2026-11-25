@@ -826,10 +826,26 @@
 
     function mergeStateSnapshots(base, incoming) {
       if (!incoming || typeof incoming !== 'object') return base;
-      const incomingNewer = (Number(incoming._updatedAt || 0) >= Number(base._updatedAt || 0));
+      const baseTs = Number(base._updatedAt || 0);
+      const incTs = Number(incoming._updatedAt || 0);
+      const incomingNewer = incTs > 0 && incTs >= baseTs;
+      const winner = incomingNewer ? incoming : base;
+      const fallback = incomingNewer ? base : incoming;
+
       const merged = {
-        ...base,
-        ...(incomingNewer ? incoming : {}),
+        ...fallback,
+        ...winner,
+        _updatedAt: Math.max(baseTs, incTs),
+        bmrProfile: {
+          ...(getDefaultState().bmrProfile),
+          ...(fallback.bmrProfile || {}),
+          ...(winner.bmrProfile || {})
+        },
+        measurements: {
+          ...(getDefaultState().measurements),
+          ...(fallback.measurements || {}),
+          ...(winner.measurements || {})
+        },
         workouts: { ...(base.workouts || {}), ...(incoming.workouts || {}) },
         calorieLogs: { ...(base.calorieLogs || {}) },
         customExercises: [...(base.customExercises || [])],
@@ -872,19 +888,6 @@
         }
       });
 
-      if (!incomingNewer) {
-        merged.accent = base.accent;
-        merged.firstName = base.firstName;
-        merged.lastName = base.lastName;
-        merged.gender = base.gender;
-        merged.calorieTarget = base.calorieTarget;
-        merged.proteinTarget = base.proteinTarget;
-        merged.bmrProfile = base.bmrProfile;
-        merged.measurements = base.measurements;
-        merged.routines = base.routines;
-        merged.pendingAiResult = base.pendingAiResult;
-        merged.aiUsage = base.aiUsage;
-      }
       return merged;
     }
 
@@ -2591,8 +2594,48 @@
     function updateBmrField(field, val) {
       if (!appState.bmrProfile) appState.bmrProfile = { age: 26, heightCm: 168, weightKg: 62, activity: 1.55, goalOffset: 0 };
       appState.bmrProfile[field] = Number(val) || 0;
-      persistState();
+      if (field === 'weightKg' && Number(val) > 0) {
+        if (!appState.measurements) appState.measurements = { unit: 'metric', weight: '', waist: '', hips: '', chest: '' };
+        const displayWeight = appState.measurements.unit === 'imperial'
+          ? String(Math.round(Number(val) * 2.20462 * 10) / 10)
+          : String(Number(val));
+        appState.measurements.weight = displayWeight;
+      }
+      persistState(true);
       renderApp();
+    }
+
+    function calculateBmrAndTdee() {
+      const p = appState.bmrProfile || { age: 26, heightCm: 168, weightKg: 62, activity: 1.55, goalOffset: 0 };
+      const isMale = appState.gender === 'male';
+      const base = (10 * Number(p.weightKg || 62)) + (6.25 * Number(p.heightCm || 168)) - (5 * Number(p.age || 26));
+      const bmr = Math.round(isMale ? base + 5 : base - 161);
+      const tdee = Math.round(bmr * Number(p.activity || 1.55));
+      const target = Math.max(1100, tdee + Number(p.goalOffset || 0));
+      return { bmr, tdee, target };
+    }
+
+    function applyCalculatedCalorieTarget() {
+      const { target } = calculateBmrAndTdee();
+      const weightKg = Number(appState.bmrProfile?.weightKg || 62);
+      appState.calorieTarget = target;
+      appState.proteinTarget = Math.round(weightKg * 1.9);
+      persistState(true);
+      renderApp();
+      showToast(`Daily target set to ${target} kcal (${appState.proteinTarget}g P)`);
+    }
+
+    function updateMeasurementField(field, val) {
+      if (!appState.measurements) appState.measurements = { unit: 'metric', weight: '', waist: '', hips: '', chest: '' };
+      appState.measurements[field] = val;
+      if (field === 'weight' && Number(val) > 0) {
+        if (!appState.bmrProfile) appState.bmrProfile = { age: 26, heightCm: 168, weightKg: 62, activity: 1.55, goalOffset: 0 };
+        const kg = appState.measurements.unit === 'imperial'
+          ? Math.round(Number(val) * 0.453592 * 10) / 10
+          : Number(val);
+        appState.bmrProfile.weightKg = kg;
+      }
+      persistState(true);
     }
 
     function calculateBmrAndTdee() {
