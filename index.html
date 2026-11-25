@@ -58,7 +58,6 @@
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       margin: 0;
       padding: 0;
-      overflow-x: hidden;
     }
     .accent-bg { background-color: var(--accent) !important; color: #0A0A0C !important; }
     .accent-text { color: var(--accent) !important; }
@@ -73,12 +72,13 @@
     .bio-pulse { animation: bioPulse 2s ease-in-out infinite; }
   </style>
 </head>
-<body class="bg-obsidian text-[#F5F5F7] antialiased min-h-[100dvh] pb-28">
+<body class="bg-obsidian text-[#F5F5F7] antialiased min-h-[100dvh] pb-28 overflow-x-hidden">
 
-  <!-- Frozen Top Header (Sticky, Zero Extra Gap) -->
-  <header id="appHeader" class="sticky top-0 left-0 right-0 z-40 bg-obsidian/95 backdrop-blur-xl border-b border-borderDark" style="padding-top: calc(env(safe-area-inset-top, 0px) + 10px);">
+  <!-- Frozen Top Header (Fixed, Always Locked at Top) -->
+  <header id="appHeader" class="fixed top-0 left-0 right-0 z-40 bg-obsidian/95 backdrop-blur-xl border-b border-borderDark" style="padding-top: calc(env(safe-area-inset-top, 0px) + 10px);">
     <div id="headerInner" class="max-w-lg mx-auto px-4 pb-3 space-y-2.5"></div>
   </header>
+  <div id="headerSpacer" aria-hidden="true" style="height: 118px;"></div>
 
   <!-- Main Content Container -->
   <main id="appMain" class="max-w-lg mx-auto px-4 pt-3 space-y-4"></main>
@@ -922,7 +922,11 @@
     }
 
     function syncHeaderSpacer() {
-      // Sticky header automatically reserves exact height with zero gap
+      const hdr = document.getElementById('appHeader');
+      const spc = document.getElementById('headerSpacer');
+      if (!hdr || !spc) return;
+      const h = Math.ceil(hdr.getBoundingClientRect().height);
+      if (h > 40) spc.style.height = `${h}px`;
     }
 
     let customPickerTarget = null; // 'calories' | 'workouts'
