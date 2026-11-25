@@ -1896,9 +1896,77 @@
     // =========================================================================
     // 10. CALORIES TAB (FULL-SCREEN MANUAL MEAL BUILDER, AI CALCULATOR, UNIFIED LOGS)
     // =========================================================================
+    const FOOD_UNITS = {
+      g:    { label: 'g',    factor: 1 },
+      ml:   { label: 'ml',   factor: 1 },
+      L:    { label: 'L',    factor: 1000 },
+      tbsp: { label: 'tbsp', factor: 15 },
+      tsp:  { label: 'tsp',  factor: 5 }
+    };
+
+    let quickFoodPortions = {};
+
     function getBaseGramsForFood(food) {
-      const m = (food.name || '').match(/(\d+)\s*(g|ml)/i);
-      return m ? Number(m[1]) : 100;
+      const m = (food.name || '').match(/(\d+(?:\.\d+)?)\s*(g|ml|l)\b/i);
+      if (!m) return 100;
+      const val = Number(m[1]);
+      return m[2].toLowerCase() === 'l' ? val * 1000 : val;
+    }
+
+    function getDefaultUnitAndQtyForFood(food) {
+      const name = (food.name || '').toLowerCase();
+      if (/\b1\s*tbsp\b/i.test(name)) return { qty: 1, unit: 'tbsp' };
+      if (/\b2\s*tbsp\b/i.test(name)) return { qty: 2, unit: 'tbsp' };
+      if (/\b1\s*tsp\b/i.test(name)) return { qty: 1, unit: 'tsp' };
+      const lMatch = name.match(/(\d+(?:\.\d+)?)\s*l\b/i);
+      if (lMatch) return { qty: Number(lMatch[1]), unit: 'L' };
+      const mlMatch = name.match(/(\d+(?:\.\d+)?)\s*ml\b/i);
+      if (mlMatch) return { qty: Number(mlMatch[1]), unit: 'ml' };
+      const gMatch = name.match(/(\d+(?:\.\d+)?)\s*g\b/i);
+      if (gMatch) return { qty: Number(gMatch[1]), unit: 'g' };
+      if (food.cat === 'Drinks') return { qty: 250, unit: 'ml' };
+      return { qty: 100, unit: 'g' };
+    }
+
+    function getQuickFoodPortion(food) {
+      if (!quickFoodPortions[food.id]) {
+        quickFoodPortions[food.id] = getDefaultUnitAndQtyForFood(food);
+      }
+      return quickFoodPortions[food.id];
+    }
+
+    function computeFoodItemMacros(food, qty, unitKey) {
+      const u = FOOD_UNITS[unitKey] || FOOD_UNITS.g;
+      const equivalentGrams = Math.max(0, Number(qty || 0)) * u.factor;
+      const baseGrams = Math.max(1, getBaseGramsForFood(food));
+      const ratio = equivalentGrams / baseGrams;
+      return {
+        cal: Math.round(food.cal * ratio),
+        p: Math.round(food.p * ratio),
+        qty: Number(qty || 0),
+        unitLabel: u.label
+      };
+    }
+
+    function updateQuickFoodQty(foodId, rawVal) {
+      const f = FOOD_DATABASE.find(x => x.id === foodId);
+      if (!f) return;
+      const p = getQuickFoodPortion(f);
+      p.qty = Math.max(0.1, Number(rawVal) || 0);
+      renderApp();
+    }
+
+    function updateQuickFoodUnit(foodId, unitKey) {
+      const f = FOOD_DATABASE.find(x => x.id === foodId);
+      if (!f || !FOOD_UNITS[unitKey]) return;
+      const p = getQuickFoodPortion(f);
+      p.unit = unitKey;
+      if (unitKey === 'tbsp' || unitKey === 'tsp' || unitKey === 'L') {
+        if (p.qty > 10) p.qty = 1;
+      } else if ((unitKey === 'g' || unitKey === 'ml') && p.qty <= 5) {
+        p.qty = Math.round(getBaseGramsForFood(f));
+      }
+      renderApp();
     }
 
     function isFoodFavorited(name) {
@@ -1927,7 +1995,15 @@
 
     function toggleFavoriteByFoodId(foodId) {
       const f = FOOD_DATABASE.find(x => x.id === foodId);
-      if (f) toggleFavoriteMealObj(f);
+      if (!f) return;
+      const portion = getQuickFoodPortion(f);
+      const macros = computeFoodItemMacros(f, portion.qty, portion.unit);
+      const cleanBase = f.name.replace(/\s*\([^)]*\)/g, '').trim();
+      toggleFavoriteMealObj({
+        name: `${cleanBase} (${macros.qty} ${macros.unitLabel})`,
+        cal: macros.cal,
+        p: macros.p
+      });
     }
 
     function toggleFavoriteFromDayLogIdx(idx) {
@@ -1953,8 +2029,12 @@
     function logFoodById(foodId) {
       const f = FOOD_DATABASE.find(x => x.id === foodId);
       if (!f) return;
-      logFoodItemDirect(f.name, f.cal, f.p, selectedMealBucket);
-      showToast(`Logged ${f.name}`);
+      const portion = getQuickFoodPortion(f);
+      const macros = computeFoodItemMacros(f, portion.qty, portion.unit);
+      const cleanBase = f.name.replace(/\s*\([^)]*\)/g, '').trim();
+      const label = `${cleanBase} (${macros.qty} ${macros.unitLabel})`;
+      logFoodItemDirect(label, macros.cal, macros.p, selectedMealBucket);
+      showToast(`Logged ${label}`);
     }
 
     function logFavoriteByIndex(idx) {
@@ -1976,19 +2056,32 @@
     function addManualIngredient(foodId) {
       const food = FOOD_DATABASE.find(f => f.id === foodId);
       if (!food) return;
-      const defaultGrams = Math.round(getBaseGramsForFood(food));
-      const existing = manualMealItems.find(it => it.foodId === foodId);
+      const def = getDefaultUnitAndQtyForFood(food);
+      const existing = manualMealItems.find(it => it.foodId === foodId && (it.unit || 'g') === def.unit);
       if (existing) {
-        existing.grams += defaultGrams;
+        existing.qty = Math.round((Number(existing.qty || 0) + def.qty) * 100) / 100;
       } else {
-        manualMealItems.push({ foodId, grams: defaultGrams });
+        manualMealItems.push({ foodId, qty: def.qty, unit: def.unit });
       }
       renderManualMealFullScreen();
     }
 
-    function updateManualIngredientGrams(idx, rawVal) {
+    function updateManualIngredientQty(idx, rawVal) {
       if (!manualMealItems[idx]) return;
-      manualMealItems[idx].grams = Math.max(1, Math.round(Number(rawVal) || 0));
+      manualMealItems[idx].qty = Math.max(0.1, Number(rawVal) || 0);
+      renderManualMealFullScreen();
+    }
+
+    function updateManualIngredientUnit(idx, unitKey) {
+      if (!manualMealItems[idx] || !FOOD_UNITS[unitKey]) return;
+      const item = manualMealItems[idx];
+      item.unit = unitKey;
+      if (unitKey === 'tbsp' || unitKey === 'tsp' || unitKey === 'L') {
+        if (item.qty > 10) item.qty = 1;
+      } else if ((unitKey === 'g' || unitKey === 'ml') && item.qty <= 5) {
+        const food = FOOD_DATABASE.find(f => f.id === item.foodId);
+        item.qty = food ? Math.round(getBaseGramsForFood(food)) : 100;
+      }
       renderManualMealFullScreen();
     }
 
@@ -2004,11 +2097,13 @@
       manualMealItems.forEach(it => {
         const food = FOOD_DATABASE.find(f => f.id === it.foodId);
         if (!food) return;
-        const ratio = Number(it.grams || 0) / getBaseGramsForFood(food);
-        cal += food.cal * ratio;
-        p += food.p * ratio;
+        const unitKey = it.unit || 'g';
+        const qtyVal = it.qty !== undefined ? it.qty : (it.grams || 100);
+        const macros = computeFoodItemMacros(food, qtyVal, unitKey);
+        cal += macros.cal;
+        p += macros.p;
         const cleanLabel = food.name.replace(/\s*\([^)]*\)/g, '').trim();
-        parts.push(`${cleanLabel} (${it.grams}g)`);
+        parts.push(`${cleanLabel} (${macros.qty} ${macros.unitLabel})`);
       });
       return {
         cal: Math.round(cal),
@@ -2109,7 +2204,7 @@
               <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Search Products to Add</label>
               <input id="manualMealSearchInput" type="text" value="${escapeHtml(manualMealSearch)}"
                 oninput="handleManualMealSearchInput(this.value)"
-                placeholder="Type product name (e.g. Chicken, Rice, Olive Oil, Egg)..."
+                placeholder="Type product name (e.g. Chicken, Rice, Olive Oil, Milk)..."
                 class="w-full bg-surface border border-borderDark rounded-2xl px-3.5 py-3 text-sm text-white focus:outline-none focus:border-white/40" />
             </div>
           </div>
@@ -2125,26 +2220,31 @@
             </div>
 
             ${manualMealItems.length === 0 ? `
-              <p class="text-xs text-mutedText text-center py-6">Tap "+ Add" on any product above to build your meal and set exact grams.</p>
+              <p class="text-xs text-mutedText text-center py-6">Tap "+ Add" on any product above and choose g, ml, L, tbsp, or tsp.</p>
             ` : `
               <div class="space-y-2">
                 ${manualMealItems.map((it, idx) => {
                   const food = FOOD_DATABASE.find(f => f.id === it.foodId);
                   if (!food) return '';
-                  const ratio = Number(it.grams || 0) / getBaseGramsForFood(food);
-                  const itemCal = Math.round(food.cal * ratio);
-                  const itemP = Math.round(food.p * ratio);
+                  const unitKey = it.unit || 'g';
+                  const qtyVal = it.qty !== undefined ? it.qty : (it.grams || 100);
+                  const macros = computeFoodItemMacros(food, qtyVal, unitKey);
                   return `
                     <div class="flex items-center justify-between gap-2 p-3 rounded-2xl bg-obsidian border border-borderDark">
                       <div class="min-w-0 flex-1">
                         <p class="text-xs font-extrabold text-white truncate">${escapeHtml(food.name.replace(/\s*\([^)]*\)/g, '').trim())}</p>
-                        <p class="text-[10px] text-mutedText">${itemCal} kcal · ${itemP}g protein</p>
+                        <p class="text-[10px] text-mutedText">${macros.cal} kcal · ${macros.p}g protein</p>
                       </div>
                       <div class="flex items-center gap-1.5 shrink-0">
-                        <input type="number" min="1" step="5" value="${it.grams}"
-                          onchange="updateManualIngredientGrams(${idx}, this.value)"
-                          class="w-20 bg-surface border border-borderDark rounded-xl px-2.5 py-2 text-xs font-extrabold text-white text-center" />
-                        <span class="text-[11px] font-bold text-mutedText">g</span>
+                        <input type="number" min="0.1" step="any" value="${qtyVal}"
+                          onchange="updateManualIngredientQty(${idx}, this.value)"
+                          class="w-16 bg-surface border border-borderDark rounded-xl px-2 py-2 text-xs font-extrabold text-white text-center" />
+                        <select onchange="updateManualIngredientUnit(${idx}, this.value)"
+                          class="bg-surface border border-borderDark rounded-xl px-2 py-2 text-xs font-extrabold text-white focus:outline-none">
+                          ${Object.entries(FOOD_UNITS).map(([uKey, uObj]) => `
+                            <option value="${uKey}" ${unitKey === uKey ? 'selected' : ''}>${uObj.label}</option>
+                          `).join('')}
+                        </select>
                         <button type="button" onclick="removeManualIngredient(${idx})" class="w-7 h-7 rounded-xl bg-surface border border-borderDark text-xs text-mutedText hover:text-coralAccent">✕</button>
                       </div>
                     </div>
@@ -2497,7 +2597,7 @@
             class="w-full px-4 py-3 rounded-2xl bg-obsidian border border-borderDark hover:border-white/25 flex items-center justify-between text-xs font-extrabold text-white transition active:scale-[0.99]">
             <span class="flex items-center gap-2">
               <span class="accent-text text-sm">+</span>
-              <span>Add Meal Manually (By Grams)</span>
+              <span>Add Meal Manually (g, ml, L, tbsp, tsp)</span>
             </span>
             <span class="text-[11px] font-bold accent-text">Open Builder →</span>
           </button>
@@ -2544,41 +2644,41 @@
         <!-- Quick Food & Calorie Library -->
         <section class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
           <div class="flex items-center justify-between">
-            <h3 class="text-sm font-extrabold text-white">Food &amp; Calorie Database</h3>
-            <span class="text-[10px] font-bold text-mutedText">${filteredFoods.length} items</span>
-          </div>
-
-          <input type="text" value="${escapeHtml(foodSearchQuery)}" oninput="foodSearchQuery=this.value; renderApp();"
-            placeholder="Search chicken, yogurt, rice, oats, olive oil..."
-            class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-white/40" />
-
-          <div class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
-            ${cats.map(c => `
-              <button type="button" onclick="foodCategoryFilter='${c}'; renderApp();"
-                class="px-3 py-1.5 rounded-xl text-[11px] font-extrabold shrink-0 transition ${foodCategoryFilter === c ? 'accent-bg' : 'bg-obsidian border border-borderDark text-mutedText hover:text-white'}">
-                ${c}
-              </button>
-            `).join('')}
-          </div>
-
-          <div class="space-y-2 max-h-80 overflow-y-auto pr-1">
+          <div class="space-y-2 max-h-96 overflow-y-auto pr-1">
             ${filteredFoods.map(f => {
-              const starred = isFoodFavorited(f.name);
+              const portion = getQuickFoodPortion(f);
+              const macros = computeFoodItemMacros(f, portion.qty, portion.unit);
+              const cleanBase = f.name.replace(/\s*\([^)]*\)/g, '').trim();
+              const starred = isFoodFavorited(`${cleanBase} (${macros.qty} ${macros.unitLabel})`) || isFoodFavorited(f.name);
               return `
-                <div class="flex items-center justify-between gap-2 p-3 rounded-2xl bg-obsidian border border-borderDark">
-                  <div class="min-w-0">
-                    <p class="text-xs font-extrabold text-white truncate">${escapeHtml(f.name)}</p>
-                    <p class="text-[10px] text-mutedText">${f.cal} kcal · ${f.p}g protein</p>
+                <div class="p-3 rounded-2xl bg-obsidian border border-borderDark space-y-2">
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="min-w-0">
+                      <p class="text-xs font-extrabold text-white truncate">${escapeHtml(cleanBase)}</p>
+                      <p class="text-[10px] text-mutedText">${macros.cal} kcal · ${macros.p}g protein</p>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                      <button type="button" onclick="toggleFavoriteByFoodId('${f.id}')"
+                        class="w-8 h-8 rounded-xl bg-surface border border-borderDark text-xs ${starred ? 'text-amber-400' : 'text-mutedText hover:text-white'}">
+                        ${starred ? '★' : '☆'}
+                      </button>
+                      <button type="button" onclick="logFoodById('${f.id}')"
+                        class="px-3 py-1.5 rounded-xl accent-soft-bg accent-text text-[11px] font-extrabold">
+                        + Log
+                      </button>
+                    </div>
                   </div>
-                  <div class="flex items-center gap-1.5 shrink-0">
-                    <button type="button" onclick="toggleFavoriteByFoodId('${f.id}')"
-                      class="w-8 h-8 rounded-xl bg-surface border border-borderDark text-xs ${starred ? 'text-amber-400' : 'text-mutedText hover:text-white'}">
-                      ${starred ? '★' : '☆'}
-                    </button>
-                    <button type="button" onclick="logFoodById('${f.id}')"
-                      class="px-3 py-1.5 rounded-xl accent-soft-bg accent-text text-[11px] font-extrabold">
-                      + Log
-                    </button>
+                  <div class="flex items-center gap-1.5 pt-1 border-t border-borderDark/60">
+                    <span class="text-[10px] font-bold text-mutedText">Amount:</span>
+                    <input type="number" min="0.1" step="any" value="${portion.qty}"
+                      onchange="updateQuickFoodQty('${f.id}', this.value)"
+                      class="w-16 bg-surface border border-borderDark rounded-xl px-2 py-1 text-[11px] font-extrabold text-white text-center" />
+                    <select onchange="updateQuickFoodUnit('${f.id}', this.value)"
+                      class="bg-surface border border-borderDark rounded-xl px-2 py-1 text-[11px] font-extrabold text-white focus:outline-none">
+                      ${Object.entries(FOOD_UNITS).map(([uKey, uObj]) => `
+                        <option value="${uKey}" ${portion.unit === uKey ? 'selected' : ''}>${uObj.label}</option>
+                      `).join('')}
+                    </select>
                   </div>
                 </div>
               `;
