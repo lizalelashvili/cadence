@@ -145,7 +145,6 @@
 <body class="bg-obsidian text-[#F5F5F7] antialiased min-h-[100dvh] flex flex-col justify-center px-5 py-8">
 
   <main class="w-full max-w-sm mx-auto space-y-6">
-    <!-- Brand Mark -->
     <div class="flex flex-col items-center text-center space-y-3">
       <div class="w-14 h-14 rounded-2xl bg-surface border border-borderDark flex items-center justify-center shadow-2xl">
         <div class="grid grid-cols-2 gap-1.5">
@@ -161,7 +160,6 @@
       </div>
     </div>
 
-    <!-- Active Session Quick Resume Banner -->
     <div id="existingSessionBanner" style="display: none;" class="bg-surface border border-borderDark rounded-2xl p-3.5 items-center justify-between gap-3">
       <div class="min-w-0">
         <p class="text-[10px] font-extrabold uppercase tracking-wider text-mutedText">Active Profile</p>
@@ -172,9 +170,7 @@
       </button>
     </div>
 
-    <!-- Auth Card -->
     <section class="bg-surface border border-borderDark rounded-3xl p-5 shadow-2xl space-y-4">
-      <!-- Mode Switcher -->
       <div class="grid grid-cols-2 gap-1.5 bg-obsidian border border-borderDark p-1 rounded-2xl">
         <button id="tabSignIn" type="button" onclick="switchAuthMode('signin')" class="py-2 rounded-xl text-xs font-extrabold text-obsidian transition" style="background-color: #3B82F6;">
           Sign In
@@ -185,7 +181,6 @@
       </div>
 
       <form onsubmit="event.preventDefault(); submitLoginForm();" class="space-y-3.5">
-        <!-- Sign-Up Only: Name, Optional Surname & Gender -->
         <div id="signUpProfileFields" class="hidden space-y-3">
           <div class="grid grid-cols-2 gap-2">
             <div>
@@ -228,7 +223,6 @@
         </button>
       </form>
 
-      <!-- Supabase Server Config Toggle -->
       <div class="pt-1">
         <button type="button" onclick="toggleSupabaseBox()" class="w-full flex items-center justify-between text-[11px] font-bold text-mutedText hover:text-white py-1">
           <span class="flex items-center gap-1.5">
