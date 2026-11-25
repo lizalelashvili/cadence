@@ -80,7 +80,7 @@
   </header>
 
   <!-- Main Content Container -->
-  <main id="appMain" class="max-w-lg mx-auto px-4 space-y-4" style="padding-top: 124px;"></main>
+  <main id="appMain" class="max-w-lg mx-auto px-4 space-y-4" style="padding-top: calc(env(safe-area-inset-top, 0px) + 114px);"></main>
 
   <!-- Frozen Bottom Navigation Bar -->
   <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 z-40 bg-obsidian/95 backdrop-blur-xl border-t border-borderDark" style="padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6px);">
@@ -803,11 +803,13 @@
     // 6. FROZEN HEADER & DYNAMIC SPACING
     // =========================================================
     function syncHeaderSpacer() {
-      const hdr = document.getElementById('appHeader');
+      const inner = document.getElementById('headerInner');
       const main = document.getElementById('appMain');
-      if (hdr && main) {
-        const h = hdr.getBoundingClientRect().height;
-        if (h > 40) main.style.paddingTop = `${Math.ceil(h) + 12}px`;
+      if (inner && main) {
+        const innerH = inner.offsetHeight;
+        if (innerH > 40 && innerH < 160) {
+          main.style.paddingTop = `calc(env(safe-area-inset-top, 0px) + ${innerH + 18}px)`;
+        }
       }
     }
 
