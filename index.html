@@ -852,7 +852,6 @@
         favoriteFoods: [...(base.favoriteFoods || [])]
       };
 
-      // Merge per-day calorie logs without dropping entries
       const allCalDates = new Set([...Object.keys(base.calorieLogs || {}), ...Object.keys(incoming.calorieLogs || {})]);
       allCalDates.forEach(dt => {
         const listA = Array.isArray(base.calorieLogs?.[dt]) ? base.calorieLogs[dt] : [];
@@ -869,7 +868,6 @@
         merged.calorieLogs[dt] = combined;
       });
 
-      // Merge custom exercises
       const seenEx = new Set(merged.customExercises.map(e => e.id));
       (incoming.customExercises || []).forEach(e => {
         if (e && e.id && !seenEx.has(e.id)) {
@@ -878,7 +876,6 @@
         }
       });
 
-      // Merge favorite foods
       const seenFav = new Set(merged.favoriteFoods.map(f => (f.name || '').toLowerCase().trim()));
       (incoming.favoriteFoods || []).forEach(f => {
         const key = (f.name || '').toLowerCase().trim();
@@ -954,7 +951,6 @@
     }
 
     async function hydrateStateFromVault() {
-      // Handle Home Screen PWA URL auto-login query params (?u=...&h=...)
       try {
         const params = new URLSearchParams(window.location.search);
         const qUser = params.get('u');
@@ -2597,7 +2593,7 @@
             class="w-full px-4 py-3 rounded-2xl bg-obsidian border border-borderDark hover:border-white/25 flex items-center justify-between text-xs font-extrabold text-white transition active:scale-[0.99]">
             <span class="flex items-center gap-2">
               <span class="accent-text text-sm">+</span>
-              <span>Add Meal Manually</span>
+              <span>Add Meal Manually (g, ml, L, tbsp, tsp)</span>
             </span>
             <span class="text-[11px] font-bold accent-text">Open Builder →</span>
           </button>
@@ -2641,9 +2637,29 @@
         <!-- Unified Daily Logs / Favorites / History Card -->
         ${renderUnifiedLogsFavoritesHistoryCardHtml()}
 
-        <!-- Quick Food & Calorie Library -->
+        <!-- Quick-Add Food & Calorie Library -->
         <section class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
           <div class="flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-extrabold uppercase tracking-wider accent-text">FOOD CATALOG</p>
+              <h2 class="text-lg font-extrabold text-white mt-0.5">Quick-Add</h2>
+            </div>
+            <span class="text-[11px] font-bold text-mutedText">${filteredFoods.length} items</span>
+          </div>
+
+          <input type="text" value="${escapeHtml(foodSearchQuery)}" oninput="foodSearchQuery=this.value; renderApp();"
+            placeholder="Search chicken, khinkali, borsch, kotlet, oats, shaurma..."
+            class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-white/40" />
+
+          <div class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
+            ${cats.map(c => `
+              <button type="button" onclick="foodCategoryFilter='${c}'; renderApp();"
+                class="px-3 py-1.5 rounded-xl text-[11px] font-extrabold shrink-0 transition ${foodCategoryFilter === c ? 'accent-bg' : 'bg-obsidian border border-borderDark text-mutedText hover:text-white'}">
+                ${c}
+              </button>
+            `).join('')}
+          </div>
+
           <div class="space-y-2 max-h-96 overflow-y-auto pr-1">
             ${filteredFoods.map(f => {
               const portion = getQuickFoodPortion(f);
@@ -2736,36 +2752,6 @@
         appState.bmrProfile.weightKg = kg;
       }
       persistState(true);
-    }
-
-    function calculateBmrAndTdee() {
-      const p = appState.bmrProfile || { age: 26, heightCm: 168, weightKg: 62, activity: 1.55, goalOffset: 0 };
-      const isMale = appState.gender === 'male';
-      const base = (10 * Number(p.weightKg || 62)) + (6.25 * Number(p.heightCm || 168)) - (5 * Number(p.age || 26));
-      const bmr = Math.round(isMale ? base + 5 : base - 161);
-      const tdee = Math.round(bmr * Number(p.activity || 1.55));
-      const target = Math.max(1100, tdee + Number(p.goalOffset || 0));
-      return { bmr, tdee, target };
-    }
-
-    function applyCalculatedCalorieTarget() {
-      const { target } = calculateBmrAndTdee();
-      const weightKg = Number(appState.bmrProfile?.weightKg || 62);
-      appState.calorieTarget = target;
-      appState.proteinTarget = Math.round(weightKg * 1.9);
-      persistState(true);
-      renderApp();
-      showToast(`Daily target set to ${target} kcal (${appState.proteinTarget}g P)`);
-    }
-
-    function updateMeasurementField(field, val) {
-      if (!appState.measurements) appState.measurements = { unit: 'metric', weight: '', waist: '', hips: '', chest: '' };
-      appState.measurements[field] = val;
-      if (field === 'weight' && Number(val) > 0 && appState.bmrProfile) {
-        const kg = appState.measurements.unit === 'imperial' ? Math.round(Number(val) * 0.453592 * 10) / 10 : Number(val);
-        appState.bmrProfile.weightKg = kg;
-      }
-      persistState();
     }
 
     function switchMeasurementUnit(unit) {
