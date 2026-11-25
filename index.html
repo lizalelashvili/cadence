@@ -2595,7 +2595,7 @@
               <span class="accent-text text-sm">+</span>
               <span>Add Meal Manually</span>
             </span>
-            <span class="text-[11px] font-bold accent-text">Open Builder →</span>
+            <span class="text-[11px] font-bold accent-text">Open→</span>
           </button>
 
           <!-- AI Meal Description Calculator -->
@@ -2609,7 +2609,7 @@
               class="w-full bg-surface border border-borderDark rounded-2xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-white/40">${escapeHtml(aiMealInputText)}</textarea>
             <button type="button" onclick="calculateMealWithAI()" ${aiCalculating ? 'disabled' : ''}
               class="w-full py-2.5 rounded-2xl accent-bg text-xs font-extrabold shadow active:scale-[0.98] transition">
-              ${aiCalculating ? 'Calculating Macros...' : 'Calculate Calories & Protein'}
+              ${aiCalculating ? 'Calculating Macros...' : 'Calculate Calories'}
             </button>
 
             ${appState.pendingAiResult ? `
