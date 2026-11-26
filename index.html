@@ -57,7 +57,7 @@
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       margin: 0;
       padding: 0;
-      overflow-x: hidden;
+      width: 100%;
     }
     .accent-bg {
       background-color: var(--accent) !important;
@@ -85,11 +85,10 @@
       left: 0;
       right: 0;
       bottom: 0;
-      z-index: 45;
+      width: 100%;
+      z-index: 50;
       background-color: #0A0A0C;
       border-top: 1px solid #232329;
-      transform: translate3d(0, 0, 0);
-      -webkit-transform: translate3d(0, 0, 0);
       padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6px);
     }
   </style>
@@ -97,12 +96,12 @@
 <body class="bg-obsidian text-[#F5F5F7] antialiased min-h-[100dvh] pb-28">
 
   <!-- Frozen Top Header -->
-  <header id="appHeader" class="fixed top-0 left-0 right-0 z-40 bg-[#0A0A0C] border-b border-borderDark/80" style="padding-top: calc(env(safe-area-inset-top, 0px) + 8px); transform: translate3d(0,0,0);">
+  <header id="appHeader" class="fixed top-0 left-0 right-0 z-40 bg-[#0A0A0C] border-b border-borderDark/80" style="padding-top: calc(env(safe-area-inset-top, 0px) + 8px);">
     <div id="headerInner" class="max-w-lg mx-auto px-3.5 pb-2.5 space-y-2.5"></div>
   </header>
 
   <!-- Main Content -->
-  <main id="appMain" class="max-w-lg mx-auto px-4 space-y-4" style="padding-top: 118px;"></main>
+  <main id="appMain" class="max-w-lg mx-auto px-4 space-y-4 overflow-x-clip" style="padding-top: 118px;"></main>
 
   <!-- Bottom Navigation -->
   <nav id="bottomNav"></nav>
