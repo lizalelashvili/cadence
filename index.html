@@ -57,7 +57,7 @@
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       margin: 0;
       padding: 0;
-      padding-bottom: env(safe-area-inset-bottom, 0px);
+      overflow-x: hidden;
     }
     .accent-bg {
       background-color: var(--accent) !important;
@@ -80,20 +80,32 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
+    #bottomNav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 45;
+      background-color: #0A0A0C;
+      border-top: 1px solid #232329;
+      transform: translate3d(0, 0, 0);
+      -webkit-transform: translate3d(0, 0, 0);
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6px);
+    }
   </style>
 </head>
 <body class="bg-obsidian text-[#F5F5F7] antialiased min-h-[100dvh] pb-28">
 
   <!-- Frozen Top Header -->
-  <header id="appHeader" class="fixed top-0 left-0 right-0 z-40 bg-obsidian/95 backdrop-blur-md border-b border-borderDark/80" style="padding-top: calc(env(safe-area-inset-top, 0px) + 8px);">
-    <div id="headerInner" class="max-w-lg mx-auto px-4 pb-2.5 space-y-2.5"></div>
+  <header id="appHeader" class="fixed top-0 left-0 right-0 z-40 bg-[#0A0A0C] border-b border-borderDark/80" style="padding-top: calc(env(safe-area-inset-top, 0px) + 8px); transform: translate3d(0,0,0);">
+    <div id="headerInner" class="max-w-lg mx-auto px-3.5 pb-2.5 space-y-2.5"></div>
   </header>
 
   <!-- Main Content -->
   <main id="appMain" class="max-w-lg mx-auto px-4 space-y-4" style="padding-top: 118px;"></main>
 
   <!-- Bottom Navigation -->
-  <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 z-40 bg-obsidian/95 backdrop-blur-md border-t border-borderDark" style="padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6px);"></nav>
+  <nav id="bottomNav"></nav>
 
   <!-- Dynamic Modal Container -->
   <div id="modalRoot"></div>
@@ -153,8 +165,8 @@
 
     function getMondayStartOfWeek(dateObj) {
       const copy = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
-      const day = copy.getDay(); // 0=Sun..6=Sat
-      const diff = (day + 6) % 7; // Mon=0..Sun=6
+      const day = copy.getDay();
+      const diff = (day + 6) % 7;
       copy.setDate(copy.getDate() - diff);
       return copy;
     }
@@ -562,7 +574,7 @@
       ['Spring Rolls Vegetable', 'Fast Food', 195, 4.1, 'g'],
       ['Sushi Philadelphia Roll', 'Fast Food', 175, 7.8, 'g'],
 
-      // SOUPS (22)
+      // SOUPS (20)
       ['Borsch with Beef & Sour Cream', 'Soups', 68, 4.5, 'ml'],
       ['Vegetarian Beetroot Borsch', 'Soups', 45, 1.6, 'ml'],
       ['Chorba Beef & Lamb Soup', 'Soups', 82, 5.8, 'ml'],
@@ -850,7 +862,7 @@
       ['Popcorn Air-Popped', 'Carbs', 387, 12.9, 'g'],
       ['Lay’s Classic Potato Chips', 'Carbs', 536, 6.0, 'g'],
 
-      // PRODUCE (70)
+      // PRODUCE (55)
       ['Banana', 'Produce', 89, 1.1, 'g'],
       ['Apple', 'Produce', 52, 0.3, 'g'],
       ['Orange', 'Produce', 47, 0.9, 'g'],
@@ -1349,13 +1361,13 @@
     }
 
     let appState = getDefaultState();
-    let gridMode = 'yearly'; // 'yearly' | 'monthly'
+    let gridMode = 'yearly';
     let gridMonthOffset = 0;
     let foodCategoryFilter = 'All';
     let foodSearchQuery = '';
     let foodDraftAmounts = {};
     let foodDraftUnits = {};
-    let logsSubTab = 'today'; // 'today' | 'favorites' | 'history'
+    let logsSubTab = 'today';
     let customLabelDrawerOpen = false;
     let manualMealDraft = {
       name: '',
@@ -2204,7 +2216,7 @@
       const sess = getSessionInfo();
       const modalRoot = document.getElementById('modalRoot');
       modalRoot.innerHTML = `
-        <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4" onclick="if(event.target===this) closeModal()">
+        <div class="fixed inset-0 z-50 bg-black/80 flex items-end sm:items-center justify-center p-4" onclick="if(event.target===this) closeModal()">
           <div class="w-full max-w-md bg-surface border border-borderDark rounded-3xl p-5 space-y-4">
             <div class="flex items-center justify-between">
               <h2 class="text-base font-extrabold text-white">${t('profileAndTheme')}</h2>
@@ -2325,28 +2337,28 @@
 
       document.getElementById('headerInner').innerHTML = `
         <div class="flex items-center justify-between gap-2">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div class="w-9 h-9 rounded-xl bg-surface border border-borderDark flex items-center justify-center shrink-0">
+          <div class="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
+            <div class="w-8 h-8 rounded-xl bg-surface border border-borderDark flex items-center justify-center shrink-0">
               <div class="grid grid-cols-2 gap-1">
-                <span class="w-2 h-2 rounded-[2px] accent-bg"></span>
-                <span class="w-2 h-2 rounded-[2px] bg-borderDark"></span>
-                <span class="w-2 h-2 rounded-[2px] bg-borderDark"></span>
-                <span class="w-2 h-2 rounded-[2px] accent-bg"></span>
+                <span class="w-1.5 h-1.5 rounded-[2px] accent-bg"></span>
+                <span class="w-1.5 h-1.5 rounded-[2px] bg-borderDark"></span>
+                <span class="w-1.5 h-1.5 rounded-[2px] bg-borderDark"></span>
+                <span class="w-1.5 h-1.5 rounded-[2px] accent-bg"></span>
               </div>
             </div>
-            <div class="min-w-0">
-              <div class="flex items-baseline gap-1.5">
-                <span class="text-sm font-extrabold tracking-tight text-white">CADENCE</span>
-                <span class="text-[11px] font-bold text-mutedText">${stats.count}/${stats.totalDays}d</span>
+            <div class="min-w-0 flex-1 overflow-hidden">
+              <div class="flex items-baseline gap-1 whitespace-nowrap">
+                <span class="text-xs sm:text-sm font-extrabold tracking-tight text-white">CADENCE</span>
+                <span class="text-[10px] font-bold text-mutedText truncate">${stats.count}/${stats.totalDays}d</span>
               </div>
-              <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface border border-borderDark text-[10px] font-extrabold text-white mt-0.5">
+              <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-surface border border-borderDark text-[10px] font-extrabold text-white mt-0.5 whitespace-nowrap">
                 <span>🔥</span><span>${streak}${t('streakSuffix')}</span>
               </div>
             </div>
           </div>
 
           <div class="flex items-center gap-1.5 shrink-0">
-            <div class="relative">
+            <div class="relative shrink-0">
               <select aria-label="Language" onchange="setAppLanguage(this.value)"
                 class="appearance-none bg-surface border border-borderDark rounded-full pl-2.5 pr-5 py-1.5 text-[11px] font-extrabold text-white focus:outline-none cursor-pointer">
                 <option value="geo" ${appState.language !== 'eng' ? 'selected' : ''}>Geo</option>
@@ -2356,13 +2368,13 @@
             </div>
 
             <button type="button" onclick="openAccountModal()"
-              class="flex items-center gap-1.5 bg-surface border border-borderDark rounded-full pl-1.5 pr-2.5 py-1 text-xs font-extrabold text-white">
-              <span class="w-6 h-6 rounded-full accent-soft-bg accent-text flex items-center justify-center text-[11px] font-extrabold">${initial}</span>
-              <span class="max-w-[64px] truncate">${appState.firstName || 'Alex'}</span>
+              class="flex items-center gap-1 bg-surface border border-borderDark rounded-full pl-1 pr-2 py-1 text-xs font-extrabold text-white shrink-0">
+              <span class="w-5 h-5 rounded-full accent-soft-bg accent-text flex items-center justify-center text-[10px] font-extrabold shrink-0">${initial}</span>
+              <span class="max-w-[52px] truncate">${appState.firstName || 'Alex'}</span>
             </button>
 
             <button type="button" onclick="appState.activeTab='workouts'; renderApp();"
-              class="px-3 py-1.5 rounded-full accent-bg text-xs font-extrabold shadow">
+              class="px-2.5 py-1.5 rounded-full accent-bg text-[11px] font-extrabold shadow shrink-0 whitespace-nowrap">
               ${t('logBtn')}
             </button>
           </div>
@@ -2460,13 +2472,13 @@
           </div>
           <div class="space-y-2">
             ${(appState.routines || []).map(r => `
-              <div class="flex items-center justify-between bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5">
-                <div class="min-w-0">
+              <div class="flex items-center justify-between gap-3 bg-obsidian border border-borderDark rounded-2xl px-3.5 py-2.5">
+                <div class="min-w-0 flex-1">
                   <p class="text-xs font-extrabold text-white truncate">${r.name}</p>
                   <p class="text-[11px] text-mutedText">${r.exercises.length} ${t('navWorkouts').toLowerCase()}</p>
                 </div>
                 <button type="button" onclick="startRoutineToday('${r.id}')"
-                  class="px-3.5 py-1.5 rounded-xl accent-bg text-xs font-extrabold shrink-0">
+                  class="w-24 py-1.5 rounded-xl accent-bg text-xs font-extrabold text-center shrink-0 whitespace-nowrap">
                   ${t('startRoutine')}
                 </button>
               </div>
@@ -2479,7 +2491,7 @@
     function openExercisePickerModal() {
       const modalRoot = document.getElementById('modalRoot');
       modalRoot.innerHTML = `
-        <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4" onclick="if(event.target===this) closeModal()">
+        <div class="fixed inset-0 z-50 bg-black/80 flex items-end sm:items-center justify-center p-4" onclick="if(event.target===this) closeModal()">
           <div class="w-full max-w-md bg-surface border border-borderDark rounded-3xl p-4 space-y-3 max-h-[82dvh] flex flex-col">
             <div class="flex items-center justify-between">
               <h3 class="text-sm font-extrabold text-white">${t('addExercise')}</h3>
@@ -2545,13 +2557,13 @@
 
       return `
         <section class="bg-surface border border-borderDark rounded-3xl p-4 space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
+          <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
               <p class="text-[10px] font-extrabold uppercase tracking-wider accent-text">${formatTodayBadgeText()}</p>
               <h2 class="text-lg font-extrabold text-white">${todayWorkout.routineName || t('activeWorkout')}</h2>
             </div>
             <button type="button" onclick="openExercisePickerModal()"
-              class="px-3.5 py-2 rounded-xl accent-bg text-xs font-extrabold">
+              class="px-3.5 py-2 rounded-xl accent-bg text-xs font-extrabold shrink-0">
               ${t('addExercise')}
             </button>
           </div>
@@ -2559,9 +2571,9 @@
           <div class="flex flex-col gap-2">
             ${(appState.routines || []).map(r => `
               <button type="button" onclick="startRoutineToday('${r.id}')"
-                class="w-full text-left px-3.5 py-2.5 rounded-2xl bg-obsidian border border-borderDark text-xs font-extrabold text-white flex items-center justify-between">
-                <span>${t('routine')}: ${r.name}</span>
-                <span class="text-[11px] accent-text font-extrabold">${t('startRoutine')} →</span>
+                class="w-full text-left px-3.5 py-3 rounded-2xl bg-obsidian border border-borderDark text-xs font-extrabold text-white flex items-center justify-between gap-3">
+                <span class="min-w-0 flex-1 leading-snug">${t('routine')}: ${r.name}</span>
+                <span class="w-24 text-right text-[11px] accent-text font-extrabold shrink-0 whitespace-nowrap">${t('startRoutine')} →</span>
               </button>
             `).join('')}
           </div>
