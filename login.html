@@ -156,13 +156,21 @@
       </div>
       <div>
         <h1 class="text-xl font-extrabold tracking-tight text-white">CADENCE</h1>
-        <p class="text-xs text-mutedText mt-1">365-Day Workout &amp; Nutrition Tracker</p>
+        <p id="loginSubtitle" class="text-xs text-mutedText mt-1">365-Day Workout &amp; Nutrition Tracker</p>
+      </div>
+      <div class="relative inline-block">
+        <select id="loginLangSelect" aria-label="Language" onchange="setLoginLanguage(this.value)"
+          class="appearance-none bg-surface border border-borderDark hover:border-white/25 rounded-full pl-3 pr-6 py-1 text-[11px] font-extrabold text-white focus:outline-none cursor-pointer">
+          <option value="eng">Eng</option>
+          <option value="geo">Geo</option>
+        </select>
+        <span class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] text-mutedText">▾</span>
       </div>
     </div>
 
     <div id="existingSessionBanner" style="display: none;" class="bg-surface border border-borderDark rounded-2xl p-3.5 items-center justify-between gap-3">
       <div class="min-w-0">
-        <p class="text-[10px] font-extrabold uppercase tracking-wider text-mutedText">Active Profile</p>
+        <p id="activeProfileEyebrow" class="text-[10px] font-extrabold uppercase tracking-wider text-mutedText">Active Profile</p>
         <p id="existingSessionUser" class="text-xs font-extrabold text-white truncate">Athlete</p>
       </div>
       <button id="resumeBtn" type="button" onclick="goToMainApp()" class="px-3.5 py-2 rounded-xl text-xs font-extrabold text-obsidian shrink-0 transition active:scale-95" style="background-color: #3B82F6;">
@@ -173,7 +181,7 @@
     <section class="bg-surface border border-borderDark rounded-3xl p-5 shadow-2xl space-y-4">
       <div class="grid grid-cols-2 gap-1.5 bg-obsidian border border-borderDark p-1 rounded-2xl">
         <button id="tabSignIn" type="button" onclick="switchAuthMode('signin')" class="py-2 rounded-xl text-xs font-extrabold text-obsidian transition" style="background-color: #3B82F6;">
-          Sign In
+          Sign in
         </button>
         <button id="tabSignUp" type="button" onclick="switchAuthMode('signup')" class="py-2 rounded-xl text-xs font-extrabold text-mutedText hover:text-white transition">
           Create Account
@@ -184,17 +192,17 @@
         <div id="signUpProfileFields" class="hidden space-y-3">
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">First Name</label>
+              <label id="lblFirstName" class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">First Name</label>
               <input id="loginFirstName" type="text" autocomplete="given-name" placeholder="e.g. Alex" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-3 text-base sm:text-sm text-white focus:outline-none focus:border-white/40" />
             </div>
             <div>
-              <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Surname <span class="opacity-60">(Opt)</span></label>
+              <label id="lblLastName" class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Surname <span class="opacity-60">(Opt)</span></label>
               <input id="loginLastName" type="text" autocomplete="family-name" placeholder="Optional" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-3 text-base sm:text-sm text-white focus:outline-none focus:border-white/40" />
             </div>
           </div>
 
           <div>
-            <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Gender <span class="opacity-60">(For BMR &amp; Calories)</span></label>
+            <label id="lblGender" class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Gender <span class="opacity-60">(For BMR &amp; Calories)</span></label>
             <div class="grid grid-cols-2 gap-2">
               <button id="genderFemaleBtn" type="button" onclick="selectSignupGender('female')" class="py-2.5 rounded-2xl text-xs font-extrabold border border-borderDark text-obsidian transition" style="background-color: #3B82F6;">
                 Female
@@ -207,41 +215,24 @@
         </div>
 
         <div>
-          <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Email or Username</label>
+          <label id="lblUsername" class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Email or Username</label>
           <input id="loginUsername" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. alex@example.com" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-3 text-base sm:text-sm text-white focus:outline-none focus:border-white/40" />
         </div>
 
         <div>
-          <label class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Password</label>
+          <label id="lblPassword" class="text-[10px] font-bold uppercase tracking-wider text-mutedText block mb-1">Password</label>
           <input id="loginPassword" type="password" autocomplete="current-password" placeholder="••••••••" class="w-full bg-obsidian border border-borderDark rounded-2xl px-3.5 py-3 text-base sm:text-sm text-white focus:outline-none focus:border-white/40" />
         </div>
 
         <div id="loginError" class="hidden text-xs font-semibold text-coralAccent bg-coralAccent/10 border border-coralAccent/30 rounded-xl px-3 py-2"></div>
 
         <button id="submitBtn" type="submit" class="w-full py-3.5 rounded-2xl text-xs font-extrabold text-obsidian shadow-lg active:scale-[0.98] transition" style="background-color: #3B82F6;">
-          Sign In &amp; Open Tracker
+          Sign in
         </button>
       </form>
 
-      <div class="pt-1">
-        <button type="button" onclick="toggleSupabaseBox()" class="w-full flex items-center justify-between text-[11px] font-bold text-mutedText hover:text-white py-1">
-          <span class="flex items-center gap-1.5">
-            <span id="sbStatusDot" class="w-2 h-2 rounded-full bg-mutedText"></span>
-            <span id="sbStatusText">Supabase Cloud Sync (Optional)</span>
-          </span>
-          <span id="sbChevron">▾</span>
-        </button>
-        <div id="sbConfigBox" class="hidden mt-2 p-3 rounded-2xl bg-obsidian border border-borderDark space-y-2.5">
-          <input id="loginSbUrl" type="url" placeholder="Supabase Project URL (https://...supabase.co)" class="w-full bg-surface border border-borderDark rounded-xl px-3 py-2 text-xs text-white focus:outline-none" />
-          <input id="loginSbKey" type="text" placeholder="Supabase Anon Public Key" class="w-full bg-surface border border-borderDark rounded-xl px-3 py-2 text-xs text-white focus:outline-none" />
-          <button type="button" onclick="saveLoginSupabaseConfig()" class="w-full py-2 rounded-xl bg-surface border border-borderDark text-[11px] font-extrabold text-white hover:border-white/20">
-            Save Server Credentials
-          </button>
-        </div>
-      </div>
-
       <div class="pt-2 border-t border-borderDark flex items-center justify-between text-[11px]">
-        <span class="text-mutedText">Train without an account?</span>
+        <span id="guestPromptText" class="text-mutedText">Train without an account?</span>
         <a id="guestLink" href="./index.html" onclick="enterAsGuest(event)" class="font-bold hover:underline" style="color: #3B82F6;">Continue as Guest →</a>
       </div>
     </section>
@@ -272,6 +263,116 @@
     let selectedSignupGender = 'female';
     let activeAccentHex = '#3B82F6';
     let supabaseClient = null;
+    let loginLang = 'geo';
+
+    const LOGIN_I18N = {
+      eng: {
+        subtitle: '365-Day Workout & Nutrition Tracker',
+        activeProfile: 'Active Profile',
+        openApp: 'Open App →',
+        signIn: 'Sign in',
+        createAccount: 'Create Account',
+        firstName: 'First Name',
+        firstNamePh: 'e.g. Alex',
+        surnameHtml: 'Surname <span class="opacity-60">(Opt)</span>',
+        surnamePh: 'Optional',
+        genderHtml: 'Gender <span class="opacity-60">(For BMR &amp; Calories)</span>',
+        female: 'Female',
+        male: 'Male',
+        username: 'Email or Username',
+        usernamePh: 'e.g. alex@example.com',
+        password: 'Password',
+        submitSignIn: 'Sign in',
+        submitSignUp: 'Create Account & Start',
+        connecting: 'Connecting...',
+        guestPrompt: 'Train without an account?',
+        guestLink: 'Continue as Guest →',
+        errFirst: 'Please enter your first name.',
+        errUser: 'Email or username must be at least 3 characters.',
+        errPass: 'Password must be at least 4 characters.',
+        errExists: 'Account already exists — switch to Sign in.',
+        errWrongPass: 'Incorrect password for ',
+        errGeneric: 'Could not complete sign in. Please try again.'
+      },
+      geo: {
+        subtitle: '365-დღიანი ვარჯიშისა და კვების ტრეკერი',
+        activeProfile: 'აქტიური პროფილი',
+        openApp: 'აპის გახსნა →',
+        signIn: 'შესვლა',
+        createAccount: 'რეგისტრაცია',
+        firstName: 'სახელი',
+        firstNamePh: 'მაგ. ნინო',
+        surnameHtml: 'გვარი <span class="opacity-60">(არასავალდებულო)</span>',
+        surnamePh: 'არასავალდებულო',
+        genderHtml: 'სქესი <span class="opacity-60">(BMR და კალორიებისთვის)</span>',
+        female: 'ქალი',
+        male: 'კაცი',
+        username: 'ელ-ფოსტა ან მომხმარებელი',
+        usernamePh: 'მაგ. alex@example.com',
+        password: 'პაროლი',
+        submitSignIn: 'შესვლა',
+        submitSignUp: 'ანგარიშის შექმნა',
+        connecting: 'დაკავშირება...',
+        guestPrompt: 'ვარჯიში ანგარიშის გარეშე?',
+        guestLink: 'სტუმრად გაგრძელება →',
+        errFirst: 'გთხოვთ შეიყვანოთ სახელი.',
+        errUser: 'ელ-ფოსტა ან მომხმარებელი უნდა იყოს მინიმუმ 3 სიმბოლო.',
+        errPass: 'პაროლი უნდა იყოს მინიმუმ 4 სიმბოლო.',
+        errExists: 'ანგარიში უკვე არსებობს — გადადით შესვლაზე.',
+        errWrongPass: 'არასწორი პაროლი: ',
+        errGeneric: 'შესვლა ვერ მოხერხდა. სცადეთ თავიდან.'
+      }
+    };
+
+    function tl(key) {
+      return (LOGIN_I18N[loginLang] || LOGIN_I18N.eng)[key] || LOGIN_I18N.eng[key] || key;
+    }
+
+    function setLoginLanguage(lang) {
+      loginLang = lang === 'geo' ? 'geo' : 'eng';
+      try {
+        localStorage.setItem('cadence_language_v1', loginLang);
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        if (saved && typeof saved === 'object') {
+          saved.language = loginLang;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+        }
+      } catch (_) {}
+      applyLoginTranslations();
+    }
+
+    function applyLoginTranslations() {
+      const sel = document.getElementById('loginLangSelect');
+      if (sel) sel.value = loginLang;
+      const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      const setHtml = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
+      setTxt('loginSubtitle', tl('subtitle'));
+      setTxt('activeProfileEyebrow', tl('activeProfile'));
+      setTxt('resumeBtn', tl('openApp'));
+      setTxt('tabSignIn', tl('signIn'));
+      setTxt('tabSignUp', tl('createAccount'));
+      setTxt('lblFirstName', tl('firstName'));
+      setHtml('lblLastName', tl('surnameHtml'));
+      setHtml('lblGender', tl('genderHtml'));
+      setTxt('genderFemaleBtn', tl('female'));
+      setTxt('genderMaleBtn', tl('male'));
+      setTxt('lblUsername', tl('username'));
+      setTxt('lblPassword', tl('password'));
+      setTxt('guestPromptText', tl('guestPrompt'));
+      setTxt('guestLink', tl('guestLink'));
+
+      const fn = document.getElementById('loginFirstName');
+      if (fn) fn.placeholder = tl('firstNamePh');
+      const ln = document.getElementById('loginLastName');
+      if (ln) ln.placeholder = tl('surnamePh');
+      const un = document.getElementById('loginUsername');
+      if (un) un.placeholder = tl('usernamePh');
+
+      const submitBtn = document.getElementById('submitBtn');
+      if (submitBtn && !submitBtn.disabled) {
+        submitBtn.textContent = currentMode === 'signup' ? tl('submitSignUp') : tl('submitSignIn');
+      }
+    }
 
     function selectSignupGender(gender) {
       selectedSignupGender = gender === 'male' ? 'male' : 'female';
@@ -306,22 +407,12 @@
 
     function initLoginSupabase() {
       const cfg = getSupabaseConfig();
-      const dot = document.getElementById('sbStatusDot');
-      const txt = document.getElementById('sbStatusText');
       if (!cfg || !window.supabase || !window.supabase.createClient) {
         supabaseClient = null;
-        if (dot) dot.className = 'w-2 h-2 rounded-full bg-mutedText';
-        if (txt) txt.textContent = 'Supabase Cloud Sync (Optional)';
         return;
       }
       try {
         supabaseClient = window.supabase.createClient(cfg.url.trim(), cfg.anonKey.trim());
-        if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
-        if (txt) txt.textContent = 'Supabase Cloud Server Connected';
-        const urlIn = document.getElementById('loginSbUrl');
-        const keyIn = document.getElementById('loginSbKey');
-        if (urlIn) urlIn.value = cfg.url;
-        if (keyIn) keyIn.value = cfg.anonKey;
       } catch (_) {
         supabaseClient = null;
       }
@@ -342,7 +433,12 @@
     }
 
     try {
+      const savedLang = localStorage.getItem('cadence_language_v1');
+      if (savedLang === 'geo' || savedLang === 'eng') loginLang = savedLang;
       const savedState = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      if (savedState && savedState.language && !savedLang) {
+        loginLang = savedState.language === 'eng' ? 'eng' : 'geo';
+      }
       if (savedState && savedState.accent && THEME_HEX[savedState.accent]) {
         activeAccentHex = THEME_HEX[savedState.accent];
       }
@@ -378,6 +474,7 @@
 
     applyAccentToLogin();
     initLoginSupabase();
+    applyLoginTranslations();
 
     function switchAuthMode(mode) {
       currentMode = mode;
@@ -395,7 +492,7 @@
         btnUp.style.backgroundColor = 'transparent';
         btnUp.className = 'py-2 rounded-xl text-xs font-extrabold text-mutedText hover:text-white transition';
         if (signUpFields) signUpFields.classList.add('hidden');
-        submitBtn.textContent = 'Sign In & Open Tracker';
+        submitBtn.textContent = tl('submitSignIn');
         if (passInput) passInput.setAttribute('autocomplete', 'current-password');
       } else {
         btnUp.style.backgroundColor = activeAccentHex;
@@ -403,7 +500,7 @@
         btnIn.style.backgroundColor = 'transparent';
         btnIn.className = 'py-2 rounded-xl text-xs font-extrabold text-mutedText hover:text-white transition';
         if (signUpFields) signUpFields.classList.remove('hidden');
-        submitBtn.textContent = 'Create Account & Start';
+        submitBtn.textContent = tl('submitSignUp');
         if (passInput) passInput.setAttribute('autocomplete', 'new-password');
       }
     }
@@ -483,24 +580,24 @@
       const username = rawUser.toLowerCase().trim().replace(/[^a-z0-9@._-]/g, '');
 
       if (currentMode === 'signup' && rawFirst.length < 1) {
-        err.textContent = 'Please enter your first name.';
+        err.textContent = tl('errFirst');
         err.classList.remove('hidden');
         return;
       }
       if (username.length < 3) {
-        err.textContent = 'Email or username must be at least 3 characters.';
+        err.textContent = tl('errUser');
         err.classList.remove('hidden');
         return;
       }
       if (rawPass.length < 4) {
-        err.textContent = 'Password must be at least 4 characters.';
+        err.textContent = tl('errPass');
         err.classList.remove('hidden');
         return;
       }
 
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Connecting...';
+        submitBtn.textContent = tl('connecting');
       }
 
       try {
@@ -530,21 +627,21 @@
         }
 
         if (currentMode === 'signup' && existingVault && existingVault._passHash) {
-          err.textContent = 'Account already exists — switch to Sign In.';
+          err.textContent = tl('errExists');
           err.classList.remove('hidden');
           if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Create Account & Start';
+            submitBtn.textContent = tl('submitSignUp');
           }
           return;
         }
 
         if (currentMode === 'signin' && existingVault && existingVault._passHash && existingVault._passHash !== passHash) {
-          err.textContent = `Incorrect password for ${username}.`;
+          err.textContent = `${tl('errWrongPass')}${username}.`;
           err.classList.remove('hidden');
           if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Sign In & Open Tracker';
+            submitBtn.textContent = tl('submitSignIn');
           }
           return;
         }
@@ -594,11 +691,11 @@
 
         goToMainApp();
       } catch (e) {
-        err.textContent = 'Could not complete sign in. Please try again.';
+        err.textContent = tl('errGeneric');
         err.classList.remove('hidden');
         if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.textContent = currentMode === 'signup' ? 'Create Account & Start' : 'Sign In & Open Tracker';
+          submitBtn.textContent = currentMode === 'signup' ? tl('submitSignUp') : tl('submitSignIn');
         }
       }
     }
