@@ -168,7 +168,7 @@
         navWorkouts: 'ვარჯიშები',
         navCalories: 'კალორიები',
         navPlan: 'სხეული და გეგმა',
-        streakSuffix: 'კვ სერია',
+        streakSuffix: 'კვ',
         logBtn: '+ ჩაწერა',
         weeksShort: ['ო', 'ს', 'ო', 'ხ', 'პ', 'შ', 'კ'],
         monthsShort: ['იან', 'თებ', 'მარ', 'აპრ', 'მაი', 'ივნ', 'ივლ', 'აგვ', 'სექ', 'ოქტ', 'ნოე', 'დეკ'],
@@ -2556,11 +2556,12 @@
             </button>
           </div>
 
-          <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+          <div class="flex flex-col gap-2">
             ${(appState.routines || []).map(r => `
               <button type="button" onclick="startRoutineToday('${r.id}')"
-                class="px-3 py-1.5 rounded-full bg-obsidian border border-borderDark text-[11px] font-extrabold text-white shrink-0">
-                ${t('routine')}: ${r.name}
+                class="w-full text-left px-3.5 py-2.5 rounded-2xl bg-obsidian border border-borderDark text-xs font-extrabold text-white flex items-center justify-between">
+                <span>${t('routine')}: ${r.name}</span>
+                <span class="text-[11px] accent-text font-extrabold">${t('startRoutine')} →</span>
               </button>
             `).join('')}
           </div>
